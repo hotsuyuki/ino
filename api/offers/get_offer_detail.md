@@ -23,6 +23,6 @@ GET /offers/:offer_id
       "departure_time": "2018-10-04 10:00:00",
       "rider_capacity": 2
     },
-    "reserved_riders": [1, 4] //riderの
+    "reserved_riders": [1, 4] //riderのidの配列
 }
 ```
