@@ -11,6 +11,7 @@ POST /api/drivers
 ### Request Body Example
 ```
 {
+  "id": 0,
   "first_name": "章男",
   "last_name": "豊田",
   "major": "機械科学専攻",
@@ -26,11 +27,9 @@ POST /api/drivers
 ```
 // サインアップ成功した時
 {
-    "user_id": 001
+    "id": 1
 }
 
 // サインアップ失敗した時
-{
-    "user_id": "null"
-}
+code : 400, 500
 ```
