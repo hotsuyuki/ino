@@ -5,16 +5,17 @@
 
 ### Path
 ```
-POST /api/offers
+POST /offers
 ```
 
 ### Request Body Example
 ```
 {
-  "driver_id": 001,
-  "start": "Vドラッグ", // "start": 001 のようなIDの方が良い？
-  "goal": "自然研3号館", // "goal": 002 のようなIDの方が良い？
-  "departure_time": "2018/10/4,Thu,10:00",
+  "id": 0,
+  "driver_id": 1,
+  "start": "Vドラッグ",
+  "goal": "自然研3号館",
+  "departure_time": "2018-10-04 10:00:00",
   "rider_capacity": 2 // 全体の席数
 }
 ```
@@ -23,11 +24,9 @@ POST /api/offers
 ```
 // オファー新規作成成功した時
 {
-    "offer_id": 0001
+    "id": 1
 }
 
 // オファー新規作成失敗した時
-{
-    "offer_id": "null"
-}
+code: 400, 500
 ```
