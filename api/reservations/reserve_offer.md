@@ -5,14 +5,15 @@
 
 ### Path
 ```
-POST /api/reservations
+POST /reservations
 ```
 
 ### Request Body Example
 ```
 {
-  "offer_id": 0001,
-  "rider_id": 002
+  "id": 0,
+  "offer_id": 1,
+  "rider_id": 2
 }
 ```
 
@@ -20,11 +21,9 @@ POST /api/reservations
 ```
 // オファー予約成功した時
 {
-    "reservation_id": 00001
+  "id": 1,
 }
 
 // オファー予約失敗した時
-{
-    "reservation_id": "null"
-}
+400, 500
 ```
