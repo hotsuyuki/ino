@@ -5,17 +5,17 @@
 
 ### Path
 ```
-PATCH /api/drivers/:user_id
-(PUT /api/drivers/:user_id)
+PUT /api/drivers/:user_id
 ```
 
 ### Request Body Example
 ```
 {
+  "id": 1,
   "first_name": "章子",
   "last_name": "松田",
   "major": "電子情報専攻",
-  "grade": "修士2年",  // "grade": "m2" の方が良い？
+  "grade": "修士2年", 
   "email": "akikomatsuda@stu.kanazawa-u.ac.jp",
   "phone": 09011119999,
   "car_color": "赤",
@@ -26,12 +26,23 @@ PATCH /api/drivers/:user_id
 ### Response Body Example
 ```
 // プロフィール編集成功した時
+code: 200
 {
-    "status": "true"
+    "driver": {
+      {
+        "id": 0,
+        "first_name": "章子",
+        "last_name": "松田",
+        "major": "電子情報専攻",
+        "grade": "修士2年", 
+        "email": "akikomatsuda@stu.kanazawa-u.ac.jp",
+        "phone": 09011119999,
+        "car_color": "赤",
+        "car_number": 9999
+      }
+    }
 }
 
 // プロフィール編集失敗した時
-{
-    "status": "false"
-}
+code: 400, 500
 ```
