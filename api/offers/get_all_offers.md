@@ -32,7 +32,7 @@ GET /offers
       "offer": 
        {
         "id": 2,
-        "driver_id": 3,
+        "driver_id": 7,
         "start": "Vドラッグ",
         "goal": "自然研3号館", 
         "departure_time": "2018-10-04 10:00:00",
