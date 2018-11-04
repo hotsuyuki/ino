@@ -5,7 +5,7 @@
 
 ### Path
 ```
-POST /api/riders/signin
+POST /riders/signin
 ```
 
 ### Request Body Example
