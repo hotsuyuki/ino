@@ -13,48 +13,33 @@ GET /api/offers?driver_id=:user_id
 
 ### Response Body Example
 ```
-[
-  {
-    "offer_id": 0001,
-    "driver": {
-      "driver_id": 001,
-      "first_name": "章男",
-      "last_name": "豊田",
-      "major": "機械科学専攻",
-      "grade": "修士1年",  // "grade": "m1" の方が良い？
-      "phone": 09012345678,
-      "car_color": "白",
-      "car_number": 1234
-    },
-    "start": "Vドラッグ", // "start": 001 のようなIDの方が良い？
-    "goal": "自然研3号館", // "goal": 002 のようなIDの方が良い？
-    "departure_time": "2018/10/4,Thu,10:00",
-    "rider_occupancy": 1, // 既に埋まってる席数("reservations"項目の配列要素数)
-    "rider_capacity": 2 // 全体の席数
-  },
-
-  {
-    "offer_id": 0002,
-    "driver": {
-      "driver_id": 001,
-      "first_name": "章男",
-      "last_name": "豊田",
-      "major": "機械科学専攻",
-      "grade": "修士1年",  // "grade": "m1" の方が良い？
-      "email": "akiotoyoda@stu.kanazawa-u.ac.jp",
-      "phone": 09012345678,
-      "car_color": "白",
-      "car_number": 1234
-    },
-    "start": "自然研3号館", // "start": 002 のようなIDの方が良い？
-    "goal": "Vドラッグ", // "goal": 001 のようなIDの方が良い？
-    "departure_time": "2018/10/4,Thu,18:00",
-    "rider_occupancy": 0, // 既に埋まってる席数("reservations"項目の配列要素数)
-    "rider_capacity": 2 // 全体の席数
-  },
-
-  .
-  .
-  .
-]
+{ 
+"offers":
+  [
+    {
+      "offer": 
+       {
+        "id": 1,
+        "driver_id": 3,
+        "start": "Vドラッグ",
+        "goal": "自然研3号館", 
+        "departure_time": "2018-10-04 10:00:00",
+        "rider_capacity": 2
+       },
+      "reserved_riders": [1, 4] //riderのidの配列
+     },
+     {
+      "offer": 
+       {
+        "id": 2,
+        "driver_id": 3,
+        "start": "Vドラッグ",
+        "goal": "自然研3号館", 
+        "departure_time": "2018-10-04 10:00:00",
+        "rider_capacity": 2
+       },
+      "reserved_riders": [3, 5] //riderのidの配列
+     },
+  ]
+}
 ```
