@@ -5,12 +5,13 @@
 
 ### Path
 ```
-POST /api/riders
+POST /riders/signup
 ```
 
 ### Request Body Example
 ```
 {
+  "id": 0,
   "first_name": "正義",
   "last_name": "孫",
   "major": "国際学類",
@@ -24,11 +25,9 @@ POST /api/riders
 ```
 // サインアップ成功した時
 {
-    "user_id": 002
+    "id": 1
 }
 
 // サインアップ失敗した時
-{
-    "user_id": "null"
-}
+code: 400, 500
 ```
