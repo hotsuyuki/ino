@@ -5,7 +5,7 @@
 
 ### Path
 ```
-GET /api/riders/:user_id
+GET /riders/:user_id
 ```
 
 ### Request Body Example
@@ -14,11 +14,14 @@ GET /api/riders/:user_id
 ### Response Body Example
 ```
 {
-  "first_name": "正義",
-  "last_name": "孫",
-  "major": "国際学類",
-  "grade": "学部3年",  // "grade": "b3" の方が良い？
-  "email": "masayoshison@stu.kanazawa-u.ac.jp",
-  "phone": 08012345678
+  "rider":{
+    "id": 1,
+    "first_name": "正義",
+    "last_name": "孫",
+    "major": "国際学類",
+    "grade": "学部3年",  // "grade": "b3" の方が良い？
+    "email": "masayoshison@stu.kanazawa-u.ac.jp",
+    "phone": 08012345678
+  }
 }
 ```
