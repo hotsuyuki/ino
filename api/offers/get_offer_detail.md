@@ -5,7 +5,7 @@
 
 ### Path
 ```
-GET /api/offers/:offer_id
+GET /offers/:offer_id
 ```
 
 ### Request Body Example
@@ -14,19 +14,15 @@ GET /api/offers/:offer_id
 ### Response Body Example
 ```
 {
-  "reservations": [
+  "offer": 
     {
-      "rider_id": 002,
-      "first_name": "正義",
-      "last_name": "孫",
-      "major": "国際学類",
-      "grade": "学部3年",  // "grade": "b3" の方が良い？
-      "phone": 08012345678,
+      "id": 1,
+      "driver_id": 3,
+      "start": "Vドラッグ",
+      "goal": "自然研3号館", 
+      "departure_time": "2018-10-04 10:00:00",
+      "rider_capacity": 2
     },
-
-    .
-    .
-    .
-  ]
+    "reserved_riders": [1, 4] //riderの
 }
 ```
