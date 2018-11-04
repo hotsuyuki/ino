@@ -5,7 +5,7 @@
 
 ### Path
 ```
-DELETE /api/offers/:offer_id
+DELETE /offers/:offer_id
 ```
 
 ### Request Body Example
@@ -15,11 +15,9 @@ DELETE /api/offers/:offer_id
 ```
 // オファーキャンセル成功した時
 {
-    "status": "true"
+    "id": 1
 }
 
 // オファーキャンセル失敗した時
-{
-    "status": "false"
-}
+400, 500
 ```
