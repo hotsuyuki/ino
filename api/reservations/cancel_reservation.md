@@ -5,7 +5,7 @@
 
 ### Path
 ```
-DELETE /api/reservations/:reservation_id
+DELETE /reservations/:reservation_id
 ```
 
 ### Request Body Example
@@ -15,11 +15,9 @@ DELETE /api/reservations/:reservation_id
 ```
 // 予約キャンセル成功した時
 {
-    "status": "true"
+    "id": 2
 }
 
 // 予約キャンセル失敗した時
-{
-    "status": "false"
-}
+400, 500
 ```
