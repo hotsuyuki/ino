@@ -5,7 +5,7 @@
 
 ### Path
 ```
-GET /api/drivers/:user_id
+GET /drivers/:user_id
 ```
 
 ### Request Body Example
@@ -14,13 +14,16 @@ GET /api/drivers/:user_id
 ### Response Body Example
 ```
 {
-  "first_name": "章男",
-  "last_name": "豊田",
-  "major": "機械科学専攻",
-  "grade": "修士1年",  // "grade": "m1" の方が良い？
-  "email": "akiotoyoda@stu.kanazawa-u.ac.jp",
-  "phone": 09012345678,
-  "car_color": "白",
-  "car_number": 1234
+  "driver":{
+    "id": 1,
+    "first_name": "章男",
+    "last_name": "豊田",
+    "major": "機械科学専攻",
+    "grade": "修士1年",  // "grade": "m1" の方が良い？
+    "email": "akiotoyoda@stu.kanazawa-u.ac.jp",
+    "phone": 09012345678,
+    "car_color": "白",
+    "car_number": 1234
+  }
 }
 ```
