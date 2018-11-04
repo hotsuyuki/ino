@@ -5,7 +5,7 @@
 
 ### Path
 ```
-POST /api/drivers
+POST /api/drivers/signup
 ```
 
 ### Request Body Example
