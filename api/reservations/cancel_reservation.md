@@ -15,7 +15,7 @@ DELETE /reservations/:reservation_id
 ```
 // 予約キャンセル成功した時
 {
-    "id": 2
+    "id": 2 // キャンセルした予約のid
 }
 
 // 予約キャンセル失敗した時
