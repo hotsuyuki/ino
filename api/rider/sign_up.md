@@ -11,7 +11,7 @@ POST /riders/signup
 ### Request Body Example
 ```
 {
-  "id": 0,
+  "id": 0, // 便宜上，仮の "id": 0 をつけて送る
   "first_name": "正義",
   "last_name": "孫",
   "major": "国際学類",
