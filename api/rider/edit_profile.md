@@ -5,13 +5,13 @@
 
 ### Path
 ```
-PATCH /api/riders/:user_id
-(PUT /api/riders/:user_id)
+PUT /riders/:user_id
 ```
 
 ### Request Body Example
 ```
 {
+  "id": 1,
   "first_name": "泰蔵",
   "last_name": "孫",
   "major": "経済学類",
@@ -25,11 +25,19 @@ PATCH /api/riders/:user_id
 ```
 // プロフィール編集成功した時
 {
-    "status": "true"
+    "rider": {    
+      {
+        "id": 1,
+        "first_name": "泰蔵",
+        "last_name": "孫",
+        "major": "経済学類",
+        "grade": "学部2年",  // "grade": "b2" の方が良い？
+        "email": "taizoson@stu.kanazawa-u.ac.jp",
+        "phone": 08011119999,
+      }
+    }
 }
 
 // プロフィール編集失敗した時
-{
-    "status": "false"
-}
+code: 400, 500
 ```
