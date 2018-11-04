@@ -26,6 +26,7 @@ POST /api/drivers
 ### Response Body Example
 ```
 // サインアップ成功した時
+code : 200
 {
     "id": 1
 }
