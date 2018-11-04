@@ -15,7 +15,7 @@ PUT /riders/:user_id
   "first_name": "泰蔵",
   "last_name": "孫",
   "major": "経済学類",
-  "grade": "学部2年",  // "grade": "b2" の方が良い？
+  "grade": "学部2年",
   "email": "taizoson@stu.kanazawa-u.ac.jp",
   "phone": 08011119999,
 }
@@ -31,7 +31,7 @@ PUT /riders/:user_id
         "first_name": "泰蔵",
         "last_name": "孫",
         "major": "経済学類",
-        "grade": "学部2年",  // "grade": "b2" の方が良い？
+        "grade": "学部2年",
         "email": "taizoson@stu.kanazawa-u.ac.jp",
         "phone": 08011119999,
       }
