@@ -11,7 +11,7 @@ POST /reservations
 ### Request Body Example
 ```
 {
-  "id": 0,
+  "id": 0, // 便宜上，仮の "id": 0 をつけて送る
   "offer_id": 1,
   "rider_id": 2
 }
