@@ -17,7 +17,7 @@ POST /riders/signin
 
 ### Response Body Example
 ```
-// サインアップ成功した時
+// サインイン成功した時
 code: 200
 {
   rider: {
@@ -31,6 +31,6 @@ code: 200
    }
 }
 
-// サインアップ失敗した時
+// サインイン失敗した時
 code: 400, 500
 ```
