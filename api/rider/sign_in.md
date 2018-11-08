@@ -27,7 +27,7 @@ code: 200
     "major": "国際学類",
     "grade": "学部3年",
     "email": "masayoshison@stu.kanazawa-u.ac.jp",
-    "phone": 08012345678
+    "phone": "08012345678"
    }
 }
 
