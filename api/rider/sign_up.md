@@ -17,7 +17,7 @@ POST /riders/signup
   "major": "国際学類",
   "grade": "学部3年",  // "grade": "b3" の方が良い？
   "email": "masayoshison@stu.kanazawa-u.ac.jp",
-  "phone": 08012345678
+  "phone": "08012345678"
 }
 ```
 
