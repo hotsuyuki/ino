@@ -18,28 +18,28 @@ GET /api/offers?driver_id=:user_id
   [
     {
       "offer": 
-       {
-        "id": 1,
-        "driver_id": 3,
-        "start": "Vドラッグ",
-        "goal": "自然研3号館", 
-        "departure_time": "2018-10-04 10:00:00",
-        "rider_capacity": 2
-       },
+        {
+          "id": 1,
+          "driver_id": 3,
+          "start": "Vドラッグ",
+          "goal": "自然研3号館", 
+          "departure_time": "2018-10-04 10:00:00",
+          "rider_capacity": 2
+        },
       "reserved_riders": [1, 4] //riderのidの配列
-     },
-     {
+    },
+    {
       "offer": 
-       {
-        "id": 2,
-        "driver_id": 3,
-        "start": "Vドラッグ",
-        "goal": "自然研3号館", 
-        "departure_time": "2018-10-04 10:00:00",
-        "rider_capacity": 2
-       },
+        {
+          "id": 2,
+          "driver_id": 3,
+          "start": "Vドラッグ",
+          "goal": "自然研3号館", 
+          "departure_time": "2018-10-04 10:00:00",
+          "rider_capacity": 2
+        },
       "reserved_riders": [3, 5] //riderのidの配列
-     },
+    },
   ]
 }
 ```
