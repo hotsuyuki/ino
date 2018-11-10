@@ -104,6 +104,8 @@ class RegisterScreen extends React.Component {
             // TODO: POST
             // POST the input profile
             try {
+              // TODO: POST時に形だけの "id: 0" を入れる
+              // TODO: 200以外ならサインアップ失敗
               let response = await fetch('https://inori.work/drivers', {
                 method: 'POST',
                 headers: {},
@@ -227,7 +229,7 @@ class RegisterScreen extends React.Component {
           <ListItem
             title="学年："
             subtitle={`${this.state.driverInfo.grade}`}
-            rightIcon={{ name: this.state.startPickerVisible ? 'keyboard-arrow-up' : 'keyboard-arrow-down' }}
+            rightIcon={{ name: this.state.gradePickerVisible ? 'keyboard-arrow-up' : 'keyboard-arrow-down' }}
             onPress={() => this.setState({
               gradePickerVisible: !this.state.gradePickerVisible,
             })}

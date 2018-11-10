@@ -8,8 +8,7 @@ import store from './store';
 
 import LoginScreen from './screens/LoginScreen';
 import SignupScreen from './screens/SignupScreen';
-//import RegisterScreen from './screens/RegisterScreen';
-import OfferScreen from './screens/OfferScreen';
+import OfferListScreen from './screens/OfferListScreen';
 import DetailScreen from './screens/DetailScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import EditProfileScreen from './screens/EditProfileScreen';
@@ -19,11 +18,11 @@ export default class App extends React.Component {
   render() {
     const headerNavigationOptions = {
       headerStyle: {
-        backgroundColor: 'gray',
+        backgroundColor: 'white',
         marginTop: Platform.OS === 'android' ? 24 : 0
       },
-      headerTitleStyle: { color: 'white' },
-      headerTintColor: 'white',
+      headerTitleStyle: { color: 'gray' },
+      headerTintColor: 'gray',
     };
 
 
@@ -49,15 +48,15 @@ export default class App extends React.Component {
 
 
     const MainStack = createStackNavigator({
-      offer: {
-        screen: OfferScreen,
+      offerList: {
+        screen: OfferListScreen,
         navigationOptions: ({ navigation }) => ({
           ...headerNavigationOptions,
           headerLeft: (
             <View style={{ paddingLeft: 10 }}>
               <Icon
                 name='person'
-                color='white'
+                color='gray'
                 onPress={() => navigation.navigate('profile')}
               />
             </View>
@@ -81,7 +80,7 @@ export default class App extends React.Component {
           headerRight: (
             <Button
               title="編集"
-              color="white"
+              color="gray"
               buttonStyle={{ backgroundColor: 'transparent' }}
               onPress={() => navigation.navigate('editProfile')}
             />
@@ -89,7 +88,7 @@ export default class App extends React.Component {
         })
       }
     }, {
-      initialRouteName: 'offer',
+      initialRouteName: 'offerList',
     });
 
 
@@ -107,14 +106,20 @@ export default class App extends React.Component {
 
 
     const NavigatorTab = createBottomTabNavigator({
+      /*
       register: {
         screen: RegisterScreen
+      },
+      */
+      login: {
+        screen: LoginStack
       },
       root: {
         screen: RootStack
       }
     }, {
-      navigationOptions: { tabBarVisible: false }
+      navigationOptions: { tabBarVisible: false },
+      initialRouteName: 'login',
       //lazy: true,
     });
 
@@ -122,7 +127,7 @@ export default class App extends React.Component {
     return (
       <Provider store={store}>
         <View style={styles.container}>
-          <StatusBar barStyle="light-content" />
+          <StatusBar barStyle="dark-content" />
           <NavigatorTab />
         </View>
       </Provider>

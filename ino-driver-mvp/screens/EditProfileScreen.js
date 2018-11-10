@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import React from 'react';
 import {
   StyleSheet, Text, View, ScrollView, Alert, Picker,
@@ -6,6 +5,7 @@ import {
 } from 'react-native';
 import { Header, Button, FormLabel, FormInput, ListItem } from 'react-native-elements';
 import { connect } from 'react-redux';
+import { AppLoading } from 'expo';
 
 import * as actions from '../actions';
 
@@ -200,6 +200,11 @@ class EditProfileScreen extends React.Component {
 
 
   render() {
+    // Wait to fetch own driver's info
+    if ((typeof this.props.driverInfo.phone) === 'undefined') {
+      return <AppLoading />;
+    }
+
     return (
       <View style={{ flex: 1 }}>
         <Header
@@ -259,7 +264,7 @@ class EditProfileScreen extends React.Component {
           <ListItem
             title="学年："
             subtitle={`${this.state.editedDriverInfo.grade}`}
-            rightIcon={{ name: this.state.startPickerVisible ? 'keyboard-arrow-up' : 'keyboard-arrow-down' }}
+            rightIcon={{ name: this.state.gradePickerVisible ? 'keyboard-arrow-up' : 'keyboard-arrow-down' }}
             onPress={() => this.setState({
               gradePickerVisible: !this.state.gradePickerVisible,
             })}

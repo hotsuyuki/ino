@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import React from 'react';
 import {
   StyleSheet, Text, View, ScrollView, Alert,
@@ -6,11 +5,9 @@ import {
 } from 'react-native';
 import { Icon, Button } from 'react-native-elements';
 import { connect } from 'react-redux';
+import { AppLoading } from 'expo';
 
 import * as actions from '../actions';
-
-// TODO: Use API
-import { driverIdTmp } from '../assets/tmpData';
 
 
 class ProfileScreen extends React.Component {
@@ -21,6 +18,11 @@ class ProfileScreen extends React.Component {
 
 
   render() {
+    // Wait to fetch own driver's info
+    if ((typeof this.props.driverInfo.phone) === 'undefined') {
+      return <AppLoading />;
+    }
+
     return (
       <View style={{ flex: 1 }}>
         <ScrollView style={{ flex: 1 }}>
@@ -63,6 +65,7 @@ class ProfileScreen extends React.Component {
               }}
             />
           </View>
+
         </ScrollView>
       </View>
     );

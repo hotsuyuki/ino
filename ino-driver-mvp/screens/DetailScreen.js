@@ -27,7 +27,7 @@ class DetailScreen extends React.Component {
 
   async componentWillMount() {
     // The params passed from the previous page
-    const offerId = this.props.navigation.getParam('offerId', '0');
+    const offerId = this.props.navigation.getParam('offerId', 'default_value');
 
     // Reget the selected offer
     try {
@@ -44,7 +44,7 @@ class DetailScreen extends React.Component {
 
   onCancelOfferButtonPress = () => {
     Alert.alert(
-      '相乗りオファーをキャンセルしてよろしいですか？',
+      '相乗りオファーをキャンセルしてもよろしいですか？',
       '既に予約されたライダー達には通知が行きます。',
       [
         { text: 'いいえ' },
@@ -52,11 +52,16 @@ class DetailScreen extends React.Component {
           text: 'はい',
           onPress: async () => {
             // The params passed from the previous page
-            const offerId = this.props.navigation.getParam('offerId', '0');
+            const offerId = this.props.navigation.getParam('offerId', 'default_value');
 
+            // TODO: DELETE
             // DELETE the selected offer
             try {
-              let response = await fetch(`https://inori.work/offers/${offerId}`);
+              let response = await fetch(`https://inori.work/offers/${offerId}`, {
+                method: 'DELETE',
+                //headers: {},
+                //body: {},
+              });
               let responseJson = await response.json();
               console.log(responseJson);
             } catch (error) {

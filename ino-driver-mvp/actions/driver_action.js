@@ -28,7 +28,7 @@ export const fetchDriverInfo = () => {
       try {
         let response = await fetch(`https://inori.work/drivers/${driverIdTmp}`);
         let responseJson = await response.json();
-        driverInfo = responseJson.driver
+        driverInfo = responseJson.driver;
       } catch (error) {
         console.error(error);
       }

@@ -16,11 +16,15 @@ import { driverIdTmp } from '../assets/tmpData';
 const TOKO = 0;
 const GEKO = 1;
 
+// for TOKO
 const VDRUG = 'Vドラッグ';
-const SHIZEN3ENTER_KOKUSAIKAIKAN = '自然研3号入口経由留学生会館';
-const SHIZEN3ENTER = '自然研3号入口';
 const KOKUSAIKAIKAN_SHIZEN3PARK = '留学生会館経由自然研3号駐車場';
 const SHIZEN3PARK = '自然研3号駐車場';
+
+// for GEKO
+const SHIZEN3ENTER_KOKUSAIKAIKAN = '自然研3号入口経由留学生会館';
+const SHIZEN3ENTER = '自然研3号入口';
+const YAMAYA = 'やまや';
 
 const INITIAL_STATE = {
   // for <ButtonGroup />
@@ -59,8 +63,8 @@ class OfferScreen extends React.Component {
     // GET own offers
     try {
       let response = await fetch(`https://inori.work/offers?driver_id=${driverIdTmp}`);
-
       let responseJson = await response.json();
+
       this.setState({
         ownOffers: responseJson.offers
       });
@@ -141,7 +145,7 @@ class OfferScreen extends React.Component {
               },
             })}
           >
-            <Picker.Item label={`${VDRUG}`} value={`${VDRUG}`} />
+            <Picker.Item label={`${YAMAYA}`} value={`${YAMAYA}`} />
           </Picker>
         );
       }
