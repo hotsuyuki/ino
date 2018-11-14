@@ -1,22 +1,21 @@
 import React from 'react';
 import {
-  StyleSheet, Text, View, ScrollView, Alert, Picker,
+  StyleSheet, Text, View, ScrollView, Alert,
   LayoutAnimation, UIManager, AsyncStorage, KeyboardAvoidingView, Platform,
 } from 'react-native';
-import { Button, FormLabel, FormInput, ListItem } from 'react-native-elements';
+import { Button, FormLabel, FormInput } from 'react-native-elements';
+import ModalSelector from 'react-native-modal-selector';
 
 
 const INITIAL_STATE = {
-  // for <Picker />
-  gradePickerVisible: false,
-  majorPickerVisible: false,
-
-  // for rider's info
-  riderInfo: {
+  // for driver info
+  driverInfo: {
     first_name: '',
     last_name: '',
     grade: '学年を選択して下さい',
     major: '学類/専攻を選択して下さい',
+    car_color: '車の色を選択して下さい',
+    car_number: '',
     mail: '',
     phone: '',
   }
@@ -38,206 +37,219 @@ class SignupScreen extends React.Component {
 
 
   renderGradePicker() {
-    if (this.state.gradePickerVisible) {
-      return (
-        <Picker
-          selectedValue={this.state.riderInfo.grade}
-          onValueChange={(itemValue) => this.setState({
-            riderInfo: {
-              ...this.state.riderInfo,
-              grade: itemValue
-            },
-          })}
-        >
-          <Picker.Item label={INITIAL_STATE.riderInfo.grade} value={INITIAL_STATE.riderInfo.grade} />
+    let index = 0;
+    const data = [
+      { key: index++, label: '学部1年' },
+      { key: index++, label: '学部2年' },
+      { key: index++, label: '学部3年' },
+      { key: index++, label: '学部4年' },
 
-          <Picker.Item label="学部1年" value="学部1年" />
-          <Picker.Item label="学部2年" value="学部2年" />
-          <Picker.Item label="学部3年" value="学部3年" />
-          <Picker.Item label="学部4年" value="学部4年" />
+      { key: index++, label: '修士1年' },
+      { key: index++, label: '修士2年' },
 
-          <Picker.Item label="修士1年" value="修士1年" />
-          <Picker.Item label="修士2年" value="修士2年" />
+      { key: index++, label: '博士1年' },
+      { key: index++, label: '博士2年' },
+      { key: index++, label: '博士3年' },
+    ];
 
-          <Picker.Item label="博士1年" value="博士1年" />
-          <Picker.Item label="博士2年" value="博士2年" />
-          <Picker.Item label="博士3年" value="博士3年" />
-        </Picker>
-      );
-    }
+    return (
+      <ModalSelector
+        data={data}
+        initValue={INITIAL_STATE.driverInfo.grade}
+        onChange={(itemValue) => this.setState({
+          driverInfo: {
+            ...this.state.driverInfo,
+            grade: itemValue.label
+          },
+        })}
+        selectTextStyle={{ fontSize: 12, color: 'gray' }}
+        cancelText="キャンセル"
+        //animationType="fade"
+        backdropPressToClose
+      />
+    );
   }
 
 
   renderMajorPicker() {
-    if (this.state.majorPickerVisible) {
-      const gradeCourse = this.state.riderInfo.grade.slice(0, 2);
+    let index = 0;
+    let data = [];
 
-      if (gradeCourse === '学部') {
-        return (
-          <Picker
-            selectedValue={this.state.riderInfo.major}
-            onValueChange={(itemValue) => this.setState({
-              riderInfo: {
-                ...this.state.riderInfo,
-                major: itemValue
-              },
-            })}
-          >
-            <Picker.Item label={INITIAL_STATE.riderInfo.major} value={INITIAL_STATE.riderInfo.major} />
+    const gradeCourse = this.state.driverInfo.grade.slice(0, 2);
+    if (gradeCourse === '学部') {
+      data = [
+        { key: index++, label: '人文学類' },
+        { key: index++, label: '法学類' },
+        { key: index++, label: '経済学類' },
+        { key: index++, label: '学校教育学類' },
+        { key: index++, label: '地域創造学類' },
+        { key: index++, label: '国際学類' },
 
-            <Picker.Item label="人文学類" value="人文学類" />
-            <Picker.Item label="法学類" value="法学類" />
-            <Picker.Item label="経済学類" value="経済学類" />
-            <Picker.Item label="学校教育学類" value="学校教育学類" />
-            <Picker.Item label="地域創造学類" value="地域創造学類" />
-            <Picker.Item label="国際学類" value="国際学類" />
+        { key: index++, label: '数物科学類' },
+        { key: index++, label: '物質化学類' },
+        { key: index++, label: '機械工学類' },
+        { key: index++, label: 'フロンティア工学類' },
+        { key: index++, label: '電子情報通信学類' },
+        { key: index++, label: '地球社会基盤学類' },
+        { key: index++, label: '生命理工学類' },
 
-            <Picker.Item label="数物科学類" value="数物科学類" />
-            <Picker.Item label="物質化学類" value="物質化学類" />
-            <Picker.Item label="機械工学類" value="機械工学類" />
-            <Picker.Item label="フロンティア工学類" value="フロンティア工学類" />
-            <Picker.Item label="電子情報通信学類" value="電子情報通信学類" />
-            <Picker.Item label="地球社会基盤学類" value="地球社会基盤学類" />
-            <Picker.Item label="生命理工学類" value="生命理工学類" />
+        { key: index++, label: '医学類' },
+        { key: index++, label: '薬学類・創薬科学類' },
+        { key: index++, label: '保険学類' },
 
-            <Picker.Item label="医学類" value="医学類" />
-            <Picker.Item label="薬学類・創薬科学類" value="薬学類・創薬科学類" />
-            <Picker.Item label="保険学類" value="保険学類" />
+        { key: index++, label: 'その他' },
+      ];
+    } else if (gradeCourse === '修士') {
+      data = [
+        { key: index++, label: '人文学専攻' },
+        { key: index++, label: '法学・政治学専攻' },
+        { key: index++, label: '経済学専攻' },
+        { key: index++, label: '地域創造学専攻' },
+        { key: index++, label: '国際学専攻' },
 
-            <Picker.Item label="その他" value="その他" />
-          </Picker>
-        );
-      } else if (gradeCourse === '修士') {
-        return (
-          <Picker
-            selectedValue={this.state.riderInfo.major}
-            onValueChange={(itemValue) => this.setState({
-              riderInfo: {
-                ...this.state.riderInfo,
-                major: itemValue
-              },
-            })}
-          >
-            <Picker.Item label={INITIAL_STATE.riderInfo.major} value={INITIAL_STATE.riderInfo.major} />
+        { key: index++, label: '数物科学専攻' },
+        { key: index++, label: '物質化学専攻' },
+        { key: index++, label: '機械科学専攻' },
+        { key: index++, label: '電子情報科学専攻' },
+        { key: index++, label: '環境デザイン学専攻' },
+        { key: index++, label: '自然システム学専攻' },
+        { key: index++, label: '融合科学共同専攻' },
 
-            <Picker.Item label="人文学専攻" value="人文学専攻" />
-            <Picker.Item label="法学・政治学専攻" value="法学・政治学専攻" />
-            <Picker.Item label="経済学専攻" value="経済学専攻" />
-            <Picker.Item label="地域創造学専攻" value="地域創造学専攻" />
-            <Picker.Item label="国際学専攻" value="国際学専攻" />
+        { key: index++, label: '医科学専攻' },
+        { key: index++, label: '創薬科学・薬学専攻' },
+        { key: index++, label: '保険学専攻' },
 
-            <Picker.Item label="数物科学専攻" value="数物科学専攻" />
-            <Picker.Item label="物質化学専攻" value="物質化学専攻" />
-            <Picker.Item label="機械科学専攻" value="機械科学専攻" />
-            <Picker.Item label="電子情報科学専攻" value="電子情報科学専攻" />
-            <Picker.Item label="環境デザイン学専攻" value="環境デザイン学専攻" />
-            <Picker.Item label="自然システム学専攻" value="自然システム学専攻" />
-            <Picker.Item label="融合科学共同専攻" value="融合科学共同専攻" />
+        { key: index++, label: '先進予防医学研究科' },
+        { key: index++, label: '連合小児発達学研究科' },
+        { key: index++, label: '法務研究科（法科大学院）' },
+        { key: index++, label: '教職実践研究科' },
 
-            <Picker.Item label="医科学専攻" value="医科学専攻" />
-            <Picker.Item label="創薬科学・薬学専攻" value="創薬科学・薬学専攻" />
-            <Picker.Item label="保険学専攻" value="保険学専攻" />
+        { key: index++, label: 'その他' },
+      ];
+    } else if (gradeCourse === '博士') {
+      data = [
+        { key: index++, label: '人文学コース' },
+        { key: index++, label: '法学・政治学コース' },
+        { key: index++, label: '社会経済学コース' },
 
-            <Picker.Item label="先進予防医学研究科" value="先進予防医学研究科" />
-            <Picker.Item label="連合小児発達学研究科" value="連合小児発達学研究科" />
-            <Picker.Item label="法務研究科（法科大学院）" value="法務研究科（法科大学院）" />
-            <Picker.Item label="教職実践研究科" value="教職実践研究科" />
+        { key: index++, label: '数物科学専攻' },
+        { key: index++, label: '物質化学専攻' },
+        { key: index++, label: '機械科学専攻' },
+        { key: index++, label: '電子情報科学専攻' },
+        { key: index++, label: '環境デザイン学専攻' },
+        { key: index++, label: '自然システム学専攻' },
+        { key: index++, label: '融合科学共同専攻' },
 
-            <Picker.Item label="その他" value="その他" />
-          </Picker>
-        );
-      } else if (gradeCourse === '博士') {
-        return (
-          <Picker
-            selectedValue={this.state.riderInfo.major}
-            onValueChange={(itemValue) => this.setState({
-              riderInfo: {
-                ...this.state.riderInfo,
-                major: itemValue
-              },
-            })}
-          >
-            <Picker.Item label={INITIAL_STATE.riderInfo.major} value={INITIAL_STATE.riderInfo.major} />
+        { key: index++, label: '医科学専攻' },
+        { key: index++, label: '創薬科学・薬学専攻' },
+        { key: index++, label: '保険学専攻' },
 
-            <Picker.Item label="人文学コース" value="人文学コース" />
-            <Picker.Item label="法学・政治学コース" value="法学・政治学コース" />
-            <Picker.Item label="社会経済学コース" value="社会経済学コース" />
+        { key: index++, label: '先進予防医学研究科' },
+        { key: index++, label: '連合小児発達学研究科' },
+        { key: index++, label: '法務研究科（法科大学院）' },
+        { key: index++, label: '教職実践研究科' },
 
-            <Picker.Item label="数物科学専攻" value="数物科学専攻" />
-            <Picker.Item label="物質化学専攻" value="物質化学専攻" />
-            <Picker.Item label="機械科学専攻" value="機械科学専攻" />
-            <Picker.Item label="電子情報科学専攻" value="電子情報科学専攻" />
-            <Picker.Item label="環境デザイン学専攻" value="環境デザイン学専攻" />
-            <Picker.Item label="自然システム学専攻" value="自然システム学専攻" />
-            <Picker.Item label="融合科学共同専攻" value="融合科学共同専攻" />
-
-            <Picker.Item label="医科学専攻" value="医科学専攻" />
-            <Picker.Item label="創薬科学・薬学専攻" value="創薬科学・薬学専攻" />
-            <Picker.Item label="保険学専攻" value="保険学専攻" />
-
-            <Picker.Item label="先進予防医学研究科" value="先進予防医学研究科" />
-            <Picker.Item label="連合小児発達学研究科" value="連合小児発達学研究科" />
-            <Picker.Item label="法務研究科（法科大学院）" value="法務研究科（法科大学院）" />
-            <Picker.Item label="教職実践研究科" value="教職実践研究科" />
-
-            <Picker.Item label="その他" value="その他" />
-          </Picker>
-        );
-      } else {
-        return (
-          <Picker
-            selectedValue={this.state.riderInfo.major}
-            onValueChange={(itemValue) => this.setState({
-              riderInfo: {
-                ...this.state.riderInfo,
-                major: itemValue
-              },
-            })}
-          >
-            <Picker.Item label={INITIAL_STATE.riderInfo.major} value={INITIAL_STATE.riderInfo.major} />
-          </Picker>
-        );
-      }
+        { key: index++, label: 'その他' },
+      ];
+    } else {
+      data = [
+        { key: index++, label: INITIAL_STATE.driverInfo.major },
+      ];
     }
+
+    return (
+      <ModalSelector
+        data={data}
+        initValue={INITIAL_STATE.driverInfo.major}
+        onChange={(itemValue) => this.setState({
+          driverInfo: {
+            ...this.state.driverInfo,
+            major: itemValue.label
+          },
+        })}
+        selectTextStyle={{ fontSize: 12, color: 'gray' }}
+        cancelText="キャンセル"
+        //animationType="fade"
+        backdropPressToClose
+      />
+    );
+  }
+
+
+  renderCarColorPicker() {
+    let index = 0;
+    const data = [
+      { key: index++, label: '白系' },
+      { key: index++, label: '黒系' },
+      { key: index++, label: '銀系' },
+      { key: index++, label: '青系' },
+      { key: index++, label: '赤系' },
+      { key: index++, label: '茶系' },
+      { key: index++, label: '灰系' },
+      { key: index++, label: '黄系' },
+      { key: index++, label: '緑系' },
+      { key: index++, label: 'ｵﾚﾝｼﾞ系' },
+      { key: index++, label: 'ﾊﾟｰﾌﾟﾙ系' },
+
+      { key: index++, label: 'その他' },
+    ];
+
+    return (
+      <ModalSelector
+        data={data}
+        initValue={INITIAL_STATE.driverInfo.car_color}
+        onChange={(itemValue) => this.setState({
+          driverInfo: {
+            ...this.state.driverInfo,
+            car_color: itemValue.label
+          },
+        })}
+        selectTextStyle={{ fontSize: 12, color: 'gray' }}
+        cancelText="キャンセル"
+        //animationType="fade"
+        backdropPressToClose
+      />
+    );
   }
 
 
   onOkButtonPress = async () => {
-    const riderInfo = this.state.riderInfo;
+    const driverInfo = this.state.driverInfo;
 
     // Add temporary `id`
-    riderInfo.id = 0;
+    driverInfo.id = 0;
     // Add "@stu.kanazawa-u.ac.jp" // TODO: Make it more robust
-    riderInfo.mail = `${riderInfo.mail}@stu.kanazawa-u.ac.jp`;
+    driverInfo.mail = `${driverInfo.mail}@stu.kanazawa-u.ac.jp`;
     // Elace hyphens (just in case)
-    riderInfo.phone = riderInfo.phone.replace(/-/g, '');
+    driverInfo.phone = driverInfo.phone.replace(/-/g, '');
 
     // Try access signup api
     try {
-      let response = await fetch('https://inori.work/riders/signup', {
+      let response = await fetch('https://inori.work/drivers/signup', {
         method: 'POST',
         headers: {},
-        body: JSON.stringify(riderInfo),
+        body: JSON.stringify(driverInfo),
       });
 
-      // If succeed signup with the input rider info,
+      // If succeed signup with the input driver info,
       if (parseInt(response.status / 100, 10) === 2) {
         let responseJson = await response.json();
-        riderInfo.id = responseJson.id;
+        driverInfo.id = responseJson.id;
 
         // for debug
         //console.log('responseJson = ' + JSON.stringify(responseJson));
-        console.log('riderInfo = ' + JSON.stringify(riderInfo));
+        console.log('driverInfo = ' + JSON.stringify(driverInfo));
 
-        await AsyncStorage.setItem('riderInfo', JSON.stringify(riderInfo));
+        await AsyncStorage.setItem('driverInfo', JSON.stringify(driverInfo));
 
-        console.log('Manual signup with the input rider info is succeeded!!!');
+        console.log('Manual signup with the input driver info is succeeded!!!');
+        this.props.navigation.pop();
         this.props.navigation.navigate('root');
 
-      // If cannot signup with the input rider info,
+      // If cannot signup with the input driver info,
       } else if (parseInt(response.status / 100, 10) === 4 ||
                  parseInt(response.status / 100, 10) === 5) {
-        console.log('Manual signup with the input rider info is failed...');
+        console.log('Manual signup with the input driver info is failed...');
 
         Alert.alert(
           'エラーが発生しました。',
@@ -267,11 +279,11 @@ class SignupScreen extends React.Component {
     Alert.alert(
       'この内容で登録しますか？',
       `
-      氏名：${this.state.riderInfo.last_name} ${this.state.riderInfo.first_name} \n
-      学年：${this.state.riderInfo.grade} \n
-      学類/専攻：${this.state.riderInfo.major} \n
-      メールアドレス：${this.state.riderInfo.mail}@stu.kanazawa-u.ac.jp \n
-      電話番号：${this.state.riderInfo.phone.replace(/-/g, '')} \n
+      氏名：${this.state.driverInfo.last_name} ${this.state.driverInfo.first_name} \n
+      学年：${this.state.driverInfo.grade} \n
+      学類/専攻：${this.state.driverInfo.major} \n
+      メールアドレス：${this.state.driverInfo.mail}@stu.kanazawa-u.ac.jp \n
+      電話番号：${this.state.driverInfo.phone.replace(/-/g, '')} \n
       `,
       [
         { text: 'キャンセル' },
@@ -286,21 +298,19 @@ class SignupScreen extends React.Component {
 
 
   renderSignupButton() {
-    // `this.state.riderInfo` is completed or not
+    // `this.state.driverInfo` is completed or not
     let isCompleted = true;
-    // If at least one of `riderInfo` is default value,
-    Object.keys(this.state.riderInfo).forEach((key) => {
-      if (this.state.riderInfo[key] === INITIAL_STATE.riderInfo[key]) {
+    // If at least one of `driverInfo` is default value,
+    Object.keys(this.state.driverInfo).forEach((key) => {
+      if (this.state.driverInfo[key] === INITIAL_STATE.driverInfo[key]) {
         isCompleted = false;
       }
     });
 
     const signupButtonTitle = '新規登録';
 
-    // If all pickers are closed and `this.state.riderInfo` is completed,
-    if (!this.state.gradePickerVisible &&
-        !this.state.majorPickerVisible &&
-        isCompleted) {
+    // If `this.state.driverInfo` is completed,
+    if (isCompleted) {
       return (
         // Activate the offer button
         <View style={{ padding: 20 }}>
@@ -331,107 +341,114 @@ class SignupScreen extends React.Component {
         style={{ flex: 1 /*, justifyContent: 'center'*/ }}
         behavior={Platform.OS === 'ios' ? 'padding' : ''}
       >
-        <ScrollView style={{ flex: 1 }}>
-          <FormLabel>姓：</FormLabel>
-          <FormInput
-            autoCapitalize="none"
-            value={this.state.riderInfo.last_name}
-            onChangeText={(inputValue) => {
-              this.setState({
-                riderInfo: {
-                  ...this.state.riderInfo,
-                  last_name: inputValue
-                }
-              });
-            }}
-          />
-
-          <FormLabel>名：</FormLabel>
-          <FormInput
-            autoCapitalize="none"
-            value={this.state.riderInfo.first_name}
-            onChangeText={(inputValue) => {
-              this.setState({
-                riderInfo: {
-                  ...this.state.riderInfo,
-                  first_name: inputValue
-                }
-              });
-            }}
-          />
-
-          <View style={{ padding: 10 }}>
-            <ListItem
-              title="学年："
-              subtitle={`${this.state.riderInfo.grade}`}
-              rightIcon={{ name: this.state.gradePickerVisible ? 'keyboard-arrow-up' : 'keyboard-arrow-down' }}
-              onPress={() => this.setState({
-                gradePickerVisible: !this.state.gradePickerVisible,
-                majorPickerVisible: false
-              })}
+          <ScrollView style={{ flex: 1 }}>
+            <FormLabel>姓：</FormLabel>
+            <FormInput
+              autoCapitalize="none"
+              value={this.state.driverInfo.last_name}
+              onChangeText={(inputValue) => {
+                this.setState({
+                  driverInfo: {
+                    ...this.state.driverInfo,
+                    last_name: inputValue
+                  }
+                });
+              }}
             />
 
-            {this.renderGradePicker()}
-
-          </View>
-
-          <View style={{ padding: 10 }}>
-            <ListItem
-              title="学類/専攻："
-              subtitle={`${this.state.riderInfo.major}`}
-              rightIcon={{ name: this.state.majorPickerVisible ? 'keyboard-arrow-up' : 'keyboard-arrow-down' }}
-              onPress={() => this.setState({
-                gradePickerVisible: false,
-                majorPickerVisible: !this.state.majorPickerVisible,
-              })}
+            <FormLabel>名：</FormLabel>
+            <FormInput
+              autoCapitalize="none"
+              value={this.state.driverInfo.first_name}
+              onChangeText={(inputValue) => {
+                this.setState({
+                  driverInfo: {
+                    ...this.state.driverInfo,
+                    first_name: inputValue
+                  }
+                });
+              }}
             />
 
-            {this.renderMajorPicker()}
-
-          </View>
-
-          <FormLabel>メールアドレス：</FormLabel>
-          <View style={{ flexDirection: 'row' }}>
-            <View style={{ flex: 3 }}>
-              <FormInput
-                autoCapitalize="none"
-                keyboardType="email-address"
-                value={this.state.riderInfo.mail}
-                onChangeText={(inputValue) => {
-                  this.setState({
-                    riderInfo: {
-                      ...this.state.riderInfo,
-                      mail: inputValue
-                    }
-                  });
-                }}
-              />
+            <View style={{ flexDirection: 'row', flex: 1, paddingTop: 10, paddingRight: 20 }}>
+              <FormLabel>学年：</FormLabel>
+              <View style={{ flex: 1 }}>
+                {this.renderGradePicker()}
+              </View>
             </View>
-            <View style={{ flex: 2, justifyContent: 'flex-end' }}>
-              <Text style={{ fontSize: 12 }}>@stu.kanazawa-u.ac.jp</Text>
+
+            <View style={{ flexDirection: 'row', flex: 1, paddingTop: 10, paddingRight: 20 }}>
+              <FormLabel>学類/専攻：</FormLabel>
+              <View style={{ flex: 1 }}>
+                {this.renderMajorPicker()}
+              </View>
             </View>
-          </View>
 
-          <FormLabel>電話番号（ハイフンなし）：</FormLabel>
-          <FormInput
-            autoCapitalize="none"
-            keyboardType="numeric"
-            value={this.state.riderInfo.phone}
-            onChangeText={(inputValue) => {
-              this.setState({
-                riderInfo: {
-                  ...this.state.riderInfo,
-                  phone: inputValue
-                }
-              });
-            }}
-          />
+            <View style={{ flexDirection: 'row', flex: 1, paddingTop: 10, paddingRight: 20 }}>
+              <FormLabel>車の色：</FormLabel>
+              <View style={{ flex: 1 }}>
+                {this.renderCarColorPicker()}
+              </View>
+            </View>
 
-          {this.renderSignupButton()}
+            <FormLabel>車のナンバー(4桁以下)：</FormLabel>
+            <FormInput
+              autoCapitalize="none"
+              keyboardType="numeric"
+              value={this.state.driverInfo.car_number}
+              onChangeText={(inputValue) => {
+                this.setState({
+                  driverInfo: {
+                    ...this.state.driverInfo,
+                    car_number: inputValue
+                  }
+                });
+              }}
+            />
 
-          {/*<View style={{ height: 60 }} />*/}
-        </ScrollView>
+            <FormLabel>メールアドレス：</FormLabel>
+            <View style={{ flexDirection: 'row' }}>
+              <View style={{ flex: 3 }}>
+                <FormInput
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  value={this.state.driverInfo.mail}
+                  onChangeText={(inputValue) => {
+                    this.setState({
+                      driverInfo: {
+                        ...this.state.driverInfo,
+                        mail: inputValue
+                      }
+                    });
+                  }}
+                />
+              </View>
+              <View style={{ flex: 2, justifyContent: 'flex-end' }}>
+                <Text style={{ fontSize: 12 }}>@stu.kanazawa-u.ac.jp</Text>
+              </View>
+            </View>
+
+            <FormLabel>電話番号（ハイフンなし）：</FormLabel>
+            <FormInput
+              autoCapitalize="none"
+              keyboardType="numeric"
+              value={this.state.driverInfo.phone}
+              onChangeText={(inputValue) => {
+                this.setState({
+                  driverInfo: {
+                    ...this.state.driverInfo,
+                    phone: inputValue
+                  }
+                });
+              }}
+            />
+
+            {this.renderSignupButton()}
+
+            {/*<View style={{ height: 60 }} />*/}
+          </ScrollView>
       </KeyboardAvoidingView>
+
     );
   }
 }

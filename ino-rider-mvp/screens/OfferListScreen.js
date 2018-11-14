@@ -2,7 +2,7 @@ import _ from 'lodash';
 import React from 'react';
 import {
   StyleSheet, Text, View, ScrollView,
-  LayoutAnimation, UIManager,
+  LayoutAnimation, UIManager, RefreshControl,
 } from 'react-native';
 import { ListItem, Icon } from 'react-native-elements';
 import { AppLoading } from 'expo';
@@ -11,20 +11,41 @@ import { connect } from 'react-redux';
 import * as actions from '../actions';
 
 
+const INITIAL_STATE = {
+  // for <ScrollView />
+  isRefreshing: false
+};
+
+
 class OfferListScreen extends React.Component {
-  async componentWillMount() {
+  constructor(props) {
+    super(props);
+    this.state = INITIAL_STATE;
+  }
+
+
+  componentWillMount() {
     // Call action creators
-    this.props.fetchRiderInfo();
+    this.props.getRiderInfo();
     this.props.fetchOwnReservations();
     this.props.fetchAllOffers();
   }
 
 
   componentWillUpdate() {
-  // Ease in & Ease out animation
-  UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
-  LayoutAnimation.easeInEaseOut();
-}
+    // Ease in & Ease out animation
+    UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
+    LayoutAnimation.easeInEaseOut();
+  }
+
+  onScrollViewRefresh = async () => {
+    this.setState({ isRefreshing: true });
+
+    await this.props.fetchOwnReservations();
+    await this.props.fetchAllOffers();
+
+    this.setState({ isRefreshing: false });
+  }
 
 
   onListItemPress = (selectedItem, isReservation) => {
@@ -63,12 +84,11 @@ class OfferListScreen extends React.Component {
               key={index}
               leftIcon={{ name: 'person', color: 'black' }}
               title={
-                <View style={{ flexDirection: 'row', flex: 1 }}>
+                <View style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}>
                   <View style={{ flex: 2 }}>
                     <Text>{`${item.driver.last_name} ${item.driver.first_name}`}</Text>
                     <Text>{`${item.driver.major}`}</Text>
                     <Text>{`${item.driver.grade}`}</Text>
-                    <Text>{`${item.driver.car_color} ${item.driver.car_number}`}</Text>
                   </View>
 
                   <View style={{ flex: 3 }}>
@@ -86,7 +106,7 @@ class OfferListScreen extends React.Component {
                     </View>
                     <View style={{ flexDirection: 'row' }}>
                       <Icon name='car' type='font-awesome' size={10} />
-                      <Text style={{ paddingLeft: 5 }}>{`${item.reserved_riders.length} / ${item.offer.rider_capacity}人`}</Text>
+                      <Text style={{ paddingLeft: 5 }}>{`${item.reserved_riders.length} / ${item.offer.rider_capacity}人, ${item.driver.car_color}, ${item.driver.car_number}`}</Text>
                     </View>
                   </View>
                 </View>
@@ -133,12 +153,11 @@ class OfferListScreen extends React.Component {
                 key={index}
                 leftIcon={{ name: 'person', color: 'black' }}
                 title={
-                  <View style={{ flexDirection: 'row', flex: 1 }}>
+                  <View style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}>
                     <View style={{ flex: 2 }}>
                       <Text>{`${item.driver.last_name} ${item.driver.first_name}`}</Text>
                       <Text>{`${item.driver.major}`}</Text>
                       <Text>{`${item.driver.grade}`}</Text>
-                      <Text>{`${item.driver.car_color} ${item.driver.car_number}`}</Text>
                     </View>
 
                     <View style={{ flex: 3 }}>
@@ -156,7 +175,7 @@ class OfferListScreen extends React.Component {
                       </View>
                       <View style={{ flexDirection: 'row' }}>
                         <Icon name='car' type='font-awesome' size={10} />
-                        <Text style={{ paddingLeft: 5 }}>{`${item.reserved_riders.length} / ${item.offer.rider_capacity}人`}</Text>
+                        <Text style={{ paddingLeft: 5 }}>{`${item.reserved_riders.length} / ${item.offer.rider_capacity}人, ${item.driver.car_color}, ${item.driver.car_number}`}</Text>
                       </View>
                     </View>
                   </View>
@@ -177,8 +196,8 @@ class OfferListScreen extends React.Component {
   render() {
     // for debug
     //console.log(`(typeof this.props.riderInfo.id) = ${(typeof this.props.riderInfo.id)}`);
-    //console.log(`_.isNull(this.props.allOffers) = ${_.isNull(this.props.allOffers)}`);
     //console.log(`_.isNull(this.props.ownReservations) = ${_.isNull(this.props.ownReservations)}`);
+    //console.log(`_.isNull(this.props.allOffers) = ${_.isNull(this.props.allOffers)}`);
 
     // Wait to fetch own rider info, own reservations, and all offers
     if ((typeof this.props.riderInfo.id) === 'undefined' ||
@@ -189,7 +208,15 @@ class OfferListScreen extends React.Component {
 
     return (
       <View style={{ flex: 1 }}>
-        <ScrollView style={{ flex: 1 }}>
+        <ScrollView
+          style={{ flex: 1 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={this.state.isRefreshing}
+              onRefresh={this.onScrollViewRefresh}
+            />
+          }
+        >
 
           <View style={{ paddingTop: 10 }}>
             <Text style={styles.grayTextStyle}>予約済</Text>

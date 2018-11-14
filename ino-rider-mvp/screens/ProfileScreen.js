@@ -13,7 +13,7 @@ import * as actions from '../actions';
 class ProfileScreen extends React.Component {
   componentWillMount() {
     // Call action creators
-    this.props.fetchRiderInfo();
+    this.props.getRiderInfo();
   }
 
 
@@ -48,17 +48,24 @@ class ProfileScreen extends React.Component {
 
           <View style={{ padding: 20 }}>
             <Button
-              title="Reset `isLogedin` and `riderInfo` in AsyncStorage"
+              title="ログアウト"
               buttonStyle={{ backgroundColor: 'red' }}
               onPress={async () => {
-                //await AsyncStorage.removeItem('isLogedin');
                 await AsyncStorage.removeItem('riderInfo');
 
                 Alert.alert(
-                  'Reset',
-                  '`riderInfo` in AsyncStorage has been removed.',
+                  'ログアウトしてもよろしいですか？',
+                  '',
                   [
-                    { text: 'OK' },
+                    { text: 'いいえ' },
+                    {
+                      text: 'はい',
+                      onPress: () => {
+                        this.props.navigation.pop();
+                        this.props.navigation.navigate('login');
+                      },
+                      style: 'destructive'
+                     },
                   ],
                   { cancelable: false }
                 );

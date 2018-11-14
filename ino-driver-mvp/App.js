@@ -8,7 +8,6 @@ import store from './store';
 
 import LoginScreen from './screens/LoginScreen';
 import SignupScreen from './screens/SignupScreen';
-//import RegisterScreen from './screens/RegisterScreen';
 import OfferScreen from './screens/OfferScreen';
 import DetailScreen from './screens/DetailScreen';
 import ProfileScreen from './screens/ProfileScreen';
@@ -62,7 +61,7 @@ export default class App extends React.Component {
               />
             </View>
           ),
-          headerTitle: 'Ino',
+          headerTitle: 'ino',
           headerBackTitle: ' '
         })
       },
@@ -107,14 +106,15 @@ export default class App extends React.Component {
 
 
     const NavigatorTab = createBottomTabNavigator({
-      register: {
-        screen: RegisterScreen
+      login: {
+        screen: LoginStack
       },
       root: {
         screen: RootStack
       }
     }, {
-      navigationOptions: { tabBarVisible: false }
+      navigationOptions: { tabBarVisible: false },
+      initialRouteName: 'login',
       //lazy: true,
     });
 

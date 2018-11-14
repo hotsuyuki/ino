@@ -10,7 +10,9 @@ import * as actions from '../actions';
 
 
 const INITIAL_STATE = {
-  // for selected offer,
+  isCanceld: false,
+
+  // for selected item,
   selectedItem: {
     driver: {},
     offer: {},
@@ -30,49 +32,16 @@ class DetailScreen extends React.Component {
     // The params passed from the previous page
     const selectedOfferId = this.props.navigation.getParam('selectedOfferId', 'default_value');
 
-    // Reget the selected item
+    // ReGET the selected item
     try {
       let offerResponse = await fetch(`https://inori.work/offers/${selectedOfferId}`);
-      let offerResponseJson = await offerResponse.json();
 
-      const selectedItem = offerResponseJson;
-      /**********************************
-      selectedItem: {
-        offer: {
-          id:,
-          driver_id:,
-          start:,
-          goal:,
-          departure_time:,
-          rider_capacity:
-        },
-        reserved_riders: [`id1`, `id2`, ...]
-      }
-      **********************************/
-
-      // Trim year(frist 5 characters) and second(last 3 characters),
-      // and replace hyphens by slashes
-      //selectedItem.departure_time = selectedItem.departure_time.substring(5, selectedItem.departure_time.length - 3).replace(/-/g, '/');
-
-      // GET corresponding driver info
-      try {
-        let driverResponse = await fetch(`https://inori.work/drivers/${selectedItem.offer.driver_id}`);
-        let driverResponseJson = await driverResponse.json();
-
-        selectedItem.driver = driverResponseJson.driver;
+      // If succeed to reGET the selected offer,
+      if (parseInt(offerResponse.status / 100, 10) === 2) {
+        let offerResponseJson = await offerResponse.json();
+        const selectedItem = offerResponseJson;
         /**********************************
         selectedItem: {
-          driver:{
-            id:,
-            first_name:,
-            last_name:,
-            grade:,
-            major:,
-            mail:,
-            phone:
-            car_color:,,
-            car_number:
-          },
           offer: {
             id:,
             driver_id:,
@@ -85,77 +54,126 @@ class DetailScreen extends React.Component {
         }
         **********************************/
 
-        // GET corresponding reserved riders info
-        const reservedRidersInfo = [];
+        // GET corresponding driver info
+        try {
+          let driverResponse = await fetch(`https://inori.work/drivers/${selectedItem.offer.driver_id}`);
+          let driverResponseJson = await driverResponse.json();
 
-        const promiseArray = selectedItem.reserved_riders.map(async (reservedRiderId) => {
-          try {
-            let riderResponse = await fetch(`https://inori.work/riders/${reservedRiderId}`);
-            let riderResponseJson = await riderResponse.json();
-
-            reservedRidersInfo.push(riderResponseJson.rider);
-          } catch (error) {
-            console.error(error);
+          selectedItem.driver = driverResponseJson.driver;
+          /**********************************
+          selectedItem: {
+            driver:{
+              id:,
+              first_name:,
+              last_name:,
+              grade:,
+              major:,
+              mail:,
+              phone:,
+              car_color:,
+              car_number:
+            },
+            offer: {
+              id:,
+              driver_id:,
+              start:,
+              goal:,
+              departure_time:,
+              rider_capacity:
+            },
+            reserved_riders: [`id1`, `id2`, ...]
           }
-        });
+          **********************************/
 
-        await Promise.all(promiseArray);
+          // GET corresponding reserved riders info
+          const reservedRidersInfo = [];
 
-        selectedItem.reserved_riders = reservedRidersInfo;
-        //console.log(`JSON.stringify(selectedItem) = ${JSON.stringify(selectedItem)}`);
-        /**********************************
-        selectedItem: {
-          driver:{
-            id:,
-            first_name:,
-            last_name:,
-            grade:,
-            major:,
-            mail:,
-            phone:,
-            car_color:,
-            car_number:
-          },
-          offer: {
-            id:,
-            driver_id:,
-            start:,
-            goal:,
-            departure_time:,
-            rider_capacity:
-          },
-          reserved_riders: [
-            {
-              id: `id1`,
+          const promiseArray = selectedItem.reserved_riders.map(async (reservedRiderId) => {
+            try {
+              let riderResponse = await fetch(`https://inori.work/riders/${reservedRiderId}`);
+              let riderResponseJson = await riderResponse.json();
+
+              reservedRidersInfo.push(riderResponseJson.rider);
+
+            // If cannot access riders api,
+            } catch (error) {
+              console.error(error);
+              console.log('Cannot access riders api...');
+            }
+          });
+
+          await Promise.all(promiseArray);
+
+          selectedItem.reserved_riders = reservedRidersInfo;
+          //console.log(`JSON.stringify(selectedItem) = ${JSON.stringify(selectedItem)}`);
+          /**********************************
+          selectedItem: {
+            driver:{
+              id:,
               first_name:,
               last_name:,
               grade:,
               major:,
               mail:,
-              phone:
+              phone:,
+              car_color:,
+              car_number:
             },
-            {
-              id: `id2`,
-              first_name:,
-              last_name:,
-              grade:,
-              major:,
-              mail:,
-              phone:
+            offer: {
+              id:,
+              driver_id:,
+              start:,
+              goal:,
+              departure_time:,
+              rider_capacity:
             },
-            ...
-          ]
+            reserved_riders: [
+              {
+                id: `id1`,
+                first_name:,
+                last_name:,
+                grade:,
+                major:,
+                mail:,
+                phone:
+              },
+              {
+                id: `id2`,
+                first_name:,
+                last_name:,
+                grade:,
+                major:,
+                mail:,
+                phone:
+              },
+              ...
+            ]
+          }
+          **********************************/
+
+          this.setState({
+            isCanceld: false,
+            selectedItem,
+          });
+
+        // If cannot access drivers api,
+        } catch (error) {
+          console.error(error);
+          console.log('Cannot access drivers api...');
         }
-        **********************************/
-        this.setState({
-          selectedItem
-        });
 
-      // If cannot access drivers api,
-      } catch (error) {
-        console.error(error);
-        console.log('Cannot access drivers api...');
+      // If failed to reGET the selected offer,
+      // (e.g. the driver has already canceled the selected offer)
+      } else if (parseInt(offerResponse.status / 100, 10) === 4 ||
+                 parseInt(offerResponse.status / 100, 10) === 5) {
+        console.log('Failed to reGET the selected offer...');
+
+        this.setState({
+          isCanceld: true,
+          selectedItem: INITIAL_STATE.selectedItem,
+        });
       }
+
     // If cannot access offers api,
     } catch (error) {
       console.error(error);
@@ -235,11 +253,10 @@ class DetailScreen extends React.Component {
               console.log('Cannot access reservations api...');
             }
 
-            // Reflesh `this.props.driverInfo` in `OfferListScreen`
+            // Reflesh `this.props.ownReservations` and `this.props.allOffers` in `OfferListScreen`
             // and make `OfferListScreen` rerender by calling action creators
             this.props.fetchOwnReservations();
             this.props.fetchAllOffers();
-
             this.props.navigation.pop();
           },
         }
@@ -271,7 +288,7 @@ class DetailScreen extends React.Component {
                 if (reservation.offer_id === selectedOfferId) {
                   reservationId = reservation.id;
                 }
-              })
+              });
             } catch (error) {
               console.error(error);
             }
@@ -283,6 +300,8 @@ class DetailScreen extends React.Component {
             try {
               let deleteResponse = await fetch(`https://inori.work/reservations/${reservationId}`, {
                 method: 'DELETE',
+                //headers: {},
+                //body: {},
               });
               let deleteResponseJson = await deleteResponse.json();
               console.log(deleteResponseJson);
@@ -326,7 +345,7 @@ class DetailScreen extends React.Component {
                 <Icon name='person' />
               </View>
               <View style={{ flex: 4 }}>
-                <Text style={{ fontSize: 18, paddingBottom: 5 }}>{`${rider.last_name} ${rider.first_name}`}</Text>
+                <Text style={styles.nameTextStyle}>{`${rider.last_name} ${rider.first_name}`}</Text>
                 <Text style={{ fontSize: 18 }}>{`${rider.major}`}</Text>
                 <Text style={{ fontSize: 18 }}>{`${rider.grade}`}</Text>
               </View>
@@ -370,12 +389,46 @@ class DetailScreen extends React.Component {
   }
 
 
+  /*
+  renderCanceledOffer() {
+    return (
+
+    );
+  }
+  */
+
+
   render() {
+    // If failed to reGET the selected offer,
+    // (e.g. the driver has already canceled the selected offer)
+    if (this.state.isCanceld) {
+      Alert.alert(
+        'このオファーは既にキャンセルされました。',
+        '',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              // Reflesh `this.props.ownReservations` and `this.props.allOffers` in `OfferListScreen`
+              // and make `OfferListScreen` rerender by calling action creators
+              // TODO: Not to show the alert again in the previous screen `OfferListScreen`
+              this.props.fetchAllOffers();
+              this.props.navigation.pop();
+            },
+          }
+        ],
+        { cancelable: false }
+      );
+
+      return <AppLoading />;
+    }
+
+    // Wait to reGET the selected item
     if (this.state.selectedItem === INITIAL_STATE.selectedItem) {
       return <AppLoading />;
     }
 
-    const trimedDepartureTime = this.state.selectedItem.offer.departure_time.substring(5, this.state.selectedItem.offer.departure_time.length - 3).replace(/-/g, '/')
+    const trimedDepartureTime = this.state.selectedItem.offer.departure_time.substring(5, this.state.selectedItem.offer.departure_time.length - 3).replace(/-/g, '/');
 
     return (
       <View style={{ flex: 1 }}>
@@ -383,37 +436,38 @@ class DetailScreen extends React.Component {
 
           <View>
             <Text style={styles.grayTextStyle}>情報</Text>
+
             <View style={{ paddingLeft: 30 }}>
               <View style={{ flexDirection: 'row' }}>
                 <Icon name='map-marker' type='font-awesome' size={25} />
-                <Text style={{ padding: 5, fontSize: 18 }}>{`${this.state.selectedItem.offer.start}`}</Text>
+                <Text style={styles.infoTextStyle}>{`${this.state.selectedItem.offer.start}`}</Text>
               </View>
               <View style={{ flexDirection: 'row' }}>
                 <Icon name='flag-checkered' type='font-awesome' size={15} />
-                <Text style={{ padding: 5, fontSize: 18 }}>{`${this.state.selectedItem.offer.goal}`}</Text>
+                <Text style={styles.infoTextStyle}>{`${this.state.selectedItem.offer.goal}`}</Text>
               </View>
               <View style={{ flexDirection: 'row' }}>
                 <Icon name='timer' /*type='font-awesome'*/ size={15} />
-                <Text style={{ padding: 5, fontSize: 18 }}>{`${trimedDepartureTime}`}</Text>
+                <Text style={styles.infoTextStyle}>{`${trimedDepartureTime}`}</Text>
               </View>
               <View style={{ flexDirection: 'row' }}>
                 <Icon name='car' type='font-awesome' size={15} />
-                <Text style={{ padding: 5, fontSize: 18 }}>{`${this.state.selectedItem.reserved_riders.length} / ${this.state.selectedItem.offer.rider_capacity}人`}</Text>
+                <Text style={styles.infoTextStyle}>{`${this.state.selectedItem.reserved_riders.length} / ${this.state.selectedItem.offer.rider_capacity}人, ${this.state.selectedItem.driver.car_color}, ${this.state.selectedItem.driver.car_number}`}</Text>
               </View>
             </View>
           </View>
 
           <View style={{ paddingTop: 10 }}>
             <Text style={styles.grayTextStyle}>ドライバー</Text>
+
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <View style={{ flex: 1 }}>
                 <Icon name='person' />
               </View>
               <View style={{ flex: 2 }}>
-                <Text style={{ fontSize: 18, paddingBottom: 5 }}>{`${this.state.selectedItem.driver.last_name} ${this.state.selectedItem.driver.first_name}`}</Text>
+                <Text style={styles.nameTextStyle}>{`${this.state.selectedItem.driver.last_name} ${this.state.selectedItem.driver.first_name}`}</Text>
                 <Text style={{ fontSize: 18 }}>{`${this.state.selectedItem.driver.major}`}</Text>
                 <Text style={{ fontSize: 18 }}>{`${this.state.selectedItem.driver.grade}`}</Text>
-                <Text style={{ fontSize: 18 }}>{`${this.state.selectedItem.driver.car_color} ${this.state.selectedItem.driver.car_number}`}</Text>
               </View>
               <View style={{ flex: 1 }}>
                 {this.renderSmsButton()}
@@ -445,6 +499,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: 'gray',
     padding: 10,
+  },
+  infoTextStyle: {
+    fontSize: 18,
+    padding: 5,
+  },
+  nameTextStyle: {
+    fontSize: 18,
+    paddingBottom: 5
   },
 });
 

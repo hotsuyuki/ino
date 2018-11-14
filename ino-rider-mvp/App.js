@@ -61,7 +61,7 @@ export default class App extends React.Component {
               />
             </View>
           ),
-          headerTitle: 'Ino',
+          headerTitle: 'ino',
           headerBackTitle: ' '
         })
       },
@@ -106,11 +106,6 @@ export default class App extends React.Component {
 
 
     const NavigatorTab = createBottomTabNavigator({
-      /*
-      register: {
-        screen: RegisterScreen
-      },
-      */
       login: {
         screen: LoginStack
       },

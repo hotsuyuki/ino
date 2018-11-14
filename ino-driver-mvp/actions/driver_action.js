@@ -1,47 +1,125 @@
-import _ from 'lodash';
 import { AsyncStorage } from 'react-native';
 
 import {
-  FETCH_DRIVER_INFO,
+  FETCH_OWN_OFFERS,
+  GET_DRIVER_INFO,
 } from './types';
-
-// TODO: Use API
-import { driverIdTmp } from '../assets/tmpData';
 
 
 // Below are action creators...
 // (a function that will return an action)
-export const fetchDriverInfo = () => {
+export const fetchOwnOffers = () => {
   // For an async flow like Ajax,
   // action creator function returns another function (not an action),
   // and the returned fucntion dispatch an action
   // when the async procedure is done.
   // This is whta Redux Thunk does.
   return async (dispatch) => {
-    // GET own driver info (if it's not in the `AsyncStorage`)
-    let stringifiedDriverInfo = await AsyncStorage.getItem('driverInfo');
-    let driverInfo = JSON.parse(stringifiedDriverInfo);
+    const ownOffers = [];
 
-    if (_.isNull(driverInfo)) {
-      console.log('There is NOT `driverInfo` in AsyncStorage...');
+    // Get stored driver info
+    try {
+      let stringifiedDriverInfo = await AsyncStorage.getItem('driverInfo');
+      let driverInfo = JSON.parse(stringifiedDriverInfo);
 
+      // GET own offers
       try {
-        let response = await fetch(`https://inori.work/drivers/${driverIdTmp}`);
-        let responseJson = await response.json();
-        driverInfo = responseJson.driver;
+        let offerResponse = await fetch(`https://inori.work/offers?driver_id=${driverInfo.id}`);
+        let offerResponseJson = await offerResponse.json();
+        //console.log('JSON.stringify(offerResponseJson) = ' + JSON.stringify(offerResponseJson));
+
+        offerResponseJson.offers.forEach((item) => {
+          const eachItem = item;
+          /**********************************
+          eachItem: {
+            offer: {
+              id:,
+              driver_id:,
+              start:,
+              goal:,
+              departure_time:,
+              rider_capacity:
+            },
+            reserved_riders: [`id1`, `id2`, ...]
+          }
+          **********************************/
+
+          eachItem.driver = driverInfo;
+          /**********************************
+          eachItem: {
+            driver:{
+              id:,
+              first_name:,
+              last_name:,
+              grade:,
+              major:,
+              mail:,
+              phone:
+              car_color:,
+              car_number:
+            },
+            offer: {
+              id:,
+              driver_id:,
+              start:,
+              goal:,
+              departure_time:,
+              rider_capacity:
+            },
+            reserved_riders: [`id1`, `id2`, ...]
+          }
+          **********************************/
+
+          ownOffers.push(eachItem);
+        });
+
+        // Sort `ownOffers` in chronological order (just in case)
+        ownOffers.sort((a, b) => {
+          if (a.offer.departure_time < b.offer.departure_time) {
+            return -1;
+          }
+          if (a.offer.departure_time > b.offer.departure_time) {
+            return 1;
+          }
+          return 0;
+        });
+
+      // If cannot access offers api,
       } catch (error) {
         console.error(error);
+        console.log('Cannot access offers api...');
       }
-
-      try {
-        await AsyncStorage.setItem('driverInfo', JSON.stringify(driverInfo));
-      } catch (error) {
-        console.warn(error);
-      }
-    } else {
-      console.log('There is `driverInfo` in AsyncStorage!!!');
+    // If cannot get stored driver info,
+    } catch (error) {
+      console.warn(error);
+      console.log('Cannot get stored driver info...');
     }
 
-    dispatch({ type: FETCH_DRIVER_INFO, payload: driverInfo });
+    dispatch({ type: FETCH_OWN_OFFERS, payload: ownOffers });
+  };
+};
+
+
+export const getDriverInfo = () => {
+  // For an async flow like Ajax,
+  // action creator function returns another function (not an action),
+  // and the returned fucntion dispatch an action
+  // when the async procedure is done.
+  // This is whta Redux Thunk does.
+  return async (dispatch) => {
+    let driverInfo = {};
+
+    // Get stored driver info
+    try {
+      let stringifiedDriverInfo = await AsyncStorage.getItem('driverInfo');
+      driverInfo = JSON.parse(stringifiedDriverInfo);
+
+    // If cannot get stored driver info,
+    } catch (error) {
+      console.warn(error);
+      console.log('Cannot get stored driver info...');
+    }
+
+    dispatch({ type: GET_DRIVER_INFO, payload: driverInfo });
   };
 };

@@ -12,14 +12,14 @@ import * as actions from '../actions';
 
 class ProfileScreen extends React.Component {
   async componentWillMount() {
-    // Call an action creator
-    this.props.fetchDriverInfo();
+    // Call action creators
+    this.props.getDriverInfo();
   }
 
 
   render() {
-    // Wait to fetch own driver's info
-    if ((typeof this.props.driverInfo.phone) === 'undefined') {
+    // Wait to fetch own driver info
+    if ((typeof this.props.driverInfo.id) === 'undefined') {
       return <AppLoading />;
     }
 
@@ -37,28 +37,35 @@ class ProfileScreen extends React.Component {
           <Text style={styles.itemTextStyle}>学年</Text>
           <Text style={styles.contentTextStyle}>{`${this.props.driverInfo.grade}`}</Text>
 
+          <Text style={styles.itemTextStyle}>車の色とナンバー</Text>
+          <Text style={styles.contentTextStyle}>{`${this.props.driverInfo.car_color} ${this.props.driverInfo.car_number}`}</Text>
+
           <Text style={styles.itemTextStyle}>メールアドレス</Text>
           <Text style={styles.contentTextStyle}>{`${this.props.driverInfo.mail}`}</Text>
 
           <Text style={styles.itemTextStyle}>電話番号</Text>
-          {/* //Replace "+81" to "0" // TODO: Make it more robust */}
-          <Text style={styles.contentTextStyle}>{`0${this.props.driverInfo.phone.substring(3)}`}</Text>
-
-          <Text style={styles.itemTextStyle}>車の色とナンバー</Text>
-          <Text style={styles.contentTextStyle}>{`${this.props.driverInfo.car_color} ${this.props.driverInfo.car_number}`}</Text>
+          <Text style={styles.contentTextStyle}>{`${this.props.driverInfo.phone}`}</Text>
 
           <View style={{ padding: 20 }}>
             <Button
-              title="Reset `isRegistered` in AsyncStorage"
+              title="ログアウト"
               buttonStyle={{ backgroundColor: 'red' }}
               onPress={async () => {
-                await AsyncStorage.removeItem('isRegistered');
+                await AsyncStorage.removeItem('driverInfo');
 
                 Alert.alert(
-                  'Reset',
-                  '`isRegistered` in AsyncStorage has been removed.',
+                  'ログアウトしてもよろしいですか？',
+                  '',
                   [
-                    { text: 'OK' },
+                    { text: 'いいえ' },
+                    {
+                      text: 'はい',
+                      onPress: () => {
+                        this.props.navigation.pop();
+                        this.props.navigation.navigate('login');
+                      },
+                      style: 'destructive'
+                     },
                   ],
                   { cancelable: false }
                 );

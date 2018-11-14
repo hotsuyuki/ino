@@ -1,12 +1,12 @@
 import {
   FETCH_OWN_RESERVATIONS,
   FETCH_ALL_OFFERS,
-  FETCH_RIDER_INFO,
+  GET_RIDER_INFO,
 } from '../actions/types';
 
 const INITIAL_STATE = {
-  ownReservations: null, //[],
-  allOffers: null, //[],
+  ownReservations: null,
+  allOffers: null,
   riderInfo: {}
 };
 
@@ -19,7 +19,7 @@ export default (state = INITIAL_STATE, action) => {
     case FETCH_ALL_OFFERS:
       return { ...state, allOffers: action.payload };
 
-    case FETCH_RIDER_INFO:
+    case GET_RIDER_INFO:
       return { ...state, riderInfo: action.payload };
 
     default:

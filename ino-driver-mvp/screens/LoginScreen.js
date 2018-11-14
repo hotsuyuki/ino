@@ -11,8 +11,8 @@ const INITIAL_STATE = {
   // for skipping this screen or not
   isLogedin: null,
 
-  // for rider's info
-  riderInfo: {
+  // for driver info
+  driverInfo: {
     mail: '',
   }
 };
@@ -26,15 +26,15 @@ class LoginScreen extends React.Component {
 
 
   async componentWillMount() {
-    // Try to get stored rider infor
+    // Get stored driver info
     try {
-      let stringifiedRiderInfo = await AsyncStorage.getItem('riderInfo');
-      let mail = JSON.parse(stringifiedRiderInfo).mail;
+      let stringifiedDriverInfo = await AsyncStorage.getItem('driverInfo');
+      let mail = JSON.parse(stringifiedDriverInfo).mail;
 
       // Try access login api
       try {
-        let response = await fetch('https://inori.work/riders/signin', {
-        //let response = await fetch('https://inori.work/riders/login', { TODO: Change URL
+        let response = await fetch('https://inori.work/drivers/signin', {
+        //let response = await fetch('https://inori.work/drivers/login', { TODO: Change URL
           method: 'POST',
           headers: {},
           body: JSON.stringify({ mail }),
@@ -43,19 +43,19 @@ class LoginScreen extends React.Component {
         // for debug
         //console.log('mail = ' + JSON.stringify({ mail }));
 
-        // If succeed login with the stored email address,
+        // If succeed to login with the stored email address,
         if (parseInt(response.status / 100, 10) === 2) {
           let responseJson = await response.json();
-          const riderInfo = responseJson.rider;
+          const driverInfo = responseJson.driver;
 
           // for debug
-          console.log('JSON.stringify(riderInfo) = ' + JSON.stringify(riderInfo));
+          console.log('JSON.stringify(driverInfo) = ' + JSON.stringify(driverInfo));
 
-          await AsyncStorage.setItem('riderInfo', JSON.stringify(riderInfo));
+          await AsyncStorage.setItem('driverInfo', JSON.stringify(driverInfo));
 
           console.log('Automatic login with the stored email address is succeeded!!!');
           this.setState({ isLogedin: true });
-          this.props.navigation.navigate('root');
+          this.props.navigation.navigate('offer');
 
         // If cannot login with the stored email address,
         } else if (parseInt(response.status / 100, 10) === 4 ||
@@ -69,10 +69,10 @@ class LoginScreen extends React.Component {
         console.log('Cannot access the login api...');
         this.setState({ isLogedin: false });
       }
-    // If cannot get stored rider info,
+    // If cannot get stored driver info,
     } catch (error) {
       console.warn(error);
-      console.log('Cannot get stored rider info...');
+      console.log('Cannot get stored driver info...');
       this.setState({ isLogedin: false });
     }
   }
@@ -80,12 +80,12 @@ class LoginScreen extends React.Component {
 
   onLoginButtonPress = async () => {
     // Add "@stu.kanazawa-u.ac.jp" // TODO: Make it more robust
-    const mail = `${this.state.riderInfo.mail}@stu.kanazawa-u.ac.jp`;
+    const mail = `${this.state.driverInfo.mail}@stu.kanazawa-u.ac.jp`;
 
     // Try access login api
     try {
-      let response = await fetch('https://inori.work/riders/signin', {
-      //let response = await fetch('https://inori.work/riders/login', { TODO: Change URL
+      let response = await fetch('https://inori.work/drivers/signin', {
+      //let response = await fetch('https://inori.work/drivers/login', { TODO: Change URL
         method: 'POST',
         headers: {},
         body: JSON.stringify({ mail }),
@@ -97,21 +97,22 @@ class LoginScreen extends React.Component {
       // If succeed login with the stored email address,
       if (parseInt(response.status / 100, 10) === 2) {
         let responseJson = await response.json();
-        const riderInfo = responseJson.rider;
+        const driverInfo = responseJson.driver;
 
         // for debug
-        console.log('JSON.stringify(riderInfo) = ' + JSON.stringify(riderInfo));
+        console.log('JSON.stringify(driverInfo) = ' + JSON.stringify(driverInfo));
 
-        await AsyncStorage.setItem('riderInfo', JSON.stringify(riderInfo));
+        await AsyncStorage.setItem('driverInfo', JSON.stringify(driverInfo));
 
         console.log('Manual login with the input email address is succeeded!!!');
         this.setState({ isLogedin: true });
-        this.props.navigation.navigate('root');
+        this.props.navigation.navigate('offer');
 
       // If cannot login with the stored email address,
       } else if (parseInt(response.status / 100, 10) === 4 ||
                  parseInt(response.status / 100, 10) === 5) {
         console.log('Manual login with the input email address is failed...');
+
         Alert.alert(
           'アカウントを確認できませんでした。',
           'アカウントを新規登録をするかもしくは電波の良いところで後ほどお試しください。',
@@ -140,7 +141,7 @@ class LoginScreen extends React.Component {
     const loginButtonTitle = 'ログイン';
 
     // If email is entered
-    if (this.state.riderInfo.mail !== INITIAL_STATE.riderInfo.mail) {
+    if (this.state.driverInfo.mail !== INITIAL_STATE.driverInfo.mail) {
       return (
         // Activate the offer button
         <View style={{ padding: 20 }}>
@@ -180,10 +181,10 @@ class LoginScreen extends React.Component {
               <FormInput
                 autoCapitalize="none"
                 keyboardType="email-address"
-                value={this.state.riderInfo.mail}
+                value={this.state.driverInfo.mail}
                 onChangeText={(inputValue) => {
                   this.setState({
-                    riderInfo: {
+                    driverInfo: {
                       mail: inputValue
                     }
                   });
@@ -196,6 +197,7 @@ class LoginScreen extends React.Component {
           </View>
 
           {this.renderLoginButton()}
+
         </View>
 
         <View style={{ flex: 3 }}>

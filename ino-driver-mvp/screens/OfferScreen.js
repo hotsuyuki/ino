@@ -2,15 +2,13 @@ import _ from 'lodash';
 import React from 'react';
 import {
   StyleSheet, Text, View, ScrollView, Picker, DatePickerIOS, Alert,
-  LayoutAnimation, UIManager
+  LayoutAnimation, UIManager, RefreshControl,
 } from 'react-native';
 import { Button, ButtonGroup, ListItem, Icon } from 'react-native-elements';
+import { AppLoading } from 'expo';
 import { connect } from 'react-redux';
 
 import * as actions from '../actions';
-
-// TODO: Use API
-import { driverIdTmp } from '../assets/tmpData';
 
 
 const TOKO = 0;
@@ -27,15 +25,18 @@ const SHIZEN3ENTER = '自然研3号入口';
 const YAMAYA = 'やまや';
 
 const INITIAL_STATE = {
+  // for <ScrollView />
+  isRefreshing: false,
+
   // for <ButtonGroup />
-  togekoIndex: TOKO,
+  togekoFlag: TOKO,
 
   // for <Picker />
   startPickerVisible: false,
   goalPickerVisible: false,
   departureTimePickerVisible: false,
-  riderCapacityPickerVisible: false,
   chosenDepartureTime: new Date(),
+  riderCapacityPickerVisible: false,
 
   // for driver's own offers
   offerDetail: {
@@ -43,9 +44,7 @@ const INITIAL_STATE = {
     goal: KOKUSAIKAIKAN_SHIZEN3PARK,
     departure_time: '-/-  --:--',
     rider_capacity: '---',
-    reserved_riders: [],
   },
-  ownOffers: []
 };
 
 
@@ -56,21 +55,10 @@ class OfferScreen extends React.Component {
   }
 
 
-  async componentWillMount() {
-    // Call an action creator
-    this.props.fetchDriverInfo();
-
-    // GET own offers
-    try {
-      let response = await fetch(`https://inori.work/offers?driver_id=${driverIdTmp}`);
-      let responseJson = await response.json();
-
-      this.setState({
-        ownOffers: responseJson.offers
-      });
-    } catch (error) {
-      console.error(error);
-    }
+  componentWillMount() {
+    // Call action creators
+    this.props.getDriverInfo();
+    this.props.fetchOwnOffers();
   }
 
 
@@ -81,9 +69,18 @@ class OfferScreen extends React.Component {
   }
 
 
+  onScrollViewRefresh = async () => {
+    this.setState({ isRefreshing: true });
+
+    await this.props.fetchOwnOffers();
+
+    this.setState({ isRefreshing: false });
+  }
+
+
   renderStartPicker() {
     if (this.state.startPickerVisible) {
-      if (this.state.togekoIndex === TOKO) {
+      if (this.state.togekoFlag === TOKO) {
         return (
           <Picker
             selectedValue={this.state.offerDetail.start}
@@ -97,7 +94,7 @@ class OfferScreen extends React.Component {
             <Picker.Item label={`${VDRUG}`} value={`${VDRUG}`} />
           </Picker>
         );
-      } else if (this.state.togekoIndex === GEKO) {
+      } else if (this.state.togekoFlag === GEKO) {
         return (
           <Picker
             selectedValue={this.state.offerDetail.start}
@@ -119,7 +116,7 @@ class OfferScreen extends React.Component {
 
   renderGoalPicker() {
     if (this.state.goalPickerVisible) {
-      if (this.state.togekoIndex === TOKO) {
+      if (this.state.togekoFlag === TOKO) {
         return (
           <Picker
             selectedValue={this.state.offerDetail.goal}
@@ -134,7 +131,7 @@ class OfferScreen extends React.Component {
             <Picker.Item label={`${SHIZEN3PARK}`} value={`${SHIZEN3PARK}`} />
           </Picker>
         );
-      } else if (this.state.togekoIndex === GEKO) {
+      } else if (this.state.togekoFlag === GEKO) {
         return (
           <Picker
             selectedValue={this.state.offerDetail.goal}
@@ -161,12 +158,13 @@ class OfferScreen extends React.Component {
           minuteInterval={15}
           date={this.state.chosenDepartureTime}
           onDateChange={(dateTime) => {
-            const departureTimeText = dateTime.toLocaleString('ja-JP-u-ca-japanese');
+            const departureTimeText = dateTime.toLocaleString('ja');
             this.setState({
               offerDetail: {
                 ...this.state.offerDetail,
-                // Substring the "Japanese Calendar" and "seconds" part
-                departure_time: departureTimeText.substring(3, departureTimeText.length - 3)
+                // Trim year(first 5 characters) and second(last 3 characters)
+                // and replace hyphens by slashes
+                departure_time: departureTimeText.substring(5, departureTimeText.length - 3).replace(/-/g, '/')
               },
               chosenDepartureTime: dateTime,
             });
@@ -190,8 +188,8 @@ class OfferScreen extends React.Component {
           })}
         >
           <Picker.Item label="---" value="---" />
-          <Picker.Item label="1人" value="1" />
-          <Picker.Item label="2人" value="2" />
+          <Picker.Item label="1人" value="1人" />
+          <Picker.Item label="2人" value="2人" />
         </Picker>
       );
     }
@@ -200,55 +198,71 @@ class OfferScreen extends React.Component {
 
   onOfferButtonPress = () => {
     Alert.alert(
-      '相乗りをオファーしますか？',
-      '',
+      'この内容で相乗りをオファーしますか？',
+      `
+      集合：${this.state.offerDetail.start} \n
+      到着：${this.state.offerDetail.goal} \n
+      出発時刻：${this.state.offerDetail.departure_time} \n
+      空席：${this.state.offerDetail.rider_capacity} \n
+      `,
       [
         { text: 'キャンセル' },
         {
           text: 'はい',
           onPress: async () => {
-            // Escape initializing `this.state.ownOffers`
-            const ownOffers = this.state.ownOffers;
+            // Replace srashes by hyphens
+            const replacedDepartureTime = this.state.chosenDepartureTime.toLocaleString('ja').replace(/\//g, '-');
 
-            // TODO: POST
+            // Trim "人" at the last character
+            const trimedRiderCapacity = parseInt(this.state.offerDetail.rider_capacity.substring(0, this.state.offerDetail.rider_capacity.length - 1));
+
+            const offerDetail = {
+              id: 0, // for convenience to the server
+              driver_id: this.props.driverInfo.id,
+              start: this.state.offerDetail.start,
+              goal: this.state.offerDetail.goal,
+              departure_time: replacedDepartureTime,
+              rider_capacity: trimedRiderCapacity,
+            };
+
+            // for debug
+            console.log(`JSON.stringify(offerDetail) = ${JSON.stringify(offerDetail)}`);
+
             // POST the new offer
-            //ownOffers.push(this.state.offerDetail);
             try {
               let response = await fetch('https://inori.work/offers', {
                 method: 'POST',
                 headers: {},
-                body: JSON.stringify({
-                  driver_id: driverIdTmp,
-                  ...this.state.offerDetail,
-                }),
+                body: JSON.stringify(offerDetail),
               });
 
-              let responseJson = await response.json();
-              ownOffers.push(responseJson.offer);
+              //let responseJson = await response.json();
+
+              // If cannot create an offer,
+              if (parseInt(response.status / 100, 10) === 4 ||
+                  parseInt(response.status / 100, 10) === 5) {
+                console.log('Create an offer is failed...');
+
+                Alert.alert(
+                  '相乗りをオファーできませんでした。',
+                  '電波の良いところで後ほどお試しください。',
+                  [
+                    { text: 'OK' },
+                  ]
+                );
+              }
+
+            // If cannot access offers api,
             } catch (error) {
               console.error(error);
+              console.log('Cannot access offers api...');
             }
 
+            // Reset input form
+            this.setState({ ...INITIAL_STATE });
 
-            // TODO: GET
-            // GET own offers
-            this.setState({
-              ...INITIAL_STATE,
-              ownOffers
-            });
-            /*
-            try {
-              let response = await fetch(`https://inori.work/offers?driver_id=${driverIdTmp}`);
-
-              let responseJson = await response.json();
-              this.setState({
-                ...INITIAL_STATE,
-                ownOffers: responseJson.offers
-              });
-            } catch (error) {
-              console.error(error);
-            }
-            */
+            // ReGET own offers
+            this.props.fetchOwnOffers();
           }
         }
       ],
@@ -298,52 +312,66 @@ class OfferScreen extends React.Component {
   }
 
 
-  onListItemPress = (selectedOffer) => {
-    // Nvigate to `DetailScreen` with params `offerId`
+  onListItemPress = (selectedItem) => {
+    // Nvigate to `DetailScreen` with params
     this.props.navigation.navigate('detail', {
-      offerId: selectedOffer.id,
+      selectedOfferId: selectedItem.offer.id,
     });
   }
 
 
   renderOwnOffers() {
+    // for debug
+    console.log(`this.props.ownOffers.length = ${this.props.ownOffers.length}`);
+
+    if (this.props.ownOffers.length === 0) {
+      return (
+        <View style={{ padding: 10 }}>
+          <Text style={styles.grayTextStyle}>オファー中の相乗りはまだありません</Text>
+        </View>
+      );
+    }
+
     return (
       <View>
-        {this.state.ownOffers.map((offer, index) => {
+        {this.props.ownOffers.map((item, index) => {
+          // Trim year(frist 5 characters) and second(last 3 characters),
+          // and replace hyphens by slashes
+          const trimedDepartureTime = item.offer.departure_time.substring(5, item.offer.departure_time.length - 3).replace(/-/g, '/');
+
           return (
             <ListItem
               key={index}
               leftIcon={{ name: 'person', color: 'black' }}
               title={
-                <View style={{ flexDirection: 'row', flex: 1 }}>
+                <View style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}>
                   <View style={{ flex: 2 }}>
-                    <Text>{`${this.props.driverInfo.last_name} ${this.props.driverInfo.first_name}`}</Text>
-                    <Text>{`${this.props.driverInfo.major}`}</Text>
-                    <Text>{`${this.props.driverInfo.grade}`}</Text>
-                    <Text>{`${this.props.driverInfo.car_color} ${this.props.driverInfo.car_number}`}</Text>
+                    <Text>{`${item.driver.last_name} ${item.driver.first_name}`}</Text>
+                    <Text>{`${item.driver.major}`}</Text>
+                    <Text>{`${item.driver.grade}`}</Text>
                   </View>
 
                   <View style={{ flex: 3 }}>
                     <View style={{ flexDirection: 'row' }}>
                       <Icon name='map-marker' type='font-awesome' size={15} />
-                      <Text style={{ paddingLeft: 5 }}>{`${offer.start}`}</Text>
+                      <Text style={{ paddingLeft: 5 }}>{`${item.offer.start}`}</Text>
                     </View>
                     <View style={{ flexDirection: 'row' }}>
                       <Icon name='flag-checkered' type='font-awesome' size={10} />
-                      <Text style={{ paddingLeft: 5 }}>{`${offer.goal}`}</Text>
+                      <Text style={{ paddingLeft: 5 }}>{`${item.offer.goal}`}</Text>
                     </View>
                     <View style={{ flexDirection: 'row' }}>
                       <Icon name='timer' /*type='font-awesome'*/ size={10} />
-                      <Text style={{ paddingLeft: 5 }}>{`${offer.departure_time}`}</Text>
+                      <Text style={{ paddingLeft: 5 }}>{`${trimedDepartureTime}`}</Text>
                     </View>
                     <View style={{ flexDirection: 'row' }}>
                       <Icon name='car' type='font-awesome' size={10} />
-                      <Text style={{ paddingLeft: 5 }}>{`${offer.reserved_riders.length} / ${offer.rider_capacity}人`}</Text>
+                      <Text style={{ paddingLeft: 5 }}>{`${item.reserved_riders.length} / ${item.offer.rider_capacity}人, ${item.driver.car_color}, ${item.driver.car_number}`}</Text>
                     </View>
                   </View>
                 </View>
               }
-              onPress={() => this.onListItemPress(offer)}
+              onPress={() => this.onListItemPress(item)}
             />
           );
         })}
@@ -353,23 +381,41 @@ class OfferScreen extends React.Component {
 
 
   render() {
+    // for debug
+    console.log(`(typeof this.props.driverInfo.id) = ${(typeof this.props.driverInfo.id)}`);
+    console.log(`_.isNull(this.props.ownOffers) = ${_.isNull(this.props.ownOffers)}`);
+
+    // Wait to fetch own rider info, own reservations, and all offers
+    if ((typeof this.props.driverInfo.id) === 'undefined' ||
+        _.isNull(this.props.ownOffers)) {
+      return <AppLoading />;
+    }
+
     return (
       <View style={{ flex: 1 }}>
-        <ScrollView style={{ flex: 1 }}>
+        <ScrollView
+          style={{ flex: 1 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={this.state.isRefreshing}
+              onRefresh={this.onScrollViewRefresh}
+            />
+          }
+        >
 
           <ButtonGroup
             buttons={[
               '登校',
               '下校'
             ]}
-            selectedIndex={this.state.togekoIndex}
+            selectedIndex={this.state.togekoFlag}
             onPress={(selectedIndex) =>
               this.setState({
-                togekoIndex: selectedIndex,
+                togekoFlag: selectedIndex,
                 offerDetail: {
                   ...this.state.offerDetail,
                   start: selectedIndex===TOKO ? VDRUG : SHIZEN3ENTER_KOKUSAIKAIKAN,
-                  goal: selectedIndex===TOKO ? KOKUSAIKAIKAN_SHIZEN3PARK : VDRUG,
+                  goal: selectedIndex===TOKO ? KOKUSAIKAIKAN_SHIZEN3PARK : YAMAYA,
                 }
               })
             }
@@ -380,7 +426,7 @@ class OfferScreen extends React.Component {
             title={
               <View style={{ flexDirection: 'row' }}>
                 <Icon name='map-marker' type='font-awesome' color='gray' />
-                <Text style={styles.textStyle}>集合: </Text>
+                <Text style={styles.grayTextStyle}>集合: </Text>
               </View>
             }
             subtitle={
@@ -390,7 +436,7 @@ class OfferScreen extends React.Component {
                 </Text>
               </View>
             }
-            rightIcon={{ name: this.state.startPickerVisible ? 'keyboard-arrow-up' : 'keyboard-arrow-down' }}
+            rightIcon={{ name: !this.state.startPickerVisible ? 'keyboard-arrow-down' : 'keyboard-arrow-up' }}
             onPress={() => this.setState({
               startPickerVisible: !this.state.startPickerVisible,
               goalPickerVisible: false,
@@ -406,7 +452,7 @@ class OfferScreen extends React.Component {
             title={
               <View style={{ flexDirection: 'row' }}>
                 <Icon name='flag-checkered' type='font-awesome' color='gray' />
-                <Text style={styles.textStyle}>到着: </Text>
+                <Text style={styles.grayTextStyle}>到着: </Text>
               </View>
             }
             subtitle={
@@ -416,7 +462,7 @@ class OfferScreen extends React.Component {
                 </Text>
               </View>
             }
-            rightIcon={{ name: this.state.goalPickerVisible ? 'keyboard-arrow-up' : 'keyboard-arrow-down' }}
+            rightIcon={{ name: !this.state.goalPickerVisible ? 'keyboard-arrow-down' : 'keyboard-arrow-up' }}
             onPress={() => this.setState({
               startPickerVisible: false,
               goalPickerVisible: !this.state.goalPickerVisible,
@@ -434,7 +480,7 @@ class OfferScreen extends React.Component {
                 title={
                   <View style={{ flexDirection: 'row' }}>
                     <Icon name='timer' /*type='font-awesome'*/ color='gray' />
-                    <Text style={styles.textStyle}>出発時刻: </Text>
+                    <Text style={styles.grayTextStyle}>出発時刻: </Text>
                   </View>
                 }
                 subtitle={
@@ -450,7 +496,7 @@ class OfferScreen extends React.Component {
                   </View>
 
                 }
-                rightIcon={{ name: this.state.departureTimePickerVisible ? 'keyboard-arrow-up' : 'keyboard-arrow-down' }}
+                rightIcon={{ name: !this.state.departureTimePickerVisible ? 'keyboard-arrow-down' : 'keyboard-arrow-up' }}
                 onPress={() => this.setState({
                   startPickerVisible: false,
                   goalPickerVisible: false,
@@ -466,7 +512,7 @@ class OfferScreen extends React.Component {
                 title={
                   <View style={{ flexDirection: 'row' }}>
                     <Icon name='car' type='font-awesome' color='gray' />
-                    <Text style={styles.textStyle}>空席: </Text>
+                    <Text style={styles.grayTextStyle}>空席: </Text>
                   </View>
                 }
                 subtitle={
@@ -481,7 +527,7 @@ class OfferScreen extends React.Component {
                     </Text>
                   </View>
                 }
-                rightIcon={{ name: this.state.riderCapacityPickerVisible ? 'keyboard-arrow-up' : 'keyboard-arrow-down' }}
+                rightIcon={{ name: !this.state.riderCapacityPickerVisible ? 'keyboard-arrow-down' : 'keyboard-arrow-up' }}
                 onPress={() => this.setState({
                   startPickerVisible: false,
                   goalPickerVisible: false,
@@ -498,7 +544,7 @@ class OfferScreen extends React.Component {
 
           {this.renderOfferButton()}
 
-          <Text style={styles.textStyle}>
+          <Text style={styles.grayTextStyle}>
             オファー中
           </Text>
 
@@ -512,7 +558,7 @@ class OfferScreen extends React.Component {
 
 
 const styles = StyleSheet.create({
-  textStyle: {
+  grayTextStyle: {
     fontSize: 18,
     color: 'gray',
     padding: 10
@@ -526,7 +572,8 @@ const styles = StyleSheet.create({
 
 const mapStateToProps = (state) => {
   return {
-    driverInfo: state.driverReducer.driverInfo
+    driverInfo: state.driverReducer.driverInfo,
+    ownOffers: state.driverReducer.ownOffers
   };
 };
 

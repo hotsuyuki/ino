@@ -1,10 +1,9 @@
-import _ from 'lodash';
 import { AsyncStorage } from 'react-native';
 
 import {
   FETCH_OWN_RESERVATIONS,
   FETCH_ALL_OFFERS,
-  FETCH_RIDER_INFO,
+  GET_RIDER_INFO,
 } from './types';
 
 
@@ -19,19 +18,19 @@ export const fetchOwnReservations = () => {
   return async (dispatch) => {
     const ownReservations = [];
 
-    // Try to get stored rider infor
+    // Get stored rider info
     try {
       let stringifiedRiderInfo = await AsyncStorage.getItem('riderInfo');
       let riderInfo = JSON.parse(stringifiedRiderInfo);
 
-      // Try to GET own reservations
+      // GET own reservations
       try {
         let reservationResponse = await fetch(`https://inori.work/reservations?rider_id=${riderInfo.id}`);
         let reservationResponseJson = await reservationResponse.json();
         //console.log('JSON.stringify(reservationResponseJson) = ' + JSON.stringify(reservationResponseJson));
 
         const promiseArray = reservationResponseJson.reservations.map(async (reservation) => {
-          // Try to GET corresponding offer
+          // GET corresponding offer
           try {
             let offerResponse = await fetch(`https://inori.work/offers/${reservation.offer_id}`);
             let offerResponseJson = await offerResponse.json();
@@ -51,11 +50,7 @@ export const fetchOwnReservations = () => {
             }
             **********************************/
 
-            // Trim year(frist 5 characters) and second(last 3 characters),
-            // and replace hyphens by slashes
-            //eachItem.departure_time = eachItem.departure_time.substring(5, eachItem.departure_time.length - 3).replace(/-/g, '/');
-
-            // Try to GET corresponding driver info
+            // GET corresponding driver info
             try {
               let driverResponse = await fetch(`https://inori.work/drivers/${eachItem.offer.driver_id}`);
               let driverResponseJson = await driverResponse.json();
@@ -71,7 +66,7 @@ export const fetchOwnReservations = () => {
                   major:,
                   mail:,
                   phone:
-                  car_color:,,
+                  car_color:,
                   car_number:
                 },
                 offer: {
@@ -85,6 +80,7 @@ export const fetchOwnReservations = () => {
                 reserved_riders: [`id1`, `id2`, ...]
               }
               **********************************/
+
               ownReservations.push(eachItem);
 
             // If cannot access drivers api,
@@ -101,6 +97,17 @@ export const fetchOwnReservations = () => {
         });
 
         await Promise.all(promiseArray);
+
+        // Sort `allOffers` in chronological order
+        ownReservations.sort((a, b) => {
+          if (a.offer.departure_time < b.offer.departure_time) {
+            return -1;
+          }
+          if (a.offer.departure_time > b.offer.departure_time) {
+            return 1;
+          }
+          return 0;
+        });
 
       // If cannot access reservations api,
       } catch (error) {
@@ -127,7 +134,7 @@ export const fetchAllOffers = () => {
   return async (dispatch) => {
     const allOffers = [];
 
-    // Try to GET all offers
+    // GET all offers
     try {
       let offerResponse = await fetch('https://inori.work/offers');
       let offerResponseJson = await offerResponse.json();
@@ -149,11 +156,7 @@ export const fetchAllOffers = () => {
         }
         **********************************/
 
-        // Trim year(frist 5 characters) and second(last 3 characters),
-        // and replace hyphens by slashes
-        //eachItem.departure_time = eachItem.departure_time.substring(5, eachItem.departure_time.length - 3).replace(/-/g, '/');
-
-        // Try to GET corresponding driver info
+        // GET corresponding driver info
         try {
           //let driverResponse = await fetch(`https://inori.work/drivers/${item.offer.driver_id}`);
           let driverResponse = await fetch(`https://inori.work/drivers/${eachItem.offer.driver_id}`);
@@ -171,7 +174,7 @@ export const fetchAllOffers = () => {
               major:,
               mail:,
               phone:
-              car_color:,,
+              car_color:,
               car_number:
             },
             offer: {
@@ -185,6 +188,7 @@ export const fetchAllOffers = () => {
             reserved_riders: [`id1`, `id2`, ...]
           }
           **********************************/
+
           allOffers.push(eachItem);
 
         // If cannot access drivers api,
@@ -195,6 +199,20 @@ export const fetchAllOffers = () => {
       });
 
       await Promise.all(promiseArray);
+
+      // Sort `allOffers` in chronological order
+      allOffers.sort((a, b) => {
+        if (a.offer.departure_time < b.offer.departure_time) {
+          return -1;
+        }
+        if (a.offer.departure_time > b.offer.departure_time) {
+          return 1;
+        }
+        return 0;
+      });
+
+      // for debug 
+      //console.log(`JSON.stringify(allOffers) = ${JSON.stringify(allOffers)}`);
 
     // If cannot access offers api,
     } catch (error) {
@@ -207,7 +225,7 @@ export const fetchAllOffers = () => {
 };
 
 
-export const fetchRiderInfo = () => {
+export const getRiderInfo = () => {
   // For an async flow like Ajax,
   // action creator function returns another function (not an action),
   // and the returned fucntion dispatch an action
@@ -216,7 +234,7 @@ export const fetchRiderInfo = () => {
   return async (dispatch) => {
     let riderInfo = {};
 
-    // Try get stored rider infor
+    // Get stored rider info
     try {
       let stringifiedRiderInfo = await AsyncStorage.getItem('riderInfo');
       riderInfo = JSON.parse(stringifiedRiderInfo);
@@ -227,6 +245,6 @@ export const fetchRiderInfo = () => {
       console.log('Cannot get stored rider info...');
     }
 
-    dispatch({ type: FETCH_RIDER_INFO, payload: riderInfo });
+    dispatch({ type: GET_RIDER_INFO, payload: riderInfo });
   };
 };

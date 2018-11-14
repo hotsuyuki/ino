@@ -11,7 +11,7 @@ const INITIAL_STATE = {
   // for skipping this screen or not
   isLogedin: null,
 
-  // for rider's info
+  // for rider info
   riderInfo: {
     mail: '',
   }
@@ -26,7 +26,7 @@ class LoginScreen extends React.Component {
 
 
   async componentWillMount() {
-    // Try to get stored rider infor
+    // Get stored rider info
     try {
       let stringifiedRiderInfo = await AsyncStorage.getItem('riderInfo');
       let mail = JSON.parse(stringifiedRiderInfo).mail;
@@ -55,7 +55,7 @@ class LoginScreen extends React.Component {
 
           console.log('Automatic login with the stored email address is succeeded!!!');
           this.setState({ isLogedin: true });
-          this.props.navigation.navigate('root');
+          this.props.navigation.navigate('offerList');
 
         // If cannot login with the stored email address,
         } else if (parseInt(response.status / 100, 10) === 4 ||
@@ -106,12 +106,13 @@ class LoginScreen extends React.Component {
 
         console.log('Manual login with the input email address is succeeded!!!');
         this.setState({ isLogedin: true });
-        this.props.navigation.navigate('root');
+        this.props.navigation.navigate('offerList');
 
       // If cannot login with the stored email address,
       } else if (parseInt(response.status / 100, 10) === 4 ||
                  parseInt(response.status / 100, 10) === 5) {
         console.log('Manual login with the input email address is failed...');
+
         Alert.alert(
           'アカウントを確認できませんでした。',
           'アカウントを新規登録をするかもしくは電波の良いところで後ほどお試しください。',
@@ -166,7 +167,6 @@ class LoginScreen extends React.Component {
 
 
   render() {
-    //if (_.isNull(this.state.isLogedin)) {
     if (this.state.isLogedin === INITIAL_STATE.isLogedin) {
       return <AppLoading />;
     }
@@ -196,6 +196,7 @@ class LoginScreen extends React.Component {
           </View>
 
           {this.renderLoginButton()}
+
         </View>
 
         <View style={{ flex: 3 }}>
