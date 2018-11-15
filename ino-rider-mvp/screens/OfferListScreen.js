@@ -82,31 +82,34 @@ class OfferListScreen extends React.Component {
           return (
             <ListItem
               key={index}
-              leftIcon={{ name: 'person', color: 'black' }}
+              //leftIcon={{ name: 'person', color: 'black' }}
               title={
                 <View style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}>
-                  <View style={{ flex: 2 }}>
+                  <View style={{ flex: 3, justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Icon name='person' />
                     <Text>{`${item.driver.last_name} ${item.driver.first_name}`}</Text>
-                    <Text>{`${item.driver.major}`}</Text>
-                    <Text>{`${item.driver.grade}`}</Text>
                   </View>
 
-                  <View style={{ flex: 3 }}>
+                  <View style={{ flex: 7, justifyContent: 'space-between' }}>
                     <View style={{ flexDirection: 'row' }}>
-                      <Icon name='map-marker' type='font-awesome' size={15} />
-                      <Text style={{ paddingLeft: 5 }}>{`${item.offer.start}`}</Text>
+                      <View style={{ paddingLeft: 3, paddingRight: 3, justifyContent: 'center' }} >
+                        <Icon name='map-marker' type='font-awesome' size={10} />
+                      </View>
+                      <Text numberOfLines={1} style={{ paddingLeft: 5 }}>{`${item.offer.start}`}</Text>
                     </View>
                     <View style={{ flexDirection: 'row' }}>
                       <Icon name='flag-checkered' type='font-awesome' size={10} />
-                      <Text style={{ paddingLeft: 5 }}>{`${item.offer.goal}`}</Text>
+                      <Text numberOfLines={1} style={{ paddingLeft: 5 }}>{`${item.offer.goal}`}</Text>
                     </View>
                     <View style={{ flexDirection: 'row' }}>
-                      <Icon name='timer' size={10} />
-                      <Text style={{ paddingLeft: 5 }}>{`${trimedDepartureTime}`}</Text>
-                    </View>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Icon name='car' type='font-awesome' size={10} />
-                      <Text style={{ paddingLeft: 5 }}>{`${item.reserved_riders.length} / ${item.offer.rider_capacity}人, ${item.driver.car_color}, ${item.driver.car_number}`}</Text>
+                      <View style={{ flexDirection: 'row' }}>
+                        <Icon name='timer' /*type='font-awesome'*/ size={10} />
+                        <Text numberOfLines={1} style={{ paddingLeft: 5 }}>{`${trimedDepartureTime}`}</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
+                        <Icon name='car' type='font-awesome' size={10} />
+                        <Text numberOfLines={1} style={{ paddingLeft: 5 }}>{`${item.reserved_riders.length} / ${item.offer.rider_capacity}人`}</Text>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -151,31 +154,34 @@ class OfferListScreen extends React.Component {
             return (
               <ListItem
                 key={index}
-                leftIcon={{ name: 'person', color: 'black' }}
+                //leftIcon={{ name: 'person', color: 'black' }}
                 title={
                   <View style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}>
-                    <View style={{ flex: 2 }}>
+                    <View style={{ flex: 3, justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Icon name='person' />
                       <Text>{`${item.driver.last_name} ${item.driver.first_name}`}</Text>
-                      <Text>{`${item.driver.major}`}</Text>
-                      <Text>{`${item.driver.grade}`}</Text>
                     </View>
 
-                    <View style={{ flex: 3 }}>
+                    <View style={{ flex: 7, justifyContent: 'space-between' }}>
                       <View style={{ flexDirection: 'row' }}>
-                        <Icon name='map-marker' type='font-awesome' size={15} />
-                        <Text style={{ paddingLeft: 5 }}>{`${item.offer.start}`}</Text>
+                        <View style={{ paddingLeft: 3, paddingRight: 3, justifyContent: 'center' }} >
+                          <Icon name='map-marker' type='font-awesome' size={10} />
+                        </View>
+                        <Text numberOfLines={1} style={{ paddingLeft: 5 }}>{`${item.offer.start}`}</Text>
                       </View>
                       <View style={{ flexDirection: 'row' }}>
                         <Icon name='flag-checkered' type='font-awesome' size={10} />
-                        <Text style={{ paddingLeft: 5 }}>{`${item.offer.goal}`}</Text>
+                        <Text numberOfLines={1} style={{ paddingLeft: 5 }}>{`${item.offer.goal}`}</Text>
                       </View>
                       <View style={{ flexDirection: 'row' }}>
-                        <Icon name='timer' size={10} />
-                        <Text style={{ paddingLeft: 5 }}>{`${trimedDepartureTime}`}</Text>
-                      </View>
-                      <View style={{ flexDirection: 'row' }}>
-                        <Icon name='car' type='font-awesome' size={10} />
-                        <Text style={{ paddingLeft: 5 }}>{`${item.reserved_riders.length} / ${item.offer.rider_capacity}人, ${item.driver.car_color}, ${item.driver.car_number}`}</Text>
+                        <View style={{ flexDirection: 'row' }}>
+                          <Icon name='timer' /*type='font-awesome'*/ size={10} />
+                          <Text numberOfLines={1} style={{ paddingLeft: 5 }}>{`${trimedDepartureTime}`}</Text>
+                        </View>
+                        <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
+                          <Icon name='car' type='font-awesome' size={10} />
+                          <Text numberOfLines={1} style={{ paddingLeft: 5 }}>{`${item.reserved_riders.length} / ${item.offer.rider_capacity}人`}</Text>
+                        </View>
                       </View>
                     </View>
                   </View>
@@ -239,7 +245,7 @@ class OfferListScreen extends React.Component {
 
 const styles = StyleSheet.create({
   grayTextStyle: {
-    fontSize: 18,
+    /*fontSize: 18,*/
     color: 'gray',
     padding: 10
   },

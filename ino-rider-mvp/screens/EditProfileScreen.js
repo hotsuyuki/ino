@@ -132,7 +132,7 @@ class EditProfileScreen extends React.Component {
 
         { key: index++, label: '先進予防医学研究科' },
         { key: index++, label: '連合小児発達学研究科' },
-        { key: index++, label: '法務研究科（法科大学院）' },
+        { key: index++, label: '法務研究科(法科大学院)' },
         { key: index++, label: '教職実践研究科' },
 
         { key: index++, label: 'その他' },
@@ -157,7 +157,7 @@ class EditProfileScreen extends React.Component {
 
         { key: index++, label: '先進予防医学研究科' },
         { key: index++, label: '連合小児発達学研究科' },
-        { key: index++, label: '法務研究科（法科大学院）' },
+        { key: index++, label: '法務研究科(法科大学院)' },
         { key: index++, label: '教職実践研究科' },
 
         { key: index++, label: 'その他' },
@@ -423,16 +423,6 @@ const styles = StyleSheet.create({
     color: 'gray',
     fontSize: 18,
     fontWeight: 'bold'
-  },
-  itemTextStyle: {
-    fontSize: 18,
-    color: 'gray',
-    padding: 10,
-  },
-  contentTextStyle: {
-    fontSize: 18,
-    color: 'black',
-    paddingLeft: 30,
   },
 });
 

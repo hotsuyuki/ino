@@ -1,6 +1,7 @@
 import React from 'react';
 import {
-  StyleSheet, Text, View, ScrollView, Alert, Linking
+  StyleSheet, Text, View, ScrollView, Alert,
+  LayoutAnimation, UIManager, RefreshControl, Linking,
 } from 'react-native';
 import { Button, Icon } from 'react-native-elements';
 import { AppLoading } from 'expo';
@@ -10,6 +11,9 @@ import * as actions from '../actions';
 
 
 const INITIAL_STATE = {
+  // for <ScrollView />
+  isRefreshing: false,
+
   // for selected item,
   selectedItem: {
     driver: {},
@@ -26,7 +30,25 @@ class DetailScreen extends React.Component {
   }
 
 
-  async componentWillMount() {
+  componentWillMount() {
+    // This is not an acntion creator
+    // Just GET the offer info from the server and store into `this.state`
+    this.fetchSelectedOffer();
+
+    // Reflesh `this.props.ownOffers` in `OfferScreen`
+    // and make `OfferScreen` rerender by calling action creators
+    this.props.fetchOwnOffers();
+  }
+
+
+  componentWillUpdate() {
+    // Ease in & Ease out animation
+    UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
+    LayoutAnimation.easeInEaseOut();
+  }
+
+
+  async fetchSelectedOffer() {
     // The params passed from the previous page
     const selectedOfferId = this.props.navigation.getParam('selectedOfferId', 'default_value');
 
@@ -100,7 +122,7 @@ class DetailScreen extends React.Component {
 
       selectedItem.reserved_riders = reservedRidersInfo;
       // for debug
-      console.log(`JSON.stringify(selectedItem) = ${JSON.stringify(selectedItem)}`);
+      //console.log(`JSON.stringify(selectedItem) = ${JSON.stringify(selectedItem)}`);
       /**********************************
       selectedItem: {
         driver:{
@@ -158,6 +180,21 @@ class DetailScreen extends React.Component {
   }
 
 
+  onScrollViewRefresh = () => {
+    this.setState({ isRefreshing: true });
+
+    // This is not an acntion creator
+    // Just GET the offer info from the server and store into `this.state`
+    this.fetchSelectedOffer();
+
+    // Reflesh `this.props.ownOffers` in `OfferScreen`
+    // and make `OfferScreen` rerender by calling action creators
+    this.props.fetchOwnOffers();
+
+    this.setState({ isRefreshing: false });
+  }
+
+
   renderReservedRiders() {
     if (this.state.selectedItem.reserved_riders.length === 0) {
       return (
@@ -180,8 +217,8 @@ class DetailScreen extends React.Component {
               </View>
               <View style={{ flex: 2 }}>
                 <Text style={styles.nameTextStyle}>{`${rider.last_name} ${rider.first_name}`}</Text>
-                <Text style={{ fontSize: 18 }}>{`${rider.major}`}</Text>
-                <Text style={{ fontSize: 18 }}>{`${rider.grade}`}</Text>
+                <Text style={{ /*fontSize: 18*/ }}>{`${rider.major}`}</Text>
+                <Text style={{ /*fontSize: 18*/ }}>{`${rider.grade}`}</Text>
               </View>
               <View style={{ flex: 1 }}>
                 <Icon
@@ -256,14 +293,24 @@ class DetailScreen extends React.Component {
 
     return (
       <View style={{ flex: 1 }}>
-        <ScrollView style={{ flex: 1 }}>
+        <ScrollView
+          style={{ flex: 1 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={this.state.isRefreshing}
+              onRefresh={this.onScrollViewRefresh}
+            />
+          }
+        >
 
           <View>
             <Text style={styles.grayTextStyle}>情報</Text>
 
             <View style={{ paddingLeft: 30 }}>
               <View style={{ flexDirection: 'row' }}>
-                <Icon name='map-marker' type='font-awesome' size={25} />
+                <View style={{ paddingLeft: 3, paddingRight: 3, justifyContent: 'center' }} >
+                  <Icon name='map-marker' type='font-awesome' size={15} />
+                </View>
                 <Text style={styles.infoTextStyle}>{`${this.state.selectedItem.offer.start}`}</Text>
               </View>
               <View style={{ flexDirection: 'row' }}>
@@ -274,9 +321,15 @@ class DetailScreen extends React.Component {
                 <Icon name='timer' /*type='font-awesome'*/ size={15} />
                 <Text style={styles.infoTextStyle}>{`${trimedDepartureTime}`}</Text>
               </View>
-              <View style={{ flexDirection: 'row' }}>
-                <Icon name='car' type='font-awesome' size={15} />
-                <Text style={styles.infoTextStyle}>{`${this.state.selectedItem.reserved_riders.length} / ${this.state.selectedItem.offer.rider_capacity}人, ${this.state.selectedItem.driver.car_color}, ${this.state.selectedItem.driver.car_number}`}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+                <View style={{ paddingTop: 5 }}>
+                  <Icon name='car' type='font-awesome' size={15} />
+                </View>
+                <View>
+                  <Text style={styles.infoTextStyle}>{`空席数：${this.state.selectedItem.reserved_riders.length} / ${this.state.selectedItem.offer.rider_capacity}人`}</Text>
+                  <Text style={styles.infoTextStyle}>{`車の色：${this.state.selectedItem.driver.car_color}`}</Text>
+                  <Text style={styles.infoTextStyle}>{`ナンバー：${this.state.selectedItem.driver.car_number}`}</Text>
+                </View>
               </View>
             </View>
           </View>
@@ -306,16 +359,16 @@ class DetailScreen extends React.Component {
 
 const styles = StyleSheet.create({
   grayTextStyle: {
-    fontSize: 18,
+    /*fontSize: 18,*/
     color: 'gray',
     padding: 10,
   },
   infoTextStyle: {
-    fontSize: 18,
+    /*fontSize: 18,*/
     padding: 5,
   },
   nameTextStyle: {
-    fontSize: 18,
+    /*fontSize: 18,*/
     paddingBottom: 5
   },
 });

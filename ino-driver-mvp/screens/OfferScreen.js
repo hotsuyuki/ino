@@ -16,12 +16,12 @@ const GEKO = 1;
 
 // for TOKO
 const VDRUG = 'Vドラッグ';
-const KOKUSAIKAIKAN_SHIZEN3PARK = '留学生会館経由自然研3号駐車場';
-const SHIZEN3PARK = '自然研3号駐車場';
+const KOKUSAIKAIKAN_SHIZEN3PARK = '国際交流会館前 経由 自然研3号館駐車場';
+const SHIZEN3PARK = '自然研3号館駐車場';
 
 // for GEKO
-const SHIZEN3ENTER_KOKUSAIKAIKAN = '自然研3号入口経由留学生会館';
-const SHIZEN3ENTER = '自然研3号入口';
+const SHIZEN3ENTER_KOKUSAIKAIKAN = '自然研3号館入口 経由 国際交流会館前';
+const SHIZEN3ENTER = '自然研3号館入口';
 const YAMAYA = 'やまや';
 
 const INITIAL_STATE = {
@@ -342,31 +342,34 @@ class OfferScreen extends React.Component {
           return (
             <ListItem
               key={index}
-              leftIcon={{ name: 'person', color: 'black' }}
+              //leftIcon={{ name: 'person', color: 'black' }}
               title={
                 <View style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}>
-                  <View style={{ flex: 2 }}>
+                  <View style={{ flex: 3, justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Icon name='person' />
                     <Text>{`${item.driver.last_name} ${item.driver.first_name}`}</Text>
-                    <Text>{`${item.driver.major}`}</Text>
-                    <Text>{`${item.driver.grade}`}</Text>
                   </View>
 
-                  <View style={{ flex: 3 }}>
+                  <View style={{ flex: 7, justifyContent: 'space-between' }}>
                     <View style={{ flexDirection: 'row' }}>
-                      <Icon name='map-marker' type='font-awesome' size={15} />
-                      <Text style={{ paddingLeft: 5 }}>{`${item.offer.start}`}</Text>
+                      <View style={{ paddingLeft: 3, paddingRight: 3, justifyContent: 'center' }} >
+                        <Icon name='map-marker' type='font-awesome' size={10} />
+                      </View>
+                      <Text numberOfLines={1} style={{ paddingLeft: 5 }}>{`${item.offer.start}`}</Text>
                     </View>
                     <View style={{ flexDirection: 'row' }}>
                       <Icon name='flag-checkered' type='font-awesome' size={10} />
-                      <Text style={{ paddingLeft: 5 }}>{`${item.offer.goal}`}</Text>
+                      <Text numberOfLines={1} style={{ paddingLeft: 5 }}>{`${item.offer.goal}`}</Text>
                     </View>
                     <View style={{ flexDirection: 'row' }}>
-                      <Icon name='timer' /*type='font-awesome'*/ size={10} />
-                      <Text style={{ paddingLeft: 5 }}>{`${trimedDepartureTime}`}</Text>
-                    </View>
-                    <View style={{ flexDirection: 'row' }}>
-                      <Icon name='car' type='font-awesome' size={10} />
-                      <Text style={{ paddingLeft: 5 }}>{`${item.reserved_riders.length} / ${item.offer.rider_capacity}人, ${item.driver.car_color}, ${item.driver.car_number}`}</Text>
+                      <View style={{ flexDirection: 'row' }}>
+                        <Icon name='timer' /*type='font-awesome'*/ size={10} />
+                        <Text numberOfLines={1} style={{ paddingLeft: 5 }}>{`${trimedDepartureTime}`}</Text>
+                      </View>
+                      <View style={{ flexDirection: 'row', paddingLeft: 10 }}>
+                        <Icon name='car' type='font-awesome' size={10} />
+                        <Text numberOfLines={1} style={{ paddingLeft: 5 }}>{`${item.reserved_riders.length} / ${item.offer.rider_capacity}人`}</Text>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -425,13 +428,15 @@ class OfferScreen extends React.Component {
           <ListItem
             title={
               <View style={{ flexDirection: 'row' }}>
-                <Icon name='map-marker' type='font-awesome' color='gray' />
-                <Text style={styles.grayTextStyle}>集合: </Text>
+                <View style={{ paddingLeft: 3, paddingRight: 3, justifyContent: 'center' }} >
+                  <Icon name='map-marker' type='font-awesome' color='gray' size={15} />
+                </View>
+                <Text style={styles.grayTextStyle}>集合：</Text>
               </View>
             }
             subtitle={
               <View style={styles.listItemStyle}>
-                <Text style={{ fontSize: 18 }}>
+                <Text numberOfLines={1} style={{ /*fontSize: 18*/ }}>
                   {this.state.offerDetail.start}
                 </Text>
               </View>
@@ -451,13 +456,13 @@ class OfferScreen extends React.Component {
           <ListItem
             title={
               <View style={{ flexDirection: 'row' }}>
-                <Icon name='flag-checkered' type='font-awesome' color='gray' />
-                <Text style={styles.grayTextStyle}>到着: </Text>
+                <Icon name='flag-checkered' type='font-awesome' color='gray' size={15} />
+                <Text style={styles.grayTextStyle}>到着：</Text>
               </View>
             }
             subtitle={
               <View style={styles.listItemStyle}>
-                <Text style={{ fontSize: 18 }}>
+                <Text numberOfLines={1} style={{ /*fontSize: 18*/ }}>
                   {this.state.offerDetail.goal}
                 </Text>
               </View>
@@ -479,15 +484,15 @@ class OfferScreen extends React.Component {
               <ListItem
                 title={
                   <View style={{ flexDirection: 'row' }}>
-                    <Icon name='timer' /*type='font-awesome'*/ color='gray' />
-                    <Text style={styles.grayTextStyle}>出発時刻: </Text>
+                    <Icon name='timer' /*type='font-awesome'*/ color='gray' size={15} />
+                    <Text style={styles.grayTextStyle}>出発時刻：</Text>
                   </View>
                 }
                 subtitle={
                   <View style={styles.listItemStyle}>
                     <Text
                       style={{
-                        fontSize: 18,
+                        /*fontSize: 18,*/
                         color: this.state.offerDetail.departure_time === INITIAL_STATE.offerDetail.departure_time ? 'gray' : 'black'
                       }}
                     >
@@ -511,15 +516,15 @@ class OfferScreen extends React.Component {
               <ListItem
                 title={
                   <View style={{ flexDirection: 'row' }}>
-                    <Icon name='car' type='font-awesome' color='gray' />
-                    <Text style={styles.grayTextStyle}>空席: </Text>
+                    <Icon name='car' type='font-awesome' color='gray' size={15} />
+                    <Text style={styles.grayTextStyle}>空席：</Text>
                   </View>
                 }
                 subtitle={
                   <View style={styles.listItemStyle}>
                     <Text
                       style={{
-                        fontSize: 18,
+                        /*fontSize: 18,*/
                         color: this.state.offerDetail.rider_capacity === INITIAL_STATE.offerDetail.rider_capacity ? 'gray' : 'black'
                       }}
                     >
@@ -544,9 +549,7 @@ class OfferScreen extends React.Component {
 
           {this.renderOfferButton()}
 
-          <Text style={styles.grayTextStyle}>
-            オファー中
-          </Text>
+          <Text style={styles.grayTextStyle}>オファー中</Text>
 
           {this.renderOwnOffers()}
 
@@ -559,7 +562,7 @@ class OfferScreen extends React.Component {
 
 const styles = StyleSheet.create({
   grayTextStyle: {
-    fontSize: 18,
+    /*fontSize: 18,*/
     color: 'gray',
     padding: 10
   },
