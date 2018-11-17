@@ -5,13 +5,16 @@ import {
 } from 'react-native';
 import { Icon, Button } from 'react-native-elements';
 import { connect } from 'react-redux';
-import { AppLoading } from 'expo';
+import { AppLoading, Notifications } from 'expo';
 
 import * as actions from '../actions';
 
 
 class ProfileScreen extends React.Component {
   componentWillMount() {
+    // Reset the badge number to zero (iOS only)
+    Notifications.setBadgeNumberAsync(0);
+
     // Call action creators
     this.props.getRiderInfo();
   }
@@ -54,8 +57,8 @@ class ProfileScreen extends React.Component {
                 await AsyncStorage.removeItem('riderInfo');
 
                 Alert.alert(
-                  'ログアウトしてもよろしいですか？',
                   '',
+                  'ログアウトしてもよろしいですか？',
                   [
                     { text: 'いいえ' },
                     {

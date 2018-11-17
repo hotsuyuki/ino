@@ -4,7 +4,7 @@ import {
   LayoutAnimation, UIManager, RefreshControl, Linking,
 } from 'react-native';
 import { Button, Icon } from 'react-native-elements';
-import { AppLoading } from 'expo';
+import { AppLoading, Notifications } from 'expo';
 import { connect } from 'react-redux';
 
 import * as actions from '../actions';
@@ -16,7 +16,6 @@ const INITIAL_STATE = {
 
   // for Alert
   isCanceld: false,
-  //isCancelAlertShown: false,
 
   // for selected item,
   selectedItem: {
@@ -26,9 +25,7 @@ const INITIAL_STATE = {
   },
 };
 
-// TODO: Not to show the alert again in the previous screen `OfferListScreen`
-// TODO: Make it more robust
-let isCancelAlertShown = false;
+let isCancelAlertShown;
 
 
 class DetailScreen extends React.Component {
@@ -39,6 +36,9 @@ class DetailScreen extends React.Component {
 
 
   componentWillMount() {
+    // Reset the badge number to zero (iOS only)
+    Notifications.setBadgeNumberAsync(0);
+
     // This is not an acntion creator
     // Just GET the offer info from the server and store into `this.state`
     this.fetchSelectedOffer();
@@ -47,6 +47,8 @@ class DetailScreen extends React.Component {
     // and make `OfferListScreen` rerender by calling action creators
     this.props.fetchOwnReservations();
     this.props.fetchAllOffers();
+
+    isCancelAlertShown = false;
   }
 
 
@@ -265,8 +267,8 @@ class DetailScreen extends React.Component {
 
   onReserveOfferButtonPress = () => {
     Alert.alert(
-      '相乗りを予約しますか？',
       '',
+      '相乗りを予約しますか？',
       [
         { text: 'キャンセル' },
         {
@@ -441,8 +443,8 @@ class DetailScreen extends React.Component {
       isCancelAlertShown = true;
 
       Alert.alert(
-        'このオファーは既にキャンセルされました。',
         '',
+        'このオファーは既にキャンセルされました。',
         [
           {
             text: 'OK',
@@ -452,9 +454,6 @@ class DetailScreen extends React.Component {
               this.props.fetchOwnReservations();
               this.props.fetchAllOffers();
               this.props.navigation.pop();
-
-              // TODO: Not to show the alert again in the previous screen `OfferListScreen`
-              isCancelAlertShown = false;
             },
           }
         ],
@@ -486,20 +485,20 @@ class DetailScreen extends React.Component {
           <View>
             <Text style={styles.grayTextStyle}>情報</Text>
 
-            <View style={{ paddingLeft: 30 }}>
+            <View style={{ paddingLeft: 20 }}>
               <View style={{ flexDirection: 'row' }}>
                 <View style={{ paddingLeft: 3, paddingRight: 3, justifyContent: 'center' }} >
                   <Icon name='map-marker' type='font-awesome' size={15} />
                 </View>
-                <Text style={styles.infoTextStyle}>{`${this.state.selectedItem.offer.start}`}</Text>
+                <Text style={styles.infoTextStyle}>{`集合：${this.state.selectedItem.offer.start}`}</Text>
               </View>
               <View style={{ flexDirection: 'row' }}>
                 <Icon name='flag-checkered' type='font-awesome' size={15} />
-                <Text style={styles.infoTextStyle}>{`${this.state.selectedItem.offer.goal}`}</Text>
+                <Text style={styles.infoTextStyle}>{`到着：${this.state.selectedItem.offer.goal}`}</Text>
               </View>
               <View style={{ flexDirection: 'row' }}>
                 <Icon name='timer' /*type='font-awesome'*/ size={15} />
-                <Text style={styles.infoTextStyle}>{`${trimedDepartureTime}`}</Text>
+                <Text style={styles.infoTextStyle}>{`出発時刻：${trimedDepartureTime}`}</Text>
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
                 <View style={{ paddingTop: 5 }}>

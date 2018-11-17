@@ -45,7 +45,7 @@ class EditProfileScreen extends React.Component {
   }
 
 
-  async componentWillMount() {
+  componentWillMount() {
     // Call action creators
     this.props.getDriverInfo();
 
@@ -247,8 +247,8 @@ class EditProfileScreen extends React.Component {
 
   onDoneButtonPress = () => {
     Alert.alert(
-      '編集内容を保存しますか？',
       '',
+      '編集内容を保存しますか？',
       [
         { text: 'キャンセル' },
         {

@@ -1,11 +1,11 @@
 import _ from 'lodash';
 import React from 'react';
 import {
-  StyleSheet, Text, View, ScrollView,
-  LayoutAnimation, UIManager, RefreshControl,
+  StyleSheet, Text, View, ScrollView, RefreshControl, Alert,
+  LayoutAnimation, UIManager, Platform,
 } from 'react-native';
 import { ListItem, Icon } from 'react-native-elements';
-import { AppLoading } from 'expo';
+import { AppLoading, Notifications } from 'expo';
 import { connect } from 'react-redux';
 
 import * as actions from '../actions';
@@ -25,6 +25,9 @@ class OfferListScreen extends React.Component {
 
 
   componentWillMount() {
+    // Reset the badge number to zero (iOS only)
+    Notifications.setBadgeNumberAsync(0);
+
     // Call action creators
     this.props.getRiderInfo();
     this.props.fetchOwnReservations();
@@ -38,11 +41,58 @@ class OfferListScreen extends React.Component {
     LayoutAnimation.easeInEaseOut();
   }
 
-  onScrollViewRefresh = async () => {
+
+  componentDidMount() {
+    // Handle notifications that are received or selected while the app is open.
+    // If the app was closed and then opened by tapping the notification
+    // (rather than just tapping the app icon to open it),
+    // this function will fire on the next tick after the app starts with the notification data.
+    this.notificationSubscription = Notifications.addListener(this.handleNotification);
+  }
+
+
+  handleNotification = (notification) => {
+    // Reset the badge number to zero (iOS only)
+    Notifications.setBadgeNumberAsync(0);
+
+    // for debug
+    console.log(`JSON.stringify(notification) = ${JSON.stringify(notification)}`);
+
+    // When the driver canceled the offer which already reserved,
+    if (notification.data.type === 'canceled_offer') {
+      // If foregrounded by selecting the push notification,
+      if (notification.origin === 'selected') {
+        // Rerender the screen
+        this.props.fetchOwnReservations();
+        this.props.fetchAllOffers();
+      // If received the push notification while the app is already foreground, (iOS only)
+      } else if (notification.origin === 'received' && Platform.OS === 'ios') {
+        Alert.alert(
+          '',
+          '予約済みのオファーがキャンセルされました。', //`${notification.data.message_body}`
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                // Rerender the screen
+                this.props.fetchOwnReservations();
+                this.props.fetchAllOffers();
+              },
+            }
+          ],
+          { cancelable: false }
+        );
+      }
+    }
+  };
+
+
+  onScrollViewRefresh = () => {
     this.setState({ isRefreshing: true });
 
-    await this.props.fetchOwnReservations();
-    await this.props.fetchAllOffers();
+    // Rerender the screen
+    this.props.fetchOwnReservations();
+    this.props.fetchAllOffers();
 
     this.setState({ isRefreshing: false });
   }

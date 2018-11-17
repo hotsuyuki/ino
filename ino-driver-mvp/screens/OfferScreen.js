@@ -1,11 +1,11 @@
 import _ from 'lodash';
 import React from 'react';
 import {
-  StyleSheet, Text, View, ScrollView, Picker, DatePickerIOS, Alert,
-  LayoutAnimation, UIManager, RefreshControl,
+  StyleSheet, Text, View, ScrollView, RefreshControl, Picker, DatePickerIOS, Alert,
+  LayoutAnimation, UIManager, Platform,
 } from 'react-native';
 import { Button, ButtonGroup, ListItem, Icon } from 'react-native-elements';
-import { AppLoading } from 'expo';
+import { AppLoading, Notifications } from 'expo';
 import { connect } from 'react-redux';
 
 import * as actions from '../actions';
@@ -56,6 +56,9 @@ class OfferScreen extends React.Component {
 
 
   componentWillMount() {
+    // Reset the badge number to zero (iOS only)
+    Notifications.setBadgeNumberAsync(0);
+
     // Call action creators
     this.props.getDriverInfo();
     this.props.fetchOwnOffers();
@@ -67,6 +70,77 @@ class OfferScreen extends React.Component {
     UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
     LayoutAnimation.easeInEaseOut();
   }
+
+
+  componentDidMount() {
+    // Handle notifications that are received or selected while the app is open.
+    // If the app was closed and then opened by tapping the notification
+    // (rather than just tapping the app icon to open it),
+    // this function will fire on the next tick after the app starts with the notification data.
+    this.notificationSubscription = Notifications.addListener(this.handleNotification);
+  }
+
+
+  handleNotification = (notification) => {
+    // Reset the badge number to zero (iOS only)
+    Notifications.setBadgeNumberAsync(0);
+
+    // for debug
+    console.log(`JSON.stringify(notification) = ${JSON.stringify(notification)}`);
+
+    // When someone reserved my offer,
+    if (notification.data.type === 'reserved_offer') {
+      // If foregrounded by selecting the push notification,
+      if (notification.origin === 'selected') {
+        this.props.navigation.navigate('detail', {
+          selectedOfferId: notification.data.offer_id,
+        });
+      // If received the push notification while the app is already foreground, (iOS only)
+      } else if (notification.origin === 'received' && Platform.OS === 'ios') {
+        Alert.alert(
+          '',
+          'あなたの相乗りオファーが予約されました。', //`${notification.data.message_body}`
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                this.props.navigation.navigate('detail', {
+                  selectedOfferId: notification.data.offer_id,
+                });
+              },
+            }
+          ],
+          { cancelable: false }
+        );
+      }
+
+    // When some reserved riders canceled thier reservation,
+    } else if (notification.data.type === 'canceled_reservation') {
+      // If foregrounded by selecting the push notification,
+      if (notification.origin === 'selected') {
+        this.props.navigation.navigate('detail', {
+          selectedOfferId: notification.data.offer_id,
+        });
+      // If received the push notification while the app is already foreground, (iOS only)
+      } else if (notification.origin === 'received' && Platform.OS === 'ios') {
+        Alert.alert(
+          '',
+          'あなたの相乗りオファーへの予約がキャンセルされました。', //`${notification.data.message_body}`
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                this.props.navigation.navigate('detail', {
+                  selectedOfferId: notification.data.offer_id,
+                });
+              },
+            }
+          ],
+          { cancelable: false }
+        );
+      }
+    }
+  };
 
 
   onScrollViewRefresh = async () => {
@@ -203,7 +277,7 @@ class OfferScreen extends React.Component {
       集合：${this.state.offerDetail.start} \n
       到着：${this.state.offerDetail.goal} \n
       出発時刻：${this.state.offerDetail.departure_time} \n
-      空席：${this.state.offerDetail.rider_capacity} \n
+      空席数：${this.state.offerDetail.rider_capacity} \n
       `,
       [
         { text: 'キャンセル' },
@@ -441,7 +515,12 @@ class OfferScreen extends React.Component {
                 </Text>
               </View>
             }
-            rightIcon={{ name: !this.state.startPickerVisible ? 'keyboard-arrow-down' : 'keyboard-arrow-up' }}
+            //rightIcon={{ name: !this.state.startPickerVisible ? 'keyboard-arrow-down' : 'keyboard-arrow-up' }}
+            rightIcon={
+              !this.state.startPickerVisible ?
+              { name: 'keyboard-arrow-down' } :
+              { name: 'check', color: 'rgb(0,122,255)' }
+            }
             onPress={() => this.setState({
               startPickerVisible: !this.state.startPickerVisible,
               goalPickerVisible: false,
@@ -467,7 +546,12 @@ class OfferScreen extends React.Component {
                 </Text>
               </View>
             }
-            rightIcon={{ name: !this.state.goalPickerVisible ? 'keyboard-arrow-down' : 'keyboard-arrow-up' }}
+            //rightIcon={{ name: !this.state.goalPickerVisible ? 'keyboard-arrow-down' : 'keyboard-arrow-up' }}
+            rightIcon={
+              !this.state.goalPickerVisible ?
+              { name: 'keyboard-arrow-down' } :
+              { name: 'check', color: 'rgb(0,122,255)' }
+            }
             onPress={() => this.setState({
               startPickerVisible: false,
               goalPickerVisible: !this.state.goalPickerVisible,
@@ -480,7 +564,7 @@ class OfferScreen extends React.Component {
 
           <View style={{ flexDirection: 'row' }}>
             // Departure time picker
-            <View style={{ flex: 3 }}>
+            <View style={{ flex: 1 }}>
               <ListItem
                 title={
                   <View style={{ flexDirection: 'row' }}>
@@ -501,7 +585,12 @@ class OfferScreen extends React.Component {
                   </View>
 
                 }
-                rightIcon={{ name: !this.state.departureTimePickerVisible ? 'keyboard-arrow-down' : 'keyboard-arrow-up' }}
+                //rightIcon={{ name: !this.state.departureTimePickerVisible ? 'keyboard-arrow-down' : 'keyboard-arrow-up' }}
+                rightIcon={
+                  !this.state.departureTimePickerVisible ?
+                  { name: 'keyboard-arrow-down' } :
+                  { name: 'check', color: 'rgb(0,122,255)' }
+                }
                 onPress={() => this.setState({
                   startPickerVisible: false,
                   goalPickerVisible: false,
@@ -512,12 +601,12 @@ class OfferScreen extends React.Component {
             </View>
 
             // Rider capacity picker
-            <View style={{ flex: 2, paddingLeft: 10 }}>
+            <View style={{ flex: 1, paddingLeft: 10 }}>
               <ListItem
                 title={
                   <View style={{ flexDirection: 'row' }}>
                     <Icon name='car' type='font-awesome' color='gray' size={15} />
-                    <Text style={styles.grayTextStyle}>空席：</Text>
+                    <Text style={styles.grayTextStyle}>空席数：</Text>
                   </View>
                 }
                 subtitle={
@@ -532,7 +621,12 @@ class OfferScreen extends React.Component {
                     </Text>
                   </View>
                 }
-                rightIcon={{ name: !this.state.riderCapacityPickerVisible ? 'keyboard-arrow-down' : 'keyboard-arrow-up' }}
+                //rightIcon={{ name: !this.state.riderCapacityPickerVisible ? 'keyboard-arrow-down' : 'keyboard-arrow-up' }}
+                rightIcon={
+                  !this.state.riderCapacityPickerVisible ?
+                  { name: 'keyboard-arrow-down' } :
+                  { name: 'check', color: 'rgb(0,122,255)' }
+                }
                 onPress={() => this.setState({
                   startPickerVisible: false,
                   goalPickerVisible: false,
