@@ -106,7 +106,7 @@ body: JSON.stringify({
   channelId?: null
 }
 ```
-
+
 
 ### 【ドライバー　→　うちらのサーバー　→　Expoサーバー　→　キャンセルされたライダー】
 
