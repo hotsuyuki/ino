@@ -40,7 +40,7 @@ body: JSON.stringify({
 ```
 
 
-### 【ライダー　→　うちらのサーバー　→　Expoサーバー　→　予約されたドライバー】
+### 【ライダー　→　うちらのサーバー　→　Expoサーバー　→　予約されたドライバー】
 
 ライダーがドライバーのオファーに予約したら([reserve_offer.md](https://github.com/Hotsuyuki/ino/blob/master/api/reservations/reserve_offer.md))、うちらのサーバーがExpoのサーバーにこんな感じのJSONをPOST
 ```
