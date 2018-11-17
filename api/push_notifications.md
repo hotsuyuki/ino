@@ -3,7 +3,7 @@
 ### 【ドライバー　→　うちらのサーバー】
 
 アプリ起動時にまずドライバーの `id` と `token` を載せたJSONをうちらのサーバーにPOST
-```
+```js
 url: 'https://inori.work/drivers/push-token',
 
 method: 'POST',
@@ -23,7 +23,7 @@ body: JSON.stringify({
 ### 【ライダー　→　うちらのサーバー】
 
 アプリ起動時にまずライダーの `id` と `token` を載せたJSONをうちらのサーバーにPOST
-```
+```js
 url: 'https://inori.work/riders/push-token',
 
 method: 'POST',
@@ -43,7 +43,7 @@ body: JSON.stringify({
 ### 【ライダー　→　うちらのサーバー　→　Expoサーバー　→　予約されたドライバー】
 
 ライダーがドライバーのオファーに予約したら([reserve_offer.md](https://github.com/Hotsuyuki/ino/blob/master/api/reservations/reserve_offer.md))、うちらのサーバーがExpoのサーバーにこんな感じのJSONをPOST
-```
+```js
 {
   // An Expo push token specifying the recipient of this message.
   to: 'ExponentPushToken[xxxdriverxxx]',
@@ -77,7 +77,7 @@ body: JSON.stringify({
 ### 【ライダー　→　うちらのサーバー　→　Expoサーバー　→　キャンセルされたドライバー】
 
 ライダーが予約をキャンセルしたら([cancel_reservation.md](https://github.com/Hotsuyuki/ino/blob/master/api/reservations/cancel_reservation.md))、うちらのサーバーがExpoのサーバーにこんな感じのJSONをPOST
-```
+```js
 {
   // An Expo push token specifying the recipient of this message.
   to: 'ExponentPushToken[xxxdriverxxx]',
@@ -111,7 +111,7 @@ body: JSON.stringify({
 ### 【ドライバー　→　うちらのサーバー　→　Expoサーバー　→　キャンセルされたライダー】
 
 ドライバーが予約済みライダーのいるオファーをキャンセルしてしまったら、([cancel_offer.md](https://github.com/Hotsuyuki/ino/blob/master/api/offers/cancel_offer.md))うちらのサーバーがExpoのサーバーにこんな感じのJSONをPOST
-```
+```js
 {
   // An Expo push token specifying the recipient of this message.
   to: 'ExponentPushToken[xxxdriverxxx]',
