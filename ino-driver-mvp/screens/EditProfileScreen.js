@@ -3,7 +3,7 @@ import {
   StyleSheet, Text, View, ScrollView, Alert,
   LayoutAnimation, UIManager, AsyncStorage, KeyboardAvoidingView, Platform,
 } from 'react-native';
-import { Header, Button, FormLabel, FormInput } from 'react-native-elements';
+import { Header, Button, FormLabel, FormInput, FormValidationMessage } from 'react-native-elements';
 import ModalSelector from 'react-native-modal-selector';
 import { AppLoading } from 'expo';
 import { connect } from 'react-redux';
@@ -15,26 +15,33 @@ const INITIAL_STATE = {
   // for driver info
   initialDriverInfo: {
     id: 0,
-    first_name: '---',
-    last_name: '---',
-    grade: '---',
-    major: '---',
-    car_color: '---',
-    car_number: '---',
-    mail: '---',
-    phone: '---',
+    first_name: '',
+    last_name: '',
+    grade: '',
+    major: '',
+    car_color: '',
+    car_number: '',
+    mail: '',
+    phone: '',
   },
   editedDriverInfo: {
     id: 0,
-    first_name: '---',
-    last_name: '---',
-    grade: '---',
-    major: '---',
-    car_color: '---',
-    car_number: '---',
-    mail: '---',
-    phone: '---',
+    first_name: '',
+    last_name: '',
+    grade: '',
+    major: '',
+    car_color: '',
+    car_number: '',
+    mail: '',
+    phone: '',
   },
+};
+
+// for form validation
+const formValidation = {
+  isCarNumberValid: null,
+  //isMailValid: null, // TODO: Create email address validaiton
+  isPhoneValid: null,
 };
 
 
@@ -245,6 +252,49 @@ class EditProfileScreen extends React.Component {
   }
 
 
+  renderCarNumberValid() {
+    const carNumber = this.state.editedDriverInfo.car_number;
+    const regex = /[^0-9]/g;
+
+    if (carNumber !== this.state.initialDriverInfo.car_number) {
+      if (!regex.test(carNumber) && carNumber.length <= 4) {
+        formValidation.isCarNumberValid = true;
+        return;
+      }
+
+      formValidation.isCarNumberValid = false;
+      return (
+        <FormValidationMessage>4桁以下の数字で入力して下さい</FormValidationMessage>
+      );
+    }
+  }
+
+
+  /*
+  renderMailValid() {
+    // TODO: Create email address validaiton
+  }
+  */
+
+
+  renderPhoneValid() {
+    const phone = this.state.editedDriverInfo.phone;
+    const regex = /0[89]0[0-9]{4}[0-9]{4}/;
+
+    if (phone !== this.state.initialDriverInfo.phone) {
+      if (regex.test(phone) && phone.length === 11) {
+        formValidation.isPhoneValid = true;
+        return;
+      }
+
+      formValidation.isPhoneValid = false;
+      return (
+        <FormValidationMessage>080もしくは090から始まる11桁の数字で入力して下さい</FormValidationMessage>
+      );
+    }
+  }
+
+
   onDoneButtonPress = () => {
     Alert.alert(
       '',
@@ -256,7 +306,7 @@ class EditProfileScreen extends React.Component {
           onPress: async () => {
             const editedDriverInfo = this.state.editedDriverInfo;
             // Elace hyphens (just in case)
-            editedDriverInfo.phone = editedDriverInfo.phone.replace(/-/g, '');
+            editedDriverInfo.phone = editedDriverInfo.phone.replace(/[^0-9]/g, '');
             // Add "@stu.kanazawa-u.ac.jp" // TODO: Make it more robust
             editedDriverInfo.mail = `${editedDriverInfo.mail}@stu.kanazawa-u.ac.jp`;
 
@@ -308,17 +358,26 @@ class EditProfileScreen extends React.Component {
   renderDoneButton() {
     // `this.state.editedDriverInfo` is default or not
     let isDefault = true;
-    // If at least one of `editedDriverInfo` is NOT default value,
+    // If at least one of `this.state.editedDriverInfo` is NOT default value,
     Object.keys(this.state.editedDriverInfo).forEach((key) => {
       if (this.state.editedDriverInfo[key] !== this.state.initialDriverInfo[key]) {
         isDefault = false;
       }
     });
 
+    // All forms are valid or invalid,
+    let isValid = true;
+    // If at least one of `formValidation` is false,
+    Object.keys(formValidation).forEach((key) => {
+      if (formValidation[key] === false) {
+        isValid = false;
+      }
+    });
+
     const doneButtonTitle = '完了';
 
-    // If `this.state.editedDriverInfo` is not default,
-    if (!isDefault) {
+    // If `this.state.editedDriverInfo` is not default and all forms are valid,
+    if (!isDefault && isValid) {
       return (
         // Activate the offer button
         <View style={{ padding: 20 }}>
@@ -444,12 +503,14 @@ class EditProfileScreen extends React.Component {
                 });
               }}
             />
+            {this.renderCarNumberValid()}
 
             <FormLabel>メールアドレス：</FormLabel>
             <View style={{ flexDirection: 'row' }}>
               <View style={{ flex: 3 }}>
                 <FormInput
                   autoCapitalize="none"
+                  keyboardType="email-address"
                   value={this.state.editedDriverInfo.mail}
                   onChangeText={(inputValue) => {
                     this.setState({
@@ -465,6 +526,7 @@ class EditProfileScreen extends React.Component {
                 <Text style={{ fontSize: 12 }}>@stu.kanazawa-u.ac.jp</Text>
               </View>
             </View>
+            {/*this.renderMailValid() TODO: Create email address validaiton */}
 
             <FormLabel>電話番号（ハイフンなし）：</FormLabel>
             <FormInput
@@ -480,6 +542,7 @@ class EditProfileScreen extends React.Component {
                 });
               }}
             />
+            {this.renderPhoneValid()}
 
             {this.renderDoneButton()}
 

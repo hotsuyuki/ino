@@ -3,7 +3,7 @@ import {
   StyleSheet, Text, View, ScrollView, Alert,
   LayoutAnimation, UIManager, AsyncStorage, KeyboardAvoidingView, Platform,
 } from 'react-native';
-import { Button, FormLabel, FormInput } from 'react-native-elements';
+import { Button, FormLabel, FormInput, FormValidationMessage } from 'react-native-elements';
 import ModalSelector from 'react-native-modal-selector';
 
 
@@ -17,6 +17,12 @@ const INITIAL_STATE = {
     mail: '',
     phone: ''
   }
+};
+
+// for form validation
+const formValidation = {
+  //isMailValid: null, // TODO: Create email address validaiton
+  isPhoneValid: null,
 };
 
 
@@ -173,6 +179,30 @@ class SignupScreen extends React.Component {
     );
   }
 
+  /*
+  renderMailValid() {
+    // TODO: Create email address validaiton
+  }
+  */
+
+
+  renderPhoneValid() {
+    const phone = this.state.riderInfo.phone;
+    const regex = /0[89]0[0-9]{4}[0-9]{4}/;
+
+    if (phone !== INITIAL_STATE.riderInfo.phone) {
+      if (regex.test(phone) && phone.length === 11) {
+        formValidation.isPhoneValid = true;
+        return;
+      }
+
+      formValidation.isPhoneValid = false;
+      return (
+        <FormValidationMessage>080もしくは090から始まる11桁の数字で入力して下さい</FormValidationMessage>
+      );
+    }
+  }
+
 
   onOkButtonPress = async () => {
     const riderInfo = this.state.riderInfo;
@@ -182,7 +212,7 @@ class SignupScreen extends React.Component {
     // Add "@stu.kanazawa-u.ac.jp" // TODO: Make it more robust
     riderInfo.mail = `${riderInfo.mail}@stu.kanazawa-u.ac.jp`;
     // Elace hyphens (just in case)
-    riderInfo.phone = riderInfo.phone.replace(/-/g, '');
+    riderInfo.phone = riderInfo.phone.replace(/[^0-9]/g, '');
 
     // Try access signup api
     try {
@@ -243,7 +273,7 @@ class SignupScreen extends React.Component {
       学年：${this.state.riderInfo.grade} \n
       学類/専攻：${this.state.riderInfo.major} \n
       メールアドレス：${this.state.riderInfo.mail}@stu.kanazawa-u.ac.jp \n
-      電話番号：${this.state.riderInfo.phone.replace(/-/g, '')} \n
+      電話番号：${this.state.riderInfo.phone.replace(/[^0-9]/g, '')} \n
       `,
       [
         { text: 'キャンセル' },
@@ -267,12 +297,19 @@ class SignupScreen extends React.Component {
       }
     });
 
+    // All forms are valid or invalid,
+    let isValid = true;
+    // If at least one of `formValidation` is false,
+    Object.keys(formValidation).forEach((key) => {
+      if (formValidation[key] === false) {
+        isValid = false;
+      }
+    });
+
     const signupButtonTitle = '新規登録';
 
-    // If all pickers are closed and `this.state.riderInfo` is completed,
-    if (!this.state.gradePickerVisible &&
-        !this.state.majorPickerVisible &&
-        isCompleted) {
+    // If `this.state.riderInfo` is completed and all forms are valid,
+    if (isCompleted && isValid) {
       return (
         // Activate the offer button
         <View style={{ padding: 20 }}>
@@ -367,6 +404,7 @@ class SignupScreen extends React.Component {
               <Text style={{ fontSize: 12 }}>@stu.kanazawa-u.ac.jp</Text>
             </View>
           </View>
+          {/*this.renderMailValid() TODO: Create email address validaiton */}
 
           <FormLabel>電話番号（ハイフンなし）：</FormLabel>
           <FormInput
@@ -382,10 +420,10 @@ class SignupScreen extends React.Component {
               });
             }}
           />
+          {this.renderPhoneValid()}
 
           {this.renderSignupButton()}
 
-          {/*<View style={{ height: 60 }} />*/}
         </ScrollView>
       </KeyboardAvoidingView>
     );

@@ -3,7 +3,7 @@ import {
   StyleSheet, Text, View, ScrollView, Alert,
   LayoutAnimation, UIManager, AsyncStorage, KeyboardAvoidingView, Platform,
 } from 'react-native';
-import { Header, Button, FormLabel, FormInput } from 'react-native-elements';
+import { Header, Button, FormLabel, FormInput, FormValidationMessage } from 'react-native-elements';
 import ModalSelector from 'react-native-modal-selector';
 import { AppLoading } from 'expo';
 import { connect } from 'react-redux';
@@ -13,8 +13,30 @@ import * as actions from '../actions';
 
 const INITIAL_STATE = {
   // for rider info
-  initialRiderInfo: {},
-  editedRiderInfo: {}
+  initialRiderInfo: {
+    id: 0,
+    first_name: '',
+    last_name: '',
+    grade: '',
+    major: '',
+    mail: '',
+    phone: '',
+  },
+  editedRiderInfo: {
+    id: 0,
+    first_name: '',
+    last_name: '',
+    grade: '',
+    major: '',
+    mail: '',
+    phone: '',
+  }
+};
+
+// for form validation
+const formValidation = {
+  //isMailValid: null, // TODO: Create email address validaiton
+  isPhoneValid: null,
 };
 
 
@@ -188,6 +210,31 @@ class EditProfileScreen extends React.Component {
   }
 
 
+  /*
+  renderMailValid() {
+    // TODO: Create email address validaiton
+  }
+  */
+
+
+  renderPhoneValid() {
+    const phone = this.state.editedRiderInfo.phone;
+    const regex = /0[89]0[0-9]{4}[0-9]{4}/;
+
+    if (phone !== this.state.initialRiderInfo.phone) {
+      if (regex.test(phone) && phone.length === 11) {
+        formValidation.isPhoneValid = true;
+        return;
+      }
+
+      formValidation.isPhoneValid = false;
+      return (
+        <FormValidationMessage>080もしくは090から始まる11桁の数字で入力して下さい</FormValidationMessage>
+      );
+    }
+  }
+
+
   onDoneButtonPress = () => {
     Alert.alert(
       '',
@@ -199,7 +246,7 @@ class EditProfileScreen extends React.Component {
           onPress: async () => {
             const editedRiderInfo = this.state.editedRiderInfo;
             // Elace hyphens (just in case)
-            editedRiderInfo.phone = editedRiderInfo.phone.replace(/-/g, '');
+            editedRiderInfo.phone = editedRiderInfo.phone.replace(/[^0-9]/g, '');
             // Add "@stu.kanazawa-u.ac.jp" // TODO: Make it more robust
             editedRiderInfo.mail = `${editedRiderInfo.mail}@stu.kanazawa-u.ac.jp`;
 
@@ -251,19 +298,26 @@ class EditProfileScreen extends React.Component {
   renderDoneButton() {
     // `this.state.editedRiderInfo` is default or not
     let isDefault = true;
-    // If at least one of `editedRiderInfo` is NOT default value,
+    // If at least one of `this.state.editedRiderInfo` is NOT default value,
     Object.keys(this.state.editedRiderInfo).forEach((key) => {
       if (this.state.editedRiderInfo[key] !== this.state.initialRiderInfo[key]) {
         isDefault = false;
       }
     });
 
+    // All forms are valid or invalid,
+    let isValid = true;
+    // If at least one of `formValidation` is false,
+    Object.keys(formValidation).forEach((key) => {
+      if (formValidation[key] === false) {
+        isValid = false;
+      }
+    });
+
     const doneButtonTitle = '完了';
 
-    // If all pickers are closed and `this.state.editedRiderInfo` is not default,
-    if (!this.state.gradePickerVisible &&
-        //!this.state.majorPickerVisible &&
-        !isDefault) {
+    // If `this.state.editedRiderInfo` is not default and all forms are valid,
+    if (!isDefault && isValid) {
       return (
         // Activate the offer button
         <View style={{ padding: 20 }}>
@@ -392,6 +446,7 @@ class EditProfileScreen extends React.Component {
                 <Text style={{ fontSize: 12 }}>@stu.kanazawa-u.ac.jp</Text>
               </View>
             </View>
+            {/*this.renderMailValid() TODO: Create email address validaiton */}
 
             <FormLabel>電話番号（ハイフンなし）：</FormLabel>
             <FormInput
@@ -407,6 +462,7 @@ class EditProfileScreen extends React.Component {
                 });
               }}
             />
+            {this.renderPhoneValid()}
 
             {this.renderDoneButton()}
 

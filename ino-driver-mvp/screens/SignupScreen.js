@@ -3,7 +3,7 @@ import {
   StyleSheet, Text, View, ScrollView, Alert,
   LayoutAnimation, UIManager, AsyncStorage, KeyboardAvoidingView, Platform,
 } from 'react-native';
-import { Button, FormLabel, FormInput } from 'react-native-elements';
+import { Button, FormLabel, FormInput, FormValidationMessage } from 'react-native-elements';
 import ModalSelector from 'react-native-modal-selector';
 
 
@@ -19,6 +19,13 @@ const INITIAL_STATE = {
     mail: '',
     phone: '',
   }
+};
+
+// for form validation
+const formValidation = {
+  isCarNumberValid: null,
+  //isMailValid: null, // TODO: Create email address validaiton
+  isPhoneValid: null,
 };
 
 
@@ -213,6 +220,49 @@ class SignupScreen extends React.Component {
   }
 
 
+  renderCarNumberValid() {
+    const carNumber = this.state.driverInfo.car_number;
+    const regex = /[^0-9]/g;
+
+    if (carNumber !== INITIAL_STATE.driverInfo.car_number) {
+      if (!regex.test(carNumber) && carNumber.length <= 4) {
+        formValidation.isCarNumberValid = true;
+        return;
+      }
+
+      formValidation.isCarNumberValid = false;
+      return (
+        <FormValidationMessage>4桁以下の数字で入力して下さい</FormValidationMessage>
+      );
+    }
+  }
+
+
+  /*
+  renderMailValid() {
+    // TODO: Create email address validaiton
+  }
+  */
+
+
+  renderPhoneValid() {
+    const phone = this.state.driverInfo.phone;
+    const regex = /0[89]0[0-9]{4}[0-9]{4}/;
+
+    if (phone !== INITIAL_STATE.driverInfo.phone) {
+      if (regex.test(phone) && phone.length === 11) {
+        formValidation.isPhoneValid = true;
+        return;
+      }
+
+      formValidation.isPhoneValid = false;
+      return (
+        <FormValidationMessage>080もしくは090から始まる11桁の数字で入力して下さい</FormValidationMessage>
+      );
+    }
+  }
+
+
   onOkButtonPress = async () => {
     const driverInfo = this.state.driverInfo;
 
@@ -221,7 +271,7 @@ class SignupScreen extends React.Component {
     // Add "@stu.kanazawa-u.ac.jp" // TODO: Make it more robust
     driverInfo.mail = `${driverInfo.mail}@stu.kanazawa-u.ac.jp`;
     // Elace hyphens (just in case)
-    driverInfo.phone = driverInfo.phone.replace(/-/g, '');
+    driverInfo.phone = driverInfo.phone.replace(/[^0-9]/g, '');
 
     // Try access signup api
     try {
@@ -282,8 +332,9 @@ class SignupScreen extends React.Component {
       氏名：${this.state.driverInfo.last_name} ${this.state.driverInfo.first_name} \n
       学年：${this.state.driverInfo.grade} \n
       学類/専攻：${this.state.driverInfo.major} \n
+      車の色とナンバー：${this.state.driverInfo.car_color} ${this.state.driverInfo.car_number}\n
       メールアドレス：${this.state.driverInfo.mail}@stu.kanazawa-u.ac.jp \n
-      電話番号：${this.state.driverInfo.phone.replace(/-/g, '')} \n
+      電話番号：${this.state.driverInfo.phone.replace(/[^0-9]/g, '')} \n
       `,
       [
         { text: 'キャンセル' },
@@ -300,17 +351,26 @@ class SignupScreen extends React.Component {
   renderSignupButton() {
     // `this.state.driverInfo` is completed or not
     let isCompleted = true;
-    // If at least one of `driverInfo` is default value,
+    // If at least one of `this.state.driverInfo` is default value,
     Object.keys(this.state.driverInfo).forEach((key) => {
       if (this.state.driverInfo[key] === INITIAL_STATE.driverInfo[key]) {
         isCompleted = false;
       }
     });
 
+    // All forms are valid or invalid,
+    let isValid = true;
+    // If at least one of `formValidation` is false,
+    Object.keys(formValidation).forEach((key) => {
+      if (formValidation[key] === false) {
+        isValid = false;
+      }
+    });
+
     const signupButtonTitle = '新規登録';
 
-    // If `this.state.driverInfo` is completed,
-    if (isCompleted) {
+    // If `this.state.driverInfo` is completed and all forms are valid,
+    if (isCompleted && isValid) {
       return (
         // Activate the offer button
         <View style={{ padding: 20 }}>
@@ -405,6 +465,7 @@ class SignupScreen extends React.Component {
                 });
               }}
             />
+            {this.renderCarNumberValid()}
 
             <FormLabel>メールアドレス：</FormLabel>
             <View style={{ flexDirection: 'row' }}>
@@ -427,6 +488,7 @@ class SignupScreen extends React.Component {
                 <Text style={{ fontSize: 12 }}>@stu.kanazawa-u.ac.jp</Text>
               </View>
             </View>
+            {/*this.renderMailValid() TODO: Create email address validaiton */}
 
             <FormLabel>電話番号（ハイフンなし）：</FormLabel>
             <FormInput
@@ -442,10 +504,10 @@ class SignupScreen extends React.Component {
                 });
               }}
             />
+            {this.renderPhoneValid()}
 
             {this.renderSignupButton()}
 
-            {/*<View style={{ height: 60 }} />*/}
           </ScrollView>
       </KeyboardAvoidingView>
 
