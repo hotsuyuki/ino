@@ -261,18 +261,31 @@ class EditProfileScreen extends React.Component {
                 body: JSON.stringify(editedRiderInfo),
               });
 
-              let responseJson = await response.json();
+              if (parseInt(response.status / 100, 10) === 2) {
+                let responseJson = await response.json();
 
-              try {
-                await AsyncStorage.setItem('riderInfo', JSON.stringify(responseJson.rider));
-              } catch (error) {
-                console.warn(error);
+                try {
+                  await AsyncStorage.setItem('riderInfo', JSON.stringify(responseJson.rider));
+                } catch (error) {
+                  console.warn(error);
+                }
+
+                // Reflesh `this.props.riderInfo` in `ProfileScreen`
+                // and make `ProfileScreen` rerender by calling action creators
+                this.props.getRiderInfo();
+                this.props.navigation.pop();
+
+              // if failed to PUT the edited driver info,
+              } else if (parseInt(response.status / 100, 10) === 4 ||
+                         parseInt(response.status / 100, 10) === 5) {
+                Alert.alert(
+                  '電波の良いところで後ほどお試しください。',
+                  '編集内容は保存されていません。',
+                  [
+                    { text: 'OK' },
+                  ]
+                );
               }
-
-              // Reflesh `this.props.riderInfo` in `ProfileScreen`
-              // and make `ProfileScreen` rerender by calling action creators
-              this.props.getRiderInfo();
-              this.props.navigation.pop();
 
             // If cannot access riders api,
             } catch (error) {

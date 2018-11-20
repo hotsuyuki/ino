@@ -320,19 +320,33 @@ class EditProfileScreen extends React.Component {
                 body: JSON.stringify(editedDriverInfo),
               });
 
-              let responseJson = await response.json();
+              if (parseInt(response.status / 100, 10) === 2) {
+                let responseJson = await response.json();
 
-              try {
-                await AsyncStorage.setItem('driverInfo', JSON.stringify(responseJson.driver));
-              } catch (error) {
-                console.warn(error);
+                try {
+                  await AsyncStorage.setItem('driverInfo', JSON.stringify(responseJson.driver));
+                } catch (error) {
+                  console.warn(error);
+                  console.log('Cannot get stored driver info...');
+                }
+
+                // Reflesh `this.props.driverInfo` in `ProfileScreen` and `this.props.ownOffers` in `OfferScreen`
+                // and make `ProfileScreen` and `OfferScreen` rerender by calling an action creator
+                this.props.getDriverInfo();
+                this.props.fetchOwnOffers();
+                this.props.navigation.pop();
+
+              // if failed to PUT the edited driver info,
+              } else if (parseInt(response.status / 100, 10) === 4 ||
+                         parseInt(response.status / 100, 10) === 5) {
+                Alert.alert(
+                  '電波の良いところで後ほどお試しください。',
+                  '編集内容は保存されていません。',
+                  [
+                    { text: 'OK' },
+                  ]
+                );
               }
-
-              // Reflesh `this.props.driverInfo` in `ProfileScreen` and `this.props.ownOffers` in `OfferScreen`
-              // and make `ProfileScreen` and `OfferScreen` rerender by calling an action creator
-              this.props.getDriverInfo();
-              this.props.fetchOwnOffers();
-              this.props.navigation.pop();
 
             // If cannot access drivers api,
             } catch (error) {

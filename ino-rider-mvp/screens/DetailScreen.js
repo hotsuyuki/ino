@@ -88,104 +88,139 @@ class DetailScreen extends React.Component {
         // GET corresponding driver info
         try {
           let driverResponse = await fetch(`https://inori.work/drivers/${selectedItem.offer.driver_id}`);
-          let driverResponseJson = await driverResponse.json();
 
-          selectedItem.driver = driverResponseJson.driver;
-          /**********************************
-          selectedItem: {
-            driver:{
-              id:,
-              first_name:,
-              last_name:,
-              grade:,
-              major:,
-              mail:,
-              phone:,
-              car_color:,
-              car_number:
-            },
-            offer: {
-              id:,
-              driver_id:,
-              start:,
-              goal:,
-              departure_time:,
-              rider_capacity:
-            },
-            reserved_riders: [`id1`, `id2`, ...]
-          }
-          **********************************/
+          if (parseInt(driverResponse.status / 100, 10) === 2) {
+            let driverResponseJson = await driverResponse.json();
 
-          // GET corresponding reserved riders info
-          const reservedRidersInfo = [];
-
-          const promiseArray = selectedItem.reserved_riders.map(async (reservedRiderId) => {
-            try {
-              let riderResponse = await fetch(`https://inori.work/riders/${reservedRiderId}`);
-              let riderResponseJson = await riderResponse.json();
-
-              reservedRidersInfo.push(riderResponseJson.rider);
-
-            // If cannot access riders api,
-            } catch (error) {
-              console.error(error);
-              console.log('Cannot access riders api...');
+            selectedItem.driver = driverResponseJson.driver;
+            /**********************************
+            selectedItem: {
+              driver:{
+                id:,
+                first_name:,
+                last_name:,
+                grade:,
+                major:,
+                mail:,
+                phone:,
+                car_color:,
+                car_number:
+              },
+              offer: {
+                id:,
+                driver_id:,
+                start:,
+                goal:,
+                departure_time:,
+                rider_capacity:
+              },
+              reserved_riders: [`id1`, `id2`, ...]
             }
-          });
+            **********************************/
 
-          await Promise.all(promiseArray);
+            // GET corresponding reserved riders info
+            const reservedRidersInfo = [];
 
-          selectedItem.reserved_riders = reservedRidersInfo;
-          //console.log(`JSON.stringify(selectedItem) = ${JSON.stringify(selectedItem)}`);
-          /**********************************
-          selectedItem: {
-            driver:{
-              id:,
-              first_name:,
-              last_name:,
-              grade:,
-              major:,
-              mail:,
-              phone:,
-              car_color:,
-              car_number:
-            },
-            offer: {
-              id:,
-              driver_id:,
-              start:,
-              goal:,
-              departure_time:,
-              rider_capacity:
-            },
-            reserved_riders: [
-              {
-                id: `id1`,
+            const promiseArray = selectedItem.reserved_riders.map(async (reservedRiderId) => {
+              try {
+                let riderResponse = await fetch(`https://inori.work/riders/${reservedRiderId}`);
+
+                if (parseInt(riderResponse.status / 100, 10) === 2) {
+                  let riderResponseJson = await riderResponse.json();
+
+                  reservedRidersInfo.push(riderResponseJson.rider);
+
+                // if failed to GET reserved rider info
+                } else if (parseInt(riderResponse.status / 100, 10) === 4 ||
+                           parseInt(riderResponse.status / 100, 10) === 5) {
+                  Alert.alert(
+                    'エラーが発生しました。',
+                    '電波の良いところで後ほどお試しください。',
+                    [
+                      { text: 'OK' },
+                    ]
+                  );
+                }
+
+              // If cannot access riders api,
+              } catch (error) {
+                console.error(error);
+                console.log('Cannot access riders api...');
+
+                Alert.alert(
+                  'エラーが発生しました。',
+                  '電波の良いところで後ほどお試しください。',
+                  [
+                    { text: 'OK' },
+                  ]
+                );
+              }
+            });
+
+            await Promise.all(promiseArray);
+
+            selectedItem.reserved_riders = reservedRidersInfo;
+            /**********************************
+            selectedItem: {
+              driver:{
+                id:,
                 first_name:,
                 last_name:,
                 grade:,
                 major:,
                 mail:,
-                phone:
+                phone:,
+                car_color:,
+                car_number:
               },
-              {
-                id: `id2`,
-                first_name:,
-                last_name:,
-                grade:,
-                major:,
-                mail:,
-                phone:
+              offer: {
+                id:,
+                driver_id:,
+                start:,
+                goal:,
+                departure_time:,
+                rider_capacity:
               },
-              ...
-            ]
+              reserved_riders: [
+                {
+                  id: `id1`,
+                  first_name:,
+                  last_name:,
+                  grade:,
+                  major:,
+                  mail:,
+                  phone:
+                },
+                {
+                  id: `id2`,
+                  first_name:,
+                  last_name:,
+                  grade:,
+                  major:,
+                  mail:,
+                  phone:
+                },
+                ...
+              ]
+            }
+            **********************************/
+
+            this.setState({
+              isCanceld: false,
+              selectedItem,
+            });
+
+          // if failed to GET the corresponding driver info
+          } else if (parseInt(driverResponse.status / 100, 10) === 4 ||
+                     parseInt(driverResponse.status / 100, 10) === 5) {
+            Alert.alert(
+              'エラーが発生しました。',
+              '電波の良いところで後ほどお試しください。',
+              [
+                { text: 'OK' },
+              ]
+            );
           }
-          **********************************/
-
-          this.setState({
-            isCanceld: false,
-            selectedItem,
-          });
 
         // If cannot access drivers api,
         } catch (error) {
@@ -292,13 +327,33 @@ class DetailScreen extends React.Component {
                 headers: {},
                 body: JSON.stringify(reserveOfferBody),
               });
-              let responseJson = await response.json();
-              console.log(responseJson);
+
+              //let responseJson = await response.json();
+
+              // If failed to DELETE the selected offer,
+              if (parseInt(response.status / 100, 10) === 4 ||
+                  parseInt(response.status / 100, 10) === 5) {
+                Alert.alert(
+                  '相乗りを予約できませんでした。',
+                  '電波の良いところで後ほどお試しください。',
+                  [
+                    { text: 'OK' },
+                  ]
+                );
+              }
 
             // If cannot access reservations api,
             } catch (error) {
               console.error(error);
               console.log('Cannot access reservations api...');
+
+              Alert.alert(
+                '相乗りを予約できませんでした。',
+                '電波の良いところで後ほどお試しください。',
+                [
+                  { text: 'OK' },
+                ]
+              );
             }
 
             // Reflesh `this.props.ownReservations` and `this.props.allOffers` in `OfferListScreen`
@@ -331,14 +386,40 @@ class DetailScreen extends React.Component {
             let reservationId;
             try {
               let reservationResponse = await fetch(`https://inori.work/reservations?rider_id=${riderId}`);
-              let reservationResponseJson = await reservationResponse.json();
-              reservationResponseJson.reservations.forEach((reservation) => {
-                if (reservation.offer_id === selectedOfferId) {
-                  reservationId = reservation.id;
-                }
-              });
+
+              if (parseInt(reservationResponse.status / 100, 10) === 2) {
+                let reservationResponseJson = await reservationResponse.json();
+
+                reservationResponseJson.reservations.forEach((reservation) => {
+                  if (reservation.offer_id === selectedOfferId) {
+                    reservationId = reservation.id;
+                  }
+                });
+
+              // if failed to GET own reservations,
+              } else if (parseInt(reservationResponse.status / 100, 10) === 4 ||
+                         parseInt(reservationResponse.status / 100, 10) === 5) {
+                Alert.alert(
+                  'エラーが発生しました。',
+                  '電波の良いところで後ほどお試しください。',
+                  [
+                    { text: 'OK' },
+                  ]
+                );
+              }
+
+            // if cannot access reservaions api,
             } catch (error) {
               console.error(error);
+              console.log('Cannot access reservations api...');
+
+              Alert.alert(
+                'エラーが発生しました。',
+                '電波の良いところで後ほどお試しください。',
+                [
+                  { text: 'OK' },
+                ]
+              );
             }
 
             // for debug
@@ -351,10 +432,33 @@ class DetailScreen extends React.Component {
                 //headers: {},
                 //body: {},
               });
-              let deleteResponseJson = await deleteResponse.json();
-              console.log(deleteResponseJson);
+
+              //let deleteResponseJson = await deleteResponse.json();
+
+              // If failed to DELETE the selected reservation,
+              if (parseInt(deleteResponse.status / 100, 10) === 4 ||
+                  parseInt(deleteResponse.status / 100, 10) === 5) {
+                Alert.alert(
+                  '予約をキャンセルできませんでした。',
+                  '電波の良いところで後ほどお試しください。',
+                  [
+                    { text: 'OK' },
+                  ]
+                );
+              }
+
+            // if cannot access reservaions api,
             } catch (error) {
               console.error(error);
+              console.log('Cannot access reservations api...');
+
+              Alert.alert(
+                '予約をキャンセルできませんでした。',
+                '電波の良いところで後ほどお試しください。',
+                [
+                  { text: 'OK' },
+                ]
+              );
             }
 
             // Reflesh `this.props.driverInfo` in `OfferListScreen`

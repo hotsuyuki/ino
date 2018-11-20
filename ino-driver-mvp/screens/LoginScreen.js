@@ -57,7 +57,7 @@ class LoginScreen extends React.Component {
           this.setState({ isLogedin: true });
           this.props.navigation.navigate('offer');
 
-        // If cannot login with the stored email address,
+        // If failed login with the stored email address,
         } else if (parseInt(response.status / 100, 10) === 4 ||
                    parseInt(response.status / 100, 10) === 5) {
           console.log('Automatic login with the stored email address is failed...');
@@ -108,7 +108,7 @@ class LoginScreen extends React.Component {
         this.setState({ isLogedin: true });
         this.props.navigation.navigate('offer');
 
-      // If cannot login with the stored email address,
+      // If failed to login with the stored email address,
       } else if (parseInt(response.status / 100, 10) === 4 ||
                  parseInt(response.status / 100, 10) === 5) {
         console.log('Manual login with the input email address is failed...');

@@ -1,4 +1,4 @@
-import { AsyncStorage } from 'react-native';
+import { Alert, AsyncStorage } from 'react-native';
 
 import {
   FETCH_OWN_OFFERS,
@@ -25,69 +25,93 @@ export const fetchOwnOffers = () => {
       // GET own offers
       try {
         let offerResponse = await fetch(`https://inori.work/offers?driver_id=${driverInfo.id}`);
-        let offerResponseJson = await offerResponse.json();
-        //console.log('JSON.stringify(offerResponseJson) = ' + JSON.stringify(offerResponseJson));
 
-        offerResponseJson.offers.forEach((item) => {
-          const eachItem = item;
-          /**********************************
-          eachItem: {
-            offer: {
-              id:,
-              driver_id:,
-              start:,
-              goal:,
-              departure_time:,
-              rider_capacity:
-            },
-            reserved_riders: [`id1`, `id2`, ...]
-          }
-          **********************************/
+        if (parseInt(offerResponse.status / 100, 10) === 2) {
+          let offerResponseJson = await offerResponse.json();
+          //console.log('JSON.stringify(offerResponseJson) = ' + JSON.stringify(offerResponseJson));
 
-          eachItem.driver = driverInfo;
-          /**********************************
-          eachItem: {
-            driver:{
-              id:,
-              first_name:,
-              last_name:,
-              grade:,
-              major:,
-              mail:,
-              phone:
-              car_color:,
-              car_number:
-            },
-            offer: {
-              id:,
-              driver_id:,
-              start:,
-              goal:,
-              departure_time:,
-              rider_capacity:
-            },
-            reserved_riders: [`id1`, `id2`, ...]
-          }
-          **********************************/
+          offerResponseJson.offers.forEach((item) => {
+            const eachItem = item;
+            /**********************************
+            eachItem: {
+              offer: {
+                id:,
+                driver_id:,
+                start:,
+                goal:,
+                departure_time:,
+                rider_capacity:
+              },
+              reserved_riders: [`id1`, `id2`, ...]
+            }
+            **********************************/
 
-          ownOffers.push(eachItem);
-        });
+            eachItem.driver = driverInfo;
+            /**********************************
+            eachItem: {
+              driver:{
+                id:,
+                first_name:,
+                last_name:,
+                grade:,
+                major:,
+                mail:,
+                phone:
+                car_color:,
+                car_number:
+              },
+              offer: {
+                id:,
+                driver_id:,
+                start:,
+                goal:,
+                departure_time:,
+                rider_capacity:
+              },
+              reserved_riders: [`id1`, `id2`, ...]
+            }
+            **********************************/
 
-        // Sort `ownOffers` in chronological order (just in case)
-        ownOffers.sort((a, b) => {
-          if (a.offer.departure_time < b.offer.departure_time) {
-            return -1;
-          }
-          if (a.offer.departure_time > b.offer.departure_time) {
-            return 1;
-          }
-          return 0;
-        });
+            ownOffers.push(eachItem);
+          });
+
+          // Sort `ownOffers` in chronological order (just in case)
+          ownOffers.sort((a, b) => {
+            if (a.offer.departure_time < b.offer.departure_time) {
+              return -1;
+            }
+            if (a.offer.departure_time > b.offer.departure_time) {
+              return 1;
+            }
+            return 0;
+          });
+
+        // If failed to GET own offers,
+        } else if (parseInt(offerResponse.status / 100, 10) === 4 ||
+                   parseInt(offerResponse.status / 100, 10) === 5) {
+          console.log('GETting own offers is failed...');
+
+          Alert.alert(
+            'エラーが発生しました。',
+            '電波の良いところで後ほどお試しください。',
+            [
+              { text: 'OK' },
+            ]
+          );
+        }
 
       // If cannot access offers api,
       } catch (error) {
         console.error(error);
         console.log('Cannot access offers api...');
+
+        Alert.alert(
+            'エラーが発生しました。',
+            '電波の良いところで後ほどお試しください。',
+            [
+              { text: 'OK' },
+            ]
+          );
       }
     // If cannot get stored driver info,
     } catch (error) {

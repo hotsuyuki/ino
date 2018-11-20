@@ -296,7 +296,7 @@ class SignupScreen extends React.Component {
         this.props.navigation.pop();
         this.props.navigation.navigate('root');
 
-      // If cannot signup with the input driver info,
+      // If failed to signup with the input driver info,
       } else if (parseInt(response.status / 100, 10) === 4 ||
                  parseInt(response.status / 100, 10) === 5) {
         console.log('Manual signup with the input driver info is failed...');

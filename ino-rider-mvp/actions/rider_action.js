@@ -1,4 +1,4 @@
-import { AsyncStorage } from 'react-native';
+import { Alert, AsyncStorage } from 'react-native';
 
 import {
   FETCH_OWN_RESERVATIONS,
@@ -26,88 +26,148 @@ export const fetchOwnReservations = () => {
       // GET own reservations
       try {
         let reservationResponse = await fetch(`https://inori.work/reservations?rider_id=${riderInfo.id}`);
-        let reservationResponseJson = await reservationResponse.json();
-        //console.log('JSON.stringify(reservationResponseJson) = ' + JSON.stringify(reservationResponseJson));
 
-        const promiseArray = reservationResponseJson.reservations.map(async (reservation) => {
-          // GET corresponding offer
-          try {
-            let offerResponse = await fetch(`https://inori.work/offers/${reservation.offer_id}`);
-            let offerResponseJson = await offerResponse.json();
+        if (parseInt(reservationResponse.status / 100, 10) === 2) {
+          let reservationResponseJson = await reservationResponse.json();
+          //console.log('JSON.stringify(reservationResponseJson) = ' + JSON.stringify(reservationResponseJson));
 
-            const eachItem = offerResponseJson;
-            /**********************************
-            eachItem: {
-              offer: {
-                id:,
-                driver_id:,
-                start:,
-                goal:,
-                departure_time:,
-                rider_capacity:
-              },
-              reserved_riders: [`id1`, `id2`, ...]
-            }
-            **********************************/
-
-            // GET corresponding driver info
+          const promiseArray = reservationResponseJson.reservations.map(async (reservation) => {
+            // GET corresponding offer
             try {
-              let driverResponse = await fetch(`https://inori.work/drivers/${eachItem.offer.driver_id}`);
-              let driverResponseJson = await driverResponse.json();
+              let offerResponse = await fetch(`https://inori.work/offers/${reservation.offer_id}`);
 
-              eachItem.driver = driverResponseJson.driver;
-              /**********************************
-              eachItem: {
-                driver:{
-                  id:,
-                  first_name:,
-                  last_name:,
-                  grade:,
-                  major:,
-                  mail:,
-                  phone:
-                  car_color:,
-                  car_number:
-                },
-                offer: {
-                  id:,
-                  driver_id:,
-                  start:,
-                  goal:,
-                  departure_time:,
-                  rider_capacity:
-                },
-                reserved_riders: [`id1`, `id2`, ...]
+              if (parseInt(offerResponse.status / 100, 10) === 2) {
+                let offerResponseJson = await offerResponse.json();
+
+                const eachItem = offerResponseJson;
+                /**********************************
+                eachItem: {
+                  offer: {
+                    id:,
+                    driver_id:,
+                    start:,
+                    goal:,
+                    departure_time:,
+                    rider_capacity:
+                  },
+                  reserved_riders: [`id1`, `id2`, ...]
+                }
+                **********************************/
+
+                // GET corresponding driver info
+                try {
+                  let driverResponse = await fetch(`https://inori.work/drivers/${eachItem.offer.driver_id}`);
+
+                  if (parseInt(driverResponse.status / 100, 10) === 2) {
+                    let driverResponseJson = await driverResponse.json();
+
+                    eachItem.driver = driverResponseJson.driver;
+                    /**********************************
+                    eachItem: {
+                      driver:{
+                        id:,
+                        first_name:,
+                        last_name:,
+                        grade:,
+                        major:,
+                        mail:,
+                        phone:
+                        car_color:,
+                        car_number:
+                      },
+                      offer: {
+                        id:,
+                        driver_id:,
+                        start:,
+                        goal:,
+                        departure_time:,
+                        rider_capacity:
+                      },
+                      reserved_riders: [`id1`, `id2`, ...]
+                    }
+                    **********************************/
+
+                    ownReservations.push(eachItem);
+
+                  // If failed to GET the correesponding driver info,
+                  } else if (parseInt(driverResponse.status / 100, 10) === 4 ||
+                             parseInt(driverResponse.status / 100, 10) === 5) {
+                    console.log('GETting driver info is failed...');
+
+                    Alert.alert(
+                      'エラーが発生しました。',
+                      '電波の良いところで後ほどお試しください。',
+                      [
+                        { text: 'OK' },
+                      ]
+                    );
+                  }
+
+                // If cannot access drivers api,
+                } catch (error) {
+                  console.error(error);
+                  console.log('Cannot access drivers api...');
+
+                  Alert.alert(
+                    'エラーが発生しました。',
+                    '電波の良いところで後ほどお試しください。',
+                    [
+                      { text: 'OK' },
+                    ]
+                  );
+                }
+
+              // If failed to GET the corresponding offer,
+              } else if (parseInt(offerResponse.status / 100, 10) === 4 ||
+                         parseInt(offerResponse.status / 100, 10) === 5) {
+                Alert.alert(
+                  'エラーが発生しました。',
+                  '電波の良いところで後ほどお試しください。',
+                  [
+                    { text: 'OK' },
+                  ]
+                );
               }
-              **********************************/
 
-              ownReservations.push(eachItem);
-
-            // If cannot access drivers api,
+            // If cannot access offers api,
             } catch (error) {
               console.error(error);
-              console.log('Cannot access drivers api...');
+              console.log('Cannot access offers api...');
+
+              Alert.alert(
+                'エラーが発生しました。',
+                '電波の良いところで後ほどお試しください。',
+                [
+                  { text: 'OK' },
+                ]
+              );
             }
+          });
 
-          // If cannot access offers api,
-          } catch (error) {
-            console.error(error);
-            console.log('Cannot access offers api...');
-          }
-        });
+          await Promise.all(promiseArray);
 
-        await Promise.all(promiseArray);
+          // Sort `allOffers` in chronological order
+          ownReservations.sort((a, b) => {
+            if (a.offer.departure_time < b.offer.departure_time) {
+              return -1;
+            }
+            if (a.offer.departure_time > b.offer.departure_time) {
+              return 1;
+            }
+            return 0;
+          });
 
-        // Sort `allOffers` in chronological order
-        ownReservations.sort((a, b) => {
-          if (a.offer.departure_time < b.offer.departure_time) {
-            return -1;
-          }
-          if (a.offer.departure_time > b.offer.departure_time) {
-            return 1;
-          }
-          return 0;
-        });
+        // If failed to GET own reservations,
+        } else if (parseInt(reservationResponse.status / 100, 10) === 4 ||
+                   parseInt(reservationResponse.status / 100, 10) === 5) {
+          Alert.alert(
+            'エラーが発生しました。',
+            '電波の良いところで後ほどお試しください。',
+            [
+              { text: 'OK' },
+            ]
+          );
+        }
 
       // If cannot access reservations api,
       } catch (error) {
@@ -137,46 +197,15 @@ export const fetchAllOffers = () => {
     // GET all offers
     try {
       let offerResponse = await fetch('https://inori.work/offers');
-      let offerResponseJson = await offerResponse.json();
-      //console.log('JSON.stringify(offerResponseJson) = ' + JSON.stringify(offerResponseJson));
 
-      const promiseArray = offerResponseJson.offers.map(async (item) => {
-        const eachItem = item;
-        /**********************************
-        eachItem: {
-          offer: {
-            id:,
-            driver_id:,
-            start:,
-            goal:,
-            departure_time:,
-            rider_capacity:
-          },
-          reserved_riders: [`id1`, `id2`, ...]
-        }
-        **********************************/
+      if (parseInt(offerResponse.status / 100, 10) === 2) {
+        let offerResponseJson = await offerResponse.json();
+        //console.log('JSON.stringify(offerResponseJson) = ' + JSON.stringify(offerResponseJson));
 
-        // GET corresponding driver info
-        try {
-          //let driverResponse = await fetch(`https://inori.work/drivers/${item.offer.driver_id}`);
-          let driverResponse = await fetch(`https://inori.work/drivers/${eachItem.offer.driver_id}`);
-          let driverResponseJson = await driverResponse.json();
-
-          eachItem.driver = driverResponseJson.driver;
-          //console.log('JSON.stringify(eachItem) = ' + JSON.stringify(eachItem));
+        const promiseArray = offerResponseJson.offers.map(async (item) => {
+          const eachItem = item;
           /**********************************
           eachItem: {
-            driver:{
-              id:,
-              first_name:,
-              last_name:,
-              grade:,
-              major:,
-              mail:,
-              phone:
-              car_color:,
-              car_number:
-            },
             offer: {
               id:,
               driver_id:,
@@ -189,35 +218,105 @@ export const fetchAllOffers = () => {
           }
           **********************************/
 
-          allOffers.push(eachItem);
+          // GET corresponding driver info
+          try {
+            let driverResponse = await fetch(`https://inori.work/drivers/${eachItem.offer.driver_id}`);
 
-        // If cannot access drivers api,
-        } catch (error) {
-          console.error(error);
-          console.log('Cannot access drivers api...');
-        }
-      });
+            if (parseInt(driverResponse.status / 100, 10) === 2) {
+              let driverResponseJson = await driverResponse.json();
 
-      await Promise.all(promiseArray);
+              eachItem.driver = driverResponseJson.driver;
+              /**********************************
+              eachItem: {
+                driver:{
+                  id:,
+                  first_name:,
+                  last_name:,
+                  grade:,
+                  major:,
+                  mail:,
+                  phone:
+                  car_color:,
+                  car_number:
+                },
+                offer: {
+                  id:,
+                  driver_id:,
+                  start:,
+                  goal:,
+                  departure_time:,
+                  rider_capacity:
+                },
+                reserved_riders: [`id1`, `id2`, ...]
+              }
+              **********************************/
 
-      // Sort `allOffers` in chronological order
-      allOffers.sort((a, b) => {
-        if (a.offer.departure_time < b.offer.departure_time) {
-          return -1;
-        }
-        if (a.offer.departure_time > b.offer.departure_time) {
-          return 1;
-        }
-        return 0;
-      });
+              allOffers.push(eachItem);
 
-      // for debug 
-      //console.log(`JSON.stringify(allOffers) = ${JSON.stringify(allOffers)}`);
+            // If failed to GET the correesponding driver info,
+            } else if (parseInt(driverResponse.status / 100, 10) === 4 ||
+                       parseInt(driverResponse.status / 100, 10) === 5) {
+              Alert.alert(
+                'エラーが発生しました。',
+                '電波の良いところで後ほどお試しください。',
+                [
+                  { text: 'OK' },
+                ]
+              );
+            }
+
+          // If cannot access drivers api,
+          } catch (error) {
+            console.error(error);
+            console.log('Cannot access drivers api...');
+
+            Alert.alert(
+              'エラーが発生しました。',
+              '電波の良いところで後ほどお試しください。',
+              [
+                { text: 'OK' },
+              ]
+            );
+          }
+        });
+
+        await Promise.all(promiseArray);
+
+        // Sort `allOffers` in chronological order
+        allOffers.sort((a, b) => {
+          if (a.offer.departure_time < b.offer.departure_time) {
+            return -1;
+          }
+          if (a.offer.departure_time > b.offer.departure_time) {
+            return 1;
+          }
+          return 0;
+        });
+
+      // If failed to GET the correesponding driver info,
+      } else if (parseInt(offerResponse.status / 100, 10) === 4 ||
+                 parseInt(offerResponse.status / 100, 10) === 5) {
+        Alert.alert(
+          'エラーが発生しました。',
+          '電波の良いところで後ほどお試しください。',
+          [
+            { text: 'OK' },
+          ]
+        );
+      }
 
     // If cannot access offers api,
     } catch (error) {
       console.error(error);
       console.log('Cannot access offers api...');
+
+      Alert.alert(
+        'エラーが発生しました。',
+        '電波の良いところで後ほどお試しください。',
+        [
+          { text: 'OK' },
+        ]
+      );
     }
 
     dispatch({ type: FETCH_ALL_OFFERS, payload: allOffers });

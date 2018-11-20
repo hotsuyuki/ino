@@ -312,7 +312,7 @@ class OfferScreen extends React.Component {
 
               //let responseJson = await response.json();
 
-              // If cannot create an offer,
+              // If failed to POST a new offer (create a new offer),
               if (parseInt(response.status / 100, 10) === 4 ||
                   parseInt(response.status / 100, 10) === 5) {
                 console.log('Create an offer is failed...');

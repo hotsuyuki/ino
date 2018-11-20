@@ -58,127 +58,168 @@ class DetailScreen extends React.Component {
     // ReGET the selected item
     try {
       let offerResponse = await fetch(`https://inori.work/offers/${selectedOfferId}`);
-      let offerResponseJson = await offerResponse.json();
 
-      const selectedItem = offerResponseJson;
-      /**********************************
-      selectedItem: {
-        offer: {
-          id:,
-          driver_id:,
-          start:,
-          goal:,
-          departure_time:,
-          rider_capacity:
-        },
-        reserved_riders: [`id1`, `id2`, ...]
-      }
-      **********************************/
+      if (parseInt(offerResponse.status / 100, 10) === 2) {
+        let offerResponseJson = await offerResponse.json();
 
-      // Get own driver info
-      this.props.getDriverInfo();
-
-      selectedItem.driver = this.props.driverInfo;
-      /**********************************
-      selectedItem: {
-        driver:{
-          id:,
-          first_name:,
-          last_name:,
-          grade:,
-          major:,
-          mail:,
-          phone:,
-          car_color:,
-          car_number:
-        },
-        offer: {
-          id:,
-          driver_id:,
-          start:,
-          goal:,
-          departure_time:,
-          rider_capacity:
-        },
-        reserved_riders: [`id1`, `id2`, ...]
-      }
-      **********************************/
-
-      // GET corresponding reserved riders info
-      const reservedRidersInfo = [];
-
-      const promiseArray = selectedItem.reserved_riders.map(async (reservedRiderId) => {
-        try {
-          let riderResponse = await fetch(`https://inori.work/riders/${reservedRiderId}`);
-          let riderResponseJson = await riderResponse.json();
-
-          reservedRidersInfo.push(riderResponseJson.rider);
-
-        // If cannot access riders api,
-        } catch (error) {
-          console.error(error);
-          console.log('Cannot access riders api...');
+        const selectedItem = offerResponseJson;
+        /**********************************
+        selectedItem: {
+          offer: {
+            id:,
+            driver_id:,
+            start:,
+            goal:,
+            departure_time:,
+            rider_capacity:
+          },
+          reserved_riders: [`id1`, `id2`, ...]
         }
-      });
+        **********************************/
 
-      await Promise.all(promiseArray);
+        // Get own driver info
+        this.props.getDriverInfo();
 
-      selectedItem.reserved_riders = reservedRidersInfo;
-      // for debug
-      //console.log(`JSON.stringify(selectedItem) = ${JSON.stringify(selectedItem)}`);
-      /**********************************
-      selectedItem: {
-        driver:{
-          id:,
-          first_name:,
-          last_name:,
-          grade:,
-          major:,
-          mail:,
-          phone:,
-          car_color:,
-          car_number:
-        },
-        offer: {
-          id:,
-          driver_id:,
-          start:,
-          goal:,
-          departure_time:,
-          rider_capacity:
-        },
-        reserved_riders: [
-          {
-            id: `id1`,
+        selectedItem.driver = this.props.driverInfo;
+        /**********************************
+        selectedItem: {
+          driver:{
+            id:,
             first_name:,
             last_name:,
             grade:,
             major:,
             mail:,
-            phone:
+            phone:,
+            car_color:,
+            car_number:
           },
-          {
-            id: `id2`,
+          offer: {
+            id:,
+            driver_id:,
+            start:,
+            goal:,
+            departure_time:,
+            rider_capacity:
+          },
+          reserved_riders: [`id1`, `id2`, ...]
+        }
+        **********************************/
+
+        // GET corresponding reserved riders info
+        const reservedRidersInfo = [];
+
+        const promiseArray = selectedItem.reserved_riders.map(async (reservedRiderId) => {
+          try {
+            let riderResponse = await fetch(`https://inori.work/riders/${reservedRiderId}`);
+
+            if (parseInt(riderResponse.status / 100, 10) === 2) {
+              let riderResponseJson = await riderResponse.json();
+              reservedRidersInfo.push(riderResponseJson.rider);
+
+            // if failed to GET reserved rider info
+            } else if (parseInt(riderResponse.status / 100, 10) === 4 ||
+                       parseInt(riderResponse.status / 100, 10) === 5) {
+              Alert.alert(
+                'エラーが発生しました。',
+                '電波の良いところで後ほどお試しください。',
+                [
+                  { text: 'OK' },
+                ]
+              );
+            }
+
+          // If cannot access riders api,
+          } catch (error) {
+            console.error(error);
+            console.log('Cannot access riders api...');
+
+            Alert.alert(
+              'エラーが発生しました。',
+              '電波の良いところで後ほどお試しください。',
+              [
+                { text: 'OK' },
+              ]
+            );
+          }
+        });
+
+        await Promise.all(promiseArray);
+
+        selectedItem.reserved_riders = reservedRidersInfo;
+        /**********************************
+        selectedItem: {
+          driver:{
+            id:,
             first_name:,
             last_name:,
             grade:,
             major:,
             mail:,
-            phone:
+            phone:,
+            car_color:,
+            car_number:
           },
-          ...
-        ]
+          offer: {
+            id:,
+            driver_id:,
+            start:,
+            goal:,
+            departure_time:,
+            rider_capacity:
+          },
+          reserved_riders: [
+            {
+              id: `id1`,
+              first_name:,
+              last_name:,
+              grade:,
+              major:,
+              mail:,
+              phone:
+            },
+            {
+              id: `id2`,
+              first_name:,
+              last_name:,
+              grade:,
+              major:,
+              mail:,
+              phone:
+            },
+            ...
+          ]
+        }
+        **********************************/
+
+        this.setState({
+          selectedItem
+        });
+
+      // if failed to GET the selected offer,
+      } else if (parseInt(offerResponse.status / 100, 10) === 4 ||
+                 parseInt(offerResponse.status / 100, 10) === 5) {
+        Alert.alert(
+          'エラーが発生しました。',
+          '電波の良いところで後ほどお試しください。',
+          [
+            { text: 'OK' },
+          ]
+        );
       }
-      **********************************/
-
-      this.setState({
-        selectedItem
-      });
 
     // If cannot access offers api,
     } catch (error) {
       console.error(error);
       console.log('Cannot access offers api...');
+
+      Alert.alert(
+        'エラーが発生しました。',
+        '電波の良いところで後ほどお試しください。',
+        [
+          { text: 'OK' },
+        ]
+      );
     }
   }
 
@@ -271,10 +312,32 @@ class DetailScreen extends React.Component {
                 //headers: {},
                 //body: {},
               });
-              let deleteResponseJson = await deleteResponse.json();
-              console.log(deleteResponseJson);
+
+              //let deleteResponseJson = await deleteResponse.json();
+
+              // If failed to DELETE the selected offer,
+              if (parseInt(deleteResponse.status / 100, 10) === 4 ||
+                  parseInt(deleteResponse.status / 100, 10) === 5) {
+                Alert.alert(
+                  '相乗りをキャンセルできませんでした。',
+                  '電波の良いところで後ほどお試しください。',
+                  [
+                    { text: 'OK' },
+                  ]
+                );
+              }
+
+            // If cannot access offers api,
             } catch (error) {
-              console.error(error);
+              console.log('Cannot access offers api...');
+
+              Alert.alert(
+                '相乗りをキャンセルできませんでした。',
+                '電波の良いところで後ほどお試しください。',
+                [
+                  { text: 'OK' },
+                ]
+              );
             }
 
             // Reflesh `this.props.ownOffers` in `OfferScreen`
