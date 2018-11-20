@@ -52,14 +52,14 @@ body: JSON.stringify({
   data?: {
     type: 'reserved_offer',
     offer_id: 10,
-    message_body: 'あなたの相乗りオファーが予約されました。' // `body?` と一緒の値
+    message_title: 'あなたの相乗りオファーが予約されました。' // `title?` と一緒の値
   },
 
   // The title to display in the notification.
-  title?: '',
+  title?: 'あなたの相乗りオファーが予約されました。',
 
   // The message to display in the notification.
-  body?: 'あなたの相乗りオファーが予約されました。',
+  body?: '',
 
   // A sound to play when the recipient receives this notification. (iOS only)
   sound?: 'default',
@@ -86,14 +86,14 @@ body: JSON.stringify({
   data?: {
     type: 'canceled_reservation',
     offer_id: 10,
-    message_body: 'あなたの相乗りオファーへの予約がキャンセルされました。' // `body?` と一緒の値
+    message_title: 'あなたの相乗りオファーへの予約がキャンセルされました。' // `title?` と一緒の値
   },
 
   // The title to display in the notification.
-  title?: '',
+  title?: 'あなたの相乗りオファーへの予約がキャンセルされました。',
 
   // The message to display in the notification.
-  body?: 'あなたの相乗りオファーへの予約がキャンセルされました。',
+  body?: '',
 
   // A sound to play when the recipient receives this notification. (iOS only)
   sound?: 'default',
@@ -120,14 +120,14 @@ body: JSON.stringify({
   data?: {
     type: 'canceled_offer',
     offer_id: 10, // 使用しないが、便宜上
-    message_body: '予約済みのオファーがキャンセルされました。' // `body?` と一緒の値
+    message_title: '予約済みのオファーがキャンセルされました。' // `title?` と一緒の値
   },
 
   // The title to display in the notification.
-  title?: '',
+  title?: '予約済みのオファーがキャンセルされました。',
 
   // The message to display in the notification.
-  body?: '予約済みのオファーがキャンセルされました。',
+  body?: '',
 
   // A sound to play when the recipient receives this notification. (iOS only)
   sound?: 'default',
