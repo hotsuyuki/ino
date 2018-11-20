@@ -281,6 +281,7 @@ class DetailScreen extends React.Component {
             const reserveOfferBody = {
               id: 0,
               offer_id: selectedOfferId,
+              departure_time: this.state.selectedItem.offer.departure_time,
               rider_id: riderId
             };
 
