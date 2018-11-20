@@ -114,12 +114,11 @@ body: JSON.stringify({
 ```js
 {
   // An Expo push token specifying the recipient of this message.
-  to: 'ExponentPushToken[xxxdriverxxx]',
+  to: 'ExponentPushToken[yyyrideryyy]',
 
   // A JSON object delivered to your app.
   data?: {
     type: 'canceled_offer',
-    offer_id: 10,
     message_body: '予約済みのオファーがキャンセルされました。' // `body?` と一緒の値
   },
 
