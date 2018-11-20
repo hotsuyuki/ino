@@ -4,7 +4,7 @@
 
 アプリ起動時にまずドライバーの `id` と `token` を載せたJSONをうちらのサーバーにPOST
 ```js
-url: 'https://inori.work/drivers/push-token',
+url: 'https://inori.work/tokens/push/drivers',
 
 method: 'POST',
 
@@ -24,7 +24,7 @@ body: JSON.stringify({
 
 アプリ起動時にまずライダーの `id` と `token` を載せたJSONをうちらのサーバーにPOST
 ```js
-url: 'https://inori.work/riders/push-token',
+url: 'https://inori.work/tokens/push/riders',
 
 method: 'POST',
 
