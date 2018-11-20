@@ -119,6 +119,7 @@ body: JSON.stringify({
   // A JSON object delivered to your app.
   data?: {
     type: 'canceled_offer',
+    offer_id: 10, // 使用しないが、便宜上
     message_body: '予約済みのオファーがキャンセルされました。' // `body?` と一緒の値
   },
 
