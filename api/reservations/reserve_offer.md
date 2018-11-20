@@ -13,6 +13,7 @@ POST /reservations
 {
   "id": 0, // 便宜上，仮の "id": 0 をつけて送る
   "offer_id": 1,
+  "departure_time": "2018-10-04 10:00:00", // offer_idのオファーのdeparture_time
   "rider_id": 2
 }
 ```
