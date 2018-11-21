@@ -21,10 +21,17 @@ POST /reservations
 ### Response Body Example
 ```
 // オファー予約成功した時
+200
 {
   "id": 1,
 }
 
 // オファー予約失敗した時
 400, 500
+
+// 既に満席のオファーに予約しようとした時
+400
+{
+  "message": "no capacity"
+}
 ```
