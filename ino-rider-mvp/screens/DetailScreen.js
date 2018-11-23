@@ -502,7 +502,7 @@ class DetailScreen extends React.Component {
         {this.state.selectedItem.reserved_riders.map((rider, index) => {
           return (
             <View
-              style={{ flexDirection: 'row', alignItems: 'center' }}
+              style={{ flexDirection: 'row', alignItems: 'center', paddingBottom: 10 }}
               key={index}
             >
               <View style={{ flex: 1 }}>

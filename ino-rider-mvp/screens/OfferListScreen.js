@@ -201,7 +201,6 @@ class OfferListScreen extends React.Component {
           return (
             <ListItem
               key={index}
-              //leftIcon={{ name: 'person', color: 'black' }}
               title={
                 <View style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}>
                   <View style={{ flex: 3, justifyContent: 'space-between', alignItems: 'center' }}>
@@ -273,7 +272,6 @@ class OfferListScreen extends React.Component {
             return (
               <ListItem
                 key={index}
-                //leftIcon={{ name: 'person', color: 'black' }}
                 title={
                   <View style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}>
                     <View style={{ flex: 3, justifyContent: 'space-between', alignItems: 'center' }}>
