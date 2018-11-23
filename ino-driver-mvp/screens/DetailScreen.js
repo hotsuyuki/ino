@@ -269,20 +269,20 @@ class DetailScreen extends React.Component {
               </View>
               <View style={{ flex: 1 }}>
                 <Icon
-                  name='comment'
-                  type='font-awesome'
-                  raised
-                  // Replace first "0" with "+81" // TODO: Make it more robust
-                  onPress={() => Linking.openURL(`sms:+81${rider.phone.substring(1)}`)}
-                />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Icon
                   name='phone'
                   type='font-awesome'
                   raised
                   // Replace first "0" with "+81" // TODO: Make it more robust
                   onPress={() => Linking.openURL(`tel:+81${rider.phone.substring(1)}`)}
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Icon
+                  name='comment'
+                  type='font-awesome'
+                  raised
+                  // Replace first "0" with "+81" // TODO: Make it more robust
+                  onPress={() => Linking.openURL(`sms:+81${rider.phone.substring(1)}`)}
                 />
               </View>
             </View>

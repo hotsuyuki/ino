@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   StyleSheet, Text, View, ScrollView, Alert,
-  LayoutAnimation, UIManager, RefreshControl, Linking,
+  LayoutAnimation, UIManager, RefreshControl, Linking, Platform,
 } from 'react-native';
 import { Button, Icon } from 'react-native-elements';
 import { AppLoading, Notifications } from 'expo';
@@ -268,17 +268,32 @@ class DetailScreen extends React.Component {
     // The params passed from the previous page
     const isReservation = this.props.navigation.getParam('isReservation', 'default_value');
 
+    // Replace first "0" with "+81" // TODO: Make it more robust
+    const phone = `+81${this.state.selectedItem.driver.phone.substring(1)}`;
+
+    const riderInfo = this.props.riderInfo;
+    let body = `[ino] こんにちは！${riderInfo.major} ${riderInfo.grade}の${riderInfo.last_name}${riderInfo.first_name}と申します。`;
+    
+    const trimedDepartureTime = this.state.selectedItem.offer.departure_time.substring(5, this.state.selectedItem.offer.departure_time.length - 3).replace(/-/g, '/');
+
     if (isReservation) {
-      return (
-        <Icon
-          name='comment'
-          type='font-awesome'
-          raised
-          // Replace first "0" with "+81" // TODO: Make it more robust
-          onPress={() => Linking.openURL(`sms:+81${this.state.selectedItem.driver.phone.substring(1)}`)}
-        />
-      );
+      body = `${body} ${trimedDepartureTime}の相乗りを予約させて頂きました。よろしくお願いします！`;
+    } else {
+      body = `${body} ${trimedDepartureTime}の相乗りについてですが、`;
     }
+
+    return (
+      <Icon
+        name='comment'
+        type='font-awesome'
+        raised
+        onPress={() => {
+          Linking.openURL(Platform.OS === 'ios' ?
+          `sms:${phone}&body=${body}` :
+          `sms:${phone}?body=${body}`);
+        }}
+      />
+    );
   }
 
 
@@ -643,10 +658,10 @@ class DetailScreen extends React.Component {
                 <Text style={{ /*fontSize: 18*/ }}>{`${this.state.selectedItem.driver.grade}`}</Text>
               </View>
               <View style={{ flex: 1 }}>
-                {this.renderSmsButton()}
+                {this.renderTelButton()}
               </View>
               <View style={{ flex: 1 }}>
-                {this.renderTelButton()}
+                {this.renderSmsButton()}
               </View>
             </View>
           </View>
