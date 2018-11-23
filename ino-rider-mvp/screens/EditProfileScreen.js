@@ -247,7 +247,7 @@ class EditProfileScreen extends React.Component {
             const editedRiderInfo = this.state.editedRiderInfo;
 
             // Truncate whitespaces and add "@stu.kanazawa-u.ac.jp" // TODO: Make it more robust
-            editedRiderInfo.mail = `${editedRiderInfo.mail.replace(/\s/g, '')}@stu.kanazawa-u.ac.jp`;
+            editedRiderInfo.mail = `${editedRiderInfo.mail.replace(/\s/g, '').toLowerCase()}@stu.kanazawa-u.ac.jp`;
             // Truncate whitespaces and elace hyphens (just in case)
             editedRiderInfo.phone = editedRiderInfo.phone.replace(/[^0-9]/g, '');
 

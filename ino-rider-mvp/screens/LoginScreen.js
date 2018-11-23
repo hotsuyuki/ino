@@ -80,7 +80,7 @@ class LoginScreen extends React.Component {
 
   onLoginButtonPress = async () => {
     // Truncate whitespaces and add "@stu.kanazawa-u.ac.jp" // TODO: Make it more robust
-    const mail = `${this.state.riderInfo.mail.replace(/\s/g, '')}@stu.kanazawa-u.ac.jp`;
+    const mail = `${this.state.riderInfo.mail.replace(/\s/g, '').toLowerCase()}@stu.kanazawa-u.ac.jp`;
 
     // Try access login api
     try {
