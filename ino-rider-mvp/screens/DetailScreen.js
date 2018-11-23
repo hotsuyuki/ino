@@ -273,7 +273,7 @@ class DetailScreen extends React.Component {
 
     const riderInfo = this.props.riderInfo;
     let body = `[ino] こんにちは！${riderInfo.major} ${riderInfo.grade}の${riderInfo.last_name}${riderInfo.first_name}と申します。`;
-    
+
     const trimedDepartureTime = this.state.selectedItem.offer.departure_time.substring(5, this.state.selectedItem.offer.departure_time.length - 3).replace(/-/g, '/');
 
     if (isReservation) {
@@ -542,16 +542,31 @@ class DetailScreen extends React.Component {
 
     // If it is Offer
     if (!isReservation) {
+      const reserveButtonTitle = '相乗りオファーを予約';
+
+      if (this.state.selectedItem.reserved_riders.length !== this.state.selectedItem.offer.rider_capacity) {
+        return (
+          <View style={{ padding: 20 }}>
+            <Button
+              title={reserveButtonTitle}
+              color="white"
+              buttonStyle={{ backgroundColor: 'rgb(0,122,255)' }}
+              onPress={this.onReserveOfferButtonPress}
+            />
+          </View>
+        );
+      }
+
+      // If the offer is full, prevent from reserving (just in case)
       return (
         <View style={{ padding: 20 }}>
           <Button
-            title="相乗りオファーを予約"
+            title={reserveButtonTitle}
             color="white"
-            buttonStyle={{ backgroundColor: 'rgb(0,122,255)' }}
-            onPress={this.onReserveOfferButtonPress}
           />
         </View>
       );
+
     // If it is Reservation
     } else {
       return (
