@@ -245,10 +245,11 @@ class EditProfileScreen extends React.Component {
           text: 'はい',
           onPress: async () => {
             const editedRiderInfo = this.state.editedRiderInfo;
-            // Elace hyphens (just in case)
+
+            // Truncate whitespaces and add "@stu.kanazawa-u.ac.jp" // TODO: Make it more robust
+            editedRiderInfo.mail = `${editedRiderInfo.mail.replace(/\s/g, '')}@stu.kanazawa-u.ac.jp`;
+            // Truncate whitespaces and elace hyphens (just in case)
             editedRiderInfo.phone = editedRiderInfo.phone.replace(/[^0-9]/g, '');
-            // Add "@stu.kanazawa-u.ac.jp" // TODO: Make it more robust
-            editedRiderInfo.mail = `${editedRiderInfo.mail}@stu.kanazawa-u.ac.jp`;
 
             // for debug
             console.log(`JSON.stringify(editedRiderInfo) = ${JSON.stringify(editedRiderInfo)}`);

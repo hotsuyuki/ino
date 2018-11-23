@@ -209,9 +209,9 @@ class SignupScreen extends React.Component {
 
     // Add temporary `id`
     riderInfo.id = 0;
-    // Add "@stu.kanazawa-u.ac.jp" // TODO: Make it more robust
-    riderInfo.mail = `${riderInfo.mail}@stu.kanazawa-u.ac.jp`;
-    // Elace hyphens (just in case)
+    // Truncate whitespaces and add "@stu.kanazawa-u.ac.jp" // TODO: Make it more robust
+    riderInfo.mail = `${riderInfo.mail.replace(/\s/g, '')}@stu.kanazawa-u.ac.jp`;
+    // Truncate whitespaces and elace hyphens (just in case)
     riderInfo.phone = riderInfo.phone.replace(/[^0-9]/g, '');
 
     // Try access signup api

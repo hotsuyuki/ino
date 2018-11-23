@@ -270,8 +270,8 @@ class SignupScreen extends React.Component {
 
     // Add temporary `id`
     driverInfo.id = 0;
-    // Add "@stu.kanazawa-u.ac.jp" // TODO: Make it more robust
-    driverInfo.mail = `${driverInfo.mail}@stu.kanazawa-u.ac.jp`;
+    // Truncate whitespaces and add "@stu.kanazawa-u.ac.jp" // TODO: Make it more robust
+    driverInfo.mail = `${driverInfo.mail.replace(/\s/g, '')}@stu.kanazawa-u.ac.jp`;
     // Elace hyphens (just in case)
     driverInfo.phone = driverInfo.phone.replace(/[^0-9]/g, '');
 
