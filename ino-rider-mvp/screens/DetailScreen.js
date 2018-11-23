@@ -328,11 +328,17 @@ class DetailScreen extends React.Component {
                 body: JSON.stringify(reserveOfferBody),
               });
 
-              //let responseJson = await response.json();
+              // for debug
+              console.log(`JSON.stringify(reserveOfferBody) = ${JSON.stringify(reserveOfferBody)}`);
+              console.log(`response.status = ${response.status}`);
+              let responseJson = await response.json();
+              console.log(`JSON.stringify(responseJson) = ${JSON.stringify(responseJson)}`);
 
               // If failed to DELETE the selected offer,
               if (parseInt(response.status / 100, 10) === 4 ||
                   parseInt(response.status / 100, 10) === 5) {
+                console.log('Failed to DELETE the selected offer...');
+
                 Alert.alert(
                   '相乗りを予約できませんでした。',
                   '電波の良いところで後ほどお試しください。',
@@ -399,6 +405,8 @@ class DetailScreen extends React.Component {
               // if failed to GET own reservations,
               } else if (parseInt(reservationResponse.status / 100, 10) === 4 ||
                          parseInt(reservationResponse.status / 100, 10) === 5) {
+                console.log('Failed to GET own reservations...');
+
                 Alert.alert(
                   'エラーが発生しました。',
                   '電波の良いところで後ほどお試しください。',
@@ -433,11 +441,16 @@ class DetailScreen extends React.Component {
                 //body: {},
               });
 
-              //let deleteResponseJson = await deleteResponse.json();
+              // for debug
+              console.log(`deleteResponse.status = ${deleteResponse.status}`);
+              let deleteResponseJson = await deleteResponse.json();
+              console.log(`JSON.stringify(deleteResponseJson) = ${JSON.stringify(deleteResponseJson)}`);
 
               // If failed to DELETE the selected reservation,
               if (parseInt(deleteResponse.status / 100, 10) === 4 ||
                   parseInt(deleteResponse.status / 100, 10) === 5) {
+                console.log('Failed to DELETE the selected reservation...');
+
                 Alert.alert(
                   '予約をキャンセルできませんでした。',
                   '電波の良いところで後ほどお試しください。',
@@ -465,7 +478,6 @@ class DetailScreen extends React.Component {
             // and make `OfferListScreen` rerender by calling action creators
             this.props.fetchOwnReservations();
             this.props.fetchAllOffers();
-
             this.props.navigation.pop();
           },
           style: 'destructive'

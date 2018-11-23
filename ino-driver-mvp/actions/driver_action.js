@@ -89,7 +89,7 @@ export const fetchOwnOffers = () => {
         // If failed to GET own offers,
         } else if (parseInt(offerResponse.status / 100, 10) === 4 ||
                    parseInt(offerResponse.status / 100, 10) === 5) {
-          console.log('GETting own offers is failed...');
+          console.log('GETting own offers failed...');
 
           Alert.alert(
             'エラーが発生しました。',

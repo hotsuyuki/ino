@@ -299,7 +299,7 @@ class SignupScreen extends React.Component {
       // If failed to signup with the input driver info,
       } else if (parseInt(response.status / 100, 10) === 4 ||
                  parseInt(response.status / 100, 10) === 5) {
-        console.log('Manual signup with the input driver info is failed...');
+        console.log('Manual signup with the input driver info failed...');
 
         Alert.alert(
           'エラーが発生しました。',

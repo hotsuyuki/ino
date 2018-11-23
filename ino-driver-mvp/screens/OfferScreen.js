@@ -5,7 +5,7 @@ import {
   LayoutAnimation, UIManager, Platform,
 } from 'react-native';
 import { Button, ButtonGroup, ListItem, Icon } from 'react-native-elements';
-import { AppLoading, Notifications } from 'expo';
+import { AppLoading, Permissions, Notifications } from 'expo';
 import { connect } from 'react-redux';
 
 import * as actions from '../actions';
@@ -71,8 +71,76 @@ class OfferScreen extends React.Component {
     LayoutAnimation.easeInEaseOut();
   }
 
+  // Get push notifications token and permissions
+  // https://docs.expo.io/versions/latest/guides/push-notifications
+  async componentDidMount() {
+    const { status: existingStatus } = await Permissions.getAsync(Permissions.NOTIFICATIONS);
 
-  componentDidMount() {
+    let finalStatus = existingStatus;
+
+    // only ask if permissions have not already been determined, because
+    // iOS won't necessarily prompt the user a second time.
+    if (existingStatus !== 'granted') {
+      // Android remote notification permissions are granted during the app install,
+      // so this will only ask on iOS
+      const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
+      finalStatus = status;
+    }
+
+    // for debug
+    console.log(`existingStatus = ${existingStatus}`);
+    console.log(`finalStatus = ${finalStatus}`);
+
+    // Stop here if the user did not grant permissions
+    if (finalStatus !== 'granted') {
+      return;
+    }
+
+    // Get the token that uniquely identifies this device
+    let pushNotificationsToken = await Notifications.getExpoPushTokenAsync();
+
+    // for debug
+    console.log(`JSON.stringify(pushNotificationsToken) = ${JSON.stringify(pushNotificationsToken)}`);
+
+    // POST the push notification token
+    try {
+      let response = await fetch('https://inori.work/tokens/push/drivers', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: this.props.driverInfo.id,
+          token: pushNotificationsToken
+        }),
+      });
+
+      // for debug
+      console.log(`response.status = ${response.status}`);
+      let responseJson = await response.json();
+      console.log(`JSON.stringify(responseJson) = ${JSON.stringify(responseJson)}`);
+
+      // If failed to POST the push notification token,
+      if (parseInt(response.status / 100, 10) === 4 ||
+          parseInt(response.status / 100, 10) === 5) {
+        console.log('POSTing the push notification token failed...');
+
+        Alert.alert(
+          'プッシュ通知の設定に失敗しました。',
+          '電波の良いところで後ほどアプリを再起動して下さい。',
+          [
+            { text: 'OK' },
+          ]
+        );
+      }
+
+    // If cannot access tokens api,
+    } catch (error) {
+      console.error(error);
+      console.log('Cannot access tokens api...');
+    }
+
     // Handle notifications that are received or selected while the app is open.
     // If the app was closed and then opened by tapping the notification
     // (rather than just tapping the app icon to open it),
@@ -99,7 +167,7 @@ class OfferScreen extends React.Component {
       } else if (notification.origin === 'received' && Platform.OS === 'ios') {
         Alert.alert(
           '',
-          'あなたの相乗りオファーが予約されました。', //`${notification.data.message_body}`
+          `${notification.data.message_title}`,
           [
             {
               text: 'OK',
@@ -125,7 +193,7 @@ class OfferScreen extends React.Component {
       } else if (notification.origin === 'received' && Platform.OS === 'ios') {
         Alert.alert(
           '',
-          'あなたの相乗りオファーへの予約がキャンセルされました。', //`${notification.data.message_body}`
+          `${notification.data.message_title}`,
           [
             {
               text: 'OK',
@@ -315,7 +383,7 @@ class OfferScreen extends React.Component {
               // If failed to POST a new offer (create a new offer),
               if (parseInt(response.status / 100, 10) === 4 ||
                   parseInt(response.status / 100, 10) === 5) {
-                console.log('Create an offer is failed...');
+                console.log('Create an offer failed...');
 
                 Alert.alert(
                   '相乗りをオファーできませんでした。',
@@ -330,6 +398,14 @@ class OfferScreen extends React.Component {
             } catch (error) {
               console.error(error);
               console.log('Cannot access offers api...');
+
+              Alert.alert(
+                '相乗りをオファーできませんでした。',
+                '電波の良いところで後ほどお試しください。',
+                [
+                  { text: 'OK' },
+                ]
+              );
             }
 
             // Reset input form

@@ -2,7 +2,6 @@ import React from 'react';
 import { StyleSheet, View, StatusBar, Platform } from 'react-native';
 import { createStackNavigator, createBottomTabNavigator } from 'react-navigation';
 import { Icon, Button } from 'react-native-elements';
-import { Permissions, Notifications } from 'expo';
 import { Provider } from 'react-redux';
 
 import store from './store';
@@ -16,33 +15,6 @@ import EditProfileScreen from './screens/EditProfileScreen';
 
 
 export default class App extends React.Component {
-  // Get push notifications token and permissions
-  // https://docs.expo.io/versions/latest/guides/push-notifications
-  async componentDidMount() {
-    const { status: existingStatus } = await Permissions.getAsync(Permissions.NOTIFICATIONS);
-
-    let finalStatus = existingStatus;
-
-    // only ask if permissions have not already been determined, because
-    // iOS won't necessarily prompt the user a second time.
-    if (existingStatus !== 'granted') {
-      // Android remote notification permissions are granted during the app
-      // install, so this will only ask on iOS
-      const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
-      finalStatus = status;
-    }
-
-    // Stop here if the user did not grant permissions
-    if (finalStatus !== 'granted') {
-      return;
-    }
-
-    // Get the token that uniquely identifies this device
-    let pushNotificationsToken = await Notifications.getExpoPushTokenAsync();
-    // for debug
-    console.log(JSON.stringify(pushNotificationsToken));
-  }
-
   render() {
     const headerNavigationOptions = {
       headerStyle: {

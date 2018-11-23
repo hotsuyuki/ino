@@ -92,7 +92,7 @@ export const fetchOwnReservations = () => {
                   // If failed to GET the correesponding driver info,
                   } else if (parseInt(driverResponse.status / 100, 10) === 4 ||
                              parseInt(driverResponse.status / 100, 10) === 5) {
-                    console.log('GETting driver info is failed...');
+                    console.log('GETting driver info failed...');
 
                     Alert.alert(
                       'エラーが発生しました。',

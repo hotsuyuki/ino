@@ -60,7 +60,7 @@ class LoginScreen extends React.Component {
         // If failed login with the stored email address,
         } else if (parseInt(response.status / 100, 10) === 4 ||
                    parseInt(response.status / 100, 10) === 5) {
-          console.log('Automatic login with the stored email address is failed...');
+          console.log('Automatic login with the stored email address failed...');
           this.setState({ isLogedin: false });
         }
       // If cannot access the login api,
@@ -111,7 +111,7 @@ class LoginScreen extends React.Component {
       // If failed to login with the stored email address,
       } else if (parseInt(response.status / 100, 10) === 4 ||
                  parseInt(response.status / 100, 10) === 5) {
-        console.log('Manual login with the input email address is failed...');
+        console.log('Manual login with the input email address failed...');
 
         Alert.alert(
           'アカウントを確認できませんでした。',
