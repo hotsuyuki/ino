@@ -264,8 +264,8 @@ class DetailScreen extends React.Component {
               </View>
               <View style={{ flex: 2 }}>
                 <Text style={styles.nameTextStyle}>{`${rider.last_name} ${rider.first_name}`}</Text>
-                <Text style={{ /*fontSize: 18*/ }}>{`${rider.major}`}</Text>
-                <Text style={{ /*fontSize: 18*/ }}>{`${rider.grade}`}</Text>
+                <Text>{`${rider.major}`}</Text>
+                <Text>{`${rider.grade}`}</Text>
               </View>
               <View style={{ flex: 1 }}>
                 <Icon
@@ -428,16 +428,13 @@ class DetailScreen extends React.Component {
 
 const styles = StyleSheet.create({
   grayTextStyle: {
-    /*fontSize: 18,*/
     color: 'gray',
     padding: 10,
   },
   infoTextStyle: {
-    /*fontSize: 18,*/
     padding: 5,
   },
   nameTextStyle: {
-    /*fontSize: 18,*/
     paddingBottom: 5
   },
 });

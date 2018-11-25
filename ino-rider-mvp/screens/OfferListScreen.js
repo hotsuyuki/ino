@@ -362,7 +362,6 @@ class OfferListScreen extends React.Component {
 
 const styles = StyleSheet.create({
   grayTextStyle: {
-    /*fontSize: 18,*/
     color: 'gray',
     padding: 10
   },

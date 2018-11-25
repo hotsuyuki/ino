@@ -85,12 +85,10 @@ class ProfileScreen extends React.Component {
 
 const styles = StyleSheet.create({
   itemTextStyle: {
-    /*fontSize: 18,*/
     color: 'gray',
     padding: 10,
   },
   contentTextStyle: {
-    /*fontSize: 18,*/
     color: 'black',
     paddingLeft: 30,
   },

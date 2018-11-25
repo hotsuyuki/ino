@@ -525,8 +525,8 @@ class DetailScreen extends React.Component {
               </View>
               <View style={{ flex: 4 }}>
                 <Text style={styles.nameTextStyle}>{`${rider.last_name} ${rider.first_name}`}</Text>
-                <Text style={{ /*fontSize: 18*/ }}>{`${rider.major}`}</Text>
-                <Text style={{ /*fontSize: 18*/ }}>{`${rider.grade}`}</Text>
+                <Text>{`${rider.major}`}</Text>
+                <Text>{`${rider.grade}`}</Text>
               </View>
             </View>
           );
@@ -557,7 +557,7 @@ class DetailScreen extends React.Component {
         );
       }
 
-      // If the offer is full, prevent from reserving (just in case)
+      // When the offer is full, prevent from reserving (just in case)
       return (
         <View style={{ padding: 20 }}>
           <Button
@@ -669,8 +669,8 @@ class DetailScreen extends React.Component {
               </View>
               <View style={{ flex: 2 }}>
                 <Text style={styles.nameTextStyle}>{`${this.state.selectedItem.driver.last_name} ${this.state.selectedItem.driver.first_name}`}</Text>
-                <Text style={{ /*fontSize: 18*/ }}>{`${this.state.selectedItem.driver.major}`}</Text>
-                <Text style={{ /*fontSize: 18*/ }}>{`${this.state.selectedItem.driver.grade}`}</Text>
+                <Text>{`${this.state.selectedItem.driver.major}`}</Text>
+                <Text>{`${this.state.selectedItem.driver.grade}`}</Text>
               </View>
               <View style={{ flex: 1 }}>
                 {this.renderTelButton()}
@@ -699,16 +699,13 @@ class DetailScreen extends React.Component {
 
 const styles = StyleSheet.create({
   grayTextStyle: {
-    /*fontSize: 18,*/
     color: 'gray',
     padding: 10,
   },
   infoTextStyle: {
-    /*fontSize: 18,*/
     padding: 5,
   },
   nameTextStyle: {
-    /*fontSize: 18,*/
     paddingBottom: 5
   },
 });

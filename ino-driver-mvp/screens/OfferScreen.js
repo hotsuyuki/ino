@@ -585,7 +585,7 @@ class OfferScreen extends React.Component {
             }
             subtitle={
               <View style={styles.listItemStyle}>
-                <Text numberOfLines={1} style={{ /*fontSize: 18*/ }}>
+                <Text numberOfLines={1}>
                   {this.state.offerDetail.start}
                 </Text>
               </View>
@@ -616,7 +616,7 @@ class OfferScreen extends React.Component {
             }
             subtitle={
               <View style={styles.listItemStyle}>
-                <Text numberOfLines={1} style={{ /*fontSize: 18*/ }}>
+                <Text numberOfLines={1}>
                   {this.state.offerDetail.goal}
                 </Text>
               </View>
@@ -651,7 +651,6 @@ class OfferScreen extends React.Component {
                   <View style={styles.listItemStyle}>
                     <Text
                       style={{
-                        /*fontSize: 18,*/
                         color: this.state.offerDetail.departure_time === INITIAL_STATE.offerDetail.departure_time ? 'gray' : 'black'
                       }}
                     >
@@ -688,7 +687,6 @@ class OfferScreen extends React.Component {
                   <View style={styles.listItemStyle}>
                     <Text
                       style={{
-                        /*fontSize: 18,*/
                         color: this.state.offerDetail.rider_capacity === INITIAL_STATE.offerDetail.rider_capacity ? 'gray' : 'black'
                       }}
                     >
@@ -731,7 +729,6 @@ class OfferScreen extends React.Component {
 
 const styles = StyleSheet.create({
   grayTextStyle: {
-    /*fontSize: 18,*/
     color: 'gray',
     padding: 10
   },
