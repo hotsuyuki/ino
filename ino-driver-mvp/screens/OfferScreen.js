@@ -16,12 +16,18 @@ const GEKO = 1;
 
 // for TOKO
 const VDRUG = 'Vドラッグ';
-const KOKUSAIKAIKAN_SHIZEN3PARK = '国際交流会館前 経由 自然研3号館駐車場';
-const SHIZEN3PARK = '自然研3号館駐車場';
+const SHIZEN3PARK = '自然3号館駐車場';
+const SHIZEN5PARKMAE_SHIZEN3PARK = '自然5号館上交差点 経由 自然3号館駐車場';
+const SHIZEN5PARKMAE = '自然5号館上交差点';
+const SHIZEN5PARKMAE_JINSYAPARK = '自然5号館上交差点 経由 人社駐車場';
+const JINSYAPARK = '人社駐車場';
 
 // for GEKO
-const SHIZEN3ENTER_KOKUSAIKAIKAN = '自然研3号館入口 経由 国際交流会館前';
-const SHIZEN3ENTER = '自然研3号館入口';
+const SHIZEN3ENTER = '自然3号館入口';
+const SHIZEN3ENTER_SHIZEN5PARKMAE = '自然3号館入口 経由 自然5号館上交差点';
+//const SHIZEN5PARKMAE = '自然5号館上交差点';
+const KYOIKUCENTERENTER_SHIZEN5PARKMAE = '教育支援ｾﾝﾀｰ入口 経由 自然5号館上交差点';
+const KYOIKUCENTERENTER = '教育支援ｾﾝﾀｰ入口';
 const YAMAYA = 'やまや';
 
 const INITIAL_STATE = {
@@ -41,7 +47,7 @@ const INITIAL_STATE = {
   // for driver's own offers
   offerDetail: {
     start: VDRUG,
-    goal: KOKUSAIKAIKAN_SHIZEN3PARK,
+    goal: SHIZEN5PARKMAE_SHIZEN3PARK,
     departure_time: '-/-  --:--',
     rider_capacity: '---',
   },
@@ -247,8 +253,11 @@ class OfferScreen extends React.Component {
               },
             })}
           >
-            <Picker.Item label={`${SHIZEN3ENTER_KOKUSAIKAIKAN}`} value={`${SHIZEN3ENTER_KOKUSAIKAIKAN}`} />
             <Picker.Item label={`${SHIZEN3ENTER}`} value={`${SHIZEN3ENTER}`} />
+            <Picker.Item label={`${SHIZEN3ENTER_SHIZEN5PARKMAE}`} value={`${SHIZEN3ENTER_SHIZEN5PARKMAE}`} />
+            <Picker.Item label={`${SHIZEN5PARKMAE}`} value={`${SHIZEN5PARKMAE}`} />
+            <Picker.Item label={`${KYOIKUCENTERENTER_SHIZEN5PARKMAE}`} value={`${KYOIKUCENTERENTER_SHIZEN5PARKMAE}`} />
+            <Picker.Item label={`${KYOIKUCENTERENTER}`} value={`${KYOIKUCENTERENTER}`} />
           </Picker>
         );
       }
@@ -269,8 +278,11 @@ class OfferScreen extends React.Component {
               },
             })}
           >
-            <Picker.Item label={`${KOKUSAIKAIKAN_SHIZEN3PARK}`} value={`${KOKUSAIKAIKAN_SHIZEN3PARK}`} />
             <Picker.Item label={`${SHIZEN3PARK}`} value={`${SHIZEN3PARK}`} />
+            <Picker.Item label={`${SHIZEN5PARKMAE_SHIZEN3PARK}`} value={`${SHIZEN5PARKMAE_SHIZEN3PARK}`} />
+            <Picker.Item label={`${SHIZEN5PARKMAE}`} value={`${SHIZEN5PARKMAE}`} />
+            <Picker.Item label={`${SHIZEN5PARKMAE_JINSYAPARK}`} value={`${SHIZEN5PARKMAE_JINSYAPARK}`} />
+            <Picker.Item label={`${JINSYAPARK}`} value={`${JINSYAPARK}`} />
           </Picker>
         );
       } else if (this.state.togekoFlag === GEKO) {
@@ -566,8 +578,8 @@ class OfferScreen extends React.Component {
                 togekoFlag: selectedIndex,
                 offerDetail: {
                   ...this.state.offerDetail,
-                  start: selectedIndex===TOKO ? VDRUG : SHIZEN3ENTER_KOKUSAIKAIKAN,
-                  goal: selectedIndex===TOKO ? KOKUSAIKAIKAN_SHIZEN3PARK : YAMAYA,
+                  start: selectedIndex===TOKO ? VDRUG : SHIZEN3ENTER_SHIZEN5PARKMAE,
+                  goal: selectedIndex===TOKO ? SHIZEN5PARKMAE_SHIZEN3PARK : YAMAYA,
                 }
               })
             }
