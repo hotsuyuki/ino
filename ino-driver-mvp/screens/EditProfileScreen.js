@@ -227,10 +227,10 @@ class EditProfileScreen extends React.Component {
       { key: index++, label: '灰系' },
       { key: index++, label: '黄系' },
       { key: index++, label: '緑系' },
-      { key: index++, label: 'ｵﾚﾝｼﾞ系' },
-      { key: index++, label: 'ﾍﾞｰｼﾞｭ系' },
-      { key: index++, label: 'ﾋﾟﾝｸ系' },
-      { key: index++, label: 'ﾊﾟｰﾌﾟﾙ系' },
+      { key: index++, label: 'オレンジ系' },
+      { key: index++, label: 'ベージュ系' },
+      { key: index++, label: 'ピンク系' },
+      { key: index++, label: 'パープル系' },
 
       { key: index++, label: 'その他' },
     ];
