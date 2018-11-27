@@ -1,10 +1,10 @@
 import _ from 'lodash';
 import React from 'react';
 import {
-  StyleSheet, Text, View, ScrollView, RefreshControl, Alert,
+  StyleSheet, Text, View, ScrollView, RefreshControl, Alert, Image,
   LayoutAnimation, UIManager, Platform,
 } from 'react-native';
-import { ListItem, Icon } from 'react-native-elements';
+import { ListItem, Icon, Button } from 'react-native-elements';
 import { AppLoading, Permissions, Notifications } from 'expo';
 import { connect } from 'react-redux';
 
@@ -192,11 +192,45 @@ class OfferListScreen extends React.Component {
     return (
       <View>
         {this.props.ownReservations.map((item, index) => {
+          const isReservation = true;
+
+          // Set the estimated arrival time to 1 hour later from the departure time
+          const estimatedArrivalTime = new Date(item.offer.departure_time.replace(/-/g, '/'));
+          estimatedArrivalTime.setHours(estimatedArrivalTime.getHours() + 1);
+
+          // If the carpool is expected to be arrived,
+          if (estimatedArrivalTime < new Date()) {
+            // render a ListItem with Kyash button
+            return (
+              <ListItem
+                key={index}
+                title={
+                  <View style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}>
+                    <View style={{ flex: 3, justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Icon name='person' />
+                      <Text>{`${item.driver.last_name} ${item.driver.first_name}`}</Text>
+                    </View>
+
+                    <View style={{ flex: 7, justifyContent: 'space-between' }}>
+                      <Button
+                        //icon={<Image source={{ uri: '../assets/kyash_icon.png' }} />}
+                        title="Kyashで募金する"
+                        color="skyblue"
+                        buttonStyle={{ backgroundColor: 'white', borderRadius: 30 }}
+                        onPress={() => this.onListItemPress(item, isReservation)}
+                      />
+                    </View>
+                  </View>
+                }
+                onPress={() => this.onListItemPress(item, isReservation)}
+              />
+            );
+          }
+
           // Trim year(frist 5 characters) and second(last 3 characters),
           // and replace hyphens by slashes
+          // "2018-10-04 17:00:00" ---> "10/04 17:00"
           const trimedDepartureTime = item.offer.departure_time.substring(5, item.offer.departure_time.length - 3).replace(/-/g, '/');
-
-          const isReservation = true;
 
           return (
             <ListItem
@@ -256,11 +290,7 @@ class OfferListScreen extends React.Component {
     return (
       <View>
         {this.props.allOffers.map((item, index) => {
-          // Trim year(frist 5 characters) and second(last 3 characters),
-          // and replace hyphens by slashes
-          const trimedDepartureTime = item.offer.departure_time.substring(5, item.offer.departure_time.length - 3).replace(/-/g, '/');
-
-          // Whether this offer(`item`) is reservation or not
+          // Whether this offer (`item`) is reservation or not
           let isReservation = false;
           item.reserved_riders.forEach((reservedRiderId) => {
             if (reservedRiderId === this.props.riderInfo.id) {
@@ -268,7 +298,17 @@ class OfferListScreen extends React.Component {
             }
           });
 
-          if (!isReservation) {
+          // Set the reservation deadline time to 1 hour earlyer from the departure time
+          const reservationDeadline = new Date(item.offer.departure_time.replace(/-/g, '/'));
+          reservationDeadline.setHours(reservationDeadline.getHours() - 1);
+
+          // If this offer is not reservation and before the deadline,
+          if (!isReservation && new Date() < reservationDeadline) {
+            // Trim year(frist 5 characters) and second(last 3 characters),
+            // and replace hyphens by slashes
+            // "2018-10-04 17:00:00" ---> "10/04 17:00"
+            const trimedDepartureTime = item.offer.departure_time.substring(5, item.offer.departure_time.length - 3).replace(/-/g, '/');
+
             return (
               <ListItem
                 key={index}

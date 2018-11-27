@@ -138,28 +138,15 @@ class LoginScreen extends React.Component {
 
 
   renderLoginButton() {
-    const loginButtonTitle = 'ログイン';
-
-    // If email is entered
-    if (this.state.riderInfo.mail !== INITIAL_STATE.riderInfo.mail) {
-      return (
-        // Activate the offer button
-        <View style={{ padding: 20 }}>
-          <Button
-            title={loginButtonTitle}
-            color="white"
-            buttonStyle={{ backgroundColor: 'rgb(0,122,255)' }}
-            onPress={this.onLoginButtonPress}
-          />
-        </View>
-      );
-    }
-
     return (
       <View style={{ padding: 20 }}>
         <Button
-          title={loginButtonTitle}
+          // If email is not entered, inactivate the button
+          disabled={this.state.riderInfo.mail === INITIAL_STATE.riderInfo.mail}
+          title="ログイン"
           color="white"
+          buttonStyle={{ backgroundColor: 'rgb(0,122,255)' }}
+          onPress={this.onLoginButtonPress}
         />
       </View>
     );

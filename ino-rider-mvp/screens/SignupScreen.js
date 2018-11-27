@@ -299,35 +299,23 @@ class SignupScreen extends React.Component {
 
     // All forms are valid or invalid,
     let isValid = true;
-    // If at least one of `formValidation` is false,
+    // If one of `formValidation` is false,
     Object.keys(formValidation).forEach((key) => {
       if (formValidation[key] === false) {
         isValid = false;
       }
     });
 
-    const signupButtonTitle = '新規登録';
-
-    // If `this.state.riderInfo` is completed and all forms are valid,
-    if (isCompleted && isValid) {
-      return (
-        // Activate the offer button
-        <View style={{ padding: 20 }}>
-          <Button
-            title={signupButtonTitle}
-            color="white"
-            buttonStyle={{ backgroundColor: 'rgb(0,122,255)' }}
-            onPress={this.onSignupButtonPress}
-          />
-        </View>
-      );
-    }
-
     return (
       <View style={{ padding: 20 }}>
         <Button
-          title={signupButtonTitle}
+          // If `this.state.riderInfo` is not completed or one of the forms is invalid,
+          // inactivate the button
+          disabled={!isCompleted || !isValid}
+          title="新規登録"
           color="white"
+          buttonStyle={{ backgroundColor: 'rgb(0,122,255)' }}
+          onPress={this.onSignupButtonPress}
         />
       </View>
     );

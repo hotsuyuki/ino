@@ -358,6 +358,9 @@ class DetailScreen extends React.Component {
       return <AppLoading />;
     }
 
+    // Trim year(frist 5 characters) and second(last 3 characters),
+    // and replace hyphens by slashes
+    // "2018-10-04 17:00:00" ---> "10/04 17:00"
     const trimedDepartureTime = this.state.selectedItem.offer.departure_time.substring(5, this.state.selectedItem.offer.departure_time.length - 3).replace(/-/g, '/');
 
     return (

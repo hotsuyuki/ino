@@ -221,17 +221,15 @@ class EditProfileScreen extends React.Component {
     const phone = this.state.editedRiderInfo.phone;
     const regex = /0[89]0[0-9]{4}[0-9]{4}/;
 
-    if (phone !== this.state.initialRiderInfo.phone) {
-      if (regex.test(phone) && phone.length === 11) {
-        formValidation.isPhoneValid = true;
-        return;
-      }
-
-      formValidation.isPhoneValid = false;
-      return (
-        <FormValidationMessage>080もしくは090から始まる11桁の数字で入力して下さい</FormValidationMessage>
-      );
+    if (regex.test(phone) && phone.length === 11) {
+      formValidation.isPhoneValid = true;
+      return;
     }
+
+    formValidation.isPhoneValid = false;
+    return (
+      <FormValidationMessage>080もしくは090から始まる11桁の数字で入力して下さい</FormValidationMessage>
+    );
   }
 
 
@@ -321,35 +319,23 @@ class EditProfileScreen extends React.Component {
 
     // All forms are valid or invalid,
     let isValid = true;
-    // If at least one of `formValidation` is false,
+    // If one of `formValidation` is false,
     Object.keys(formValidation).forEach((key) => {
       if (formValidation[key] === false) {
         isValid = false;
       }
     });
 
-    const doneButtonTitle = '完了';
-
-    // If `this.state.editedRiderInfo` is not default and all forms are valid,
-    if (!isDefault && isValid) {
-      return (
-        // Activate the offer button
-        <View style={{ padding: 20 }}>
-          <Button
-            title={doneButtonTitle}
-            color="white"
-            buttonStyle={{ backgroundColor: 'rgb(0,122,255)' }}
-            onPress={this.onDoneButtonPress}
-          />
-        </View>
-      );
-    }
-
     return (
       <View style={{ padding: 20 }}>
         <Button
-          title={doneButtonTitle}
+          // If `this.state.editedRiderInfo` is default or one of the forms is invalid,
+          // inactivate the button
+          disabled={isDefault || !isValid}
+          title="完了"
           color="white"
+          buttonStyle={{ backgroundColor: 'rgb(0,122,255)' }}
+          onPress={this.onDoneButtonPress}
         />
       </View>
     );

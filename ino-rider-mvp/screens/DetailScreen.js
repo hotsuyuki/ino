@@ -274,6 +274,9 @@ class DetailScreen extends React.Component {
     const riderInfo = this.props.riderInfo;
     let body = `[ino] こんにちは！${riderInfo.major} ${riderInfo.grade}の${riderInfo.last_name}${riderInfo.first_name}と申します。`;
 
+    // Trim year(frist 5 characters) and second(last 3 characters),
+    // and replace hyphens by slashes
+    // "2018-10-04 17:00:00" ---> "10/04 17:00"
     const trimedDepartureTime = this.state.selectedItem.offer.departure_time.substring(5, this.state.selectedItem.offer.departure_time.length - 3).replace(/-/g, '/');
 
     if (isReservation) {
@@ -389,6 +392,42 @@ class DetailScreen extends React.Component {
     );
   }
 
+  onDonateButtonPress = async () => {
+    const donateUrl = 'kyash://qr/u/1183086485312027642';
+
+    try {
+      await Linking.openURL(donateUrl);
+
+    // If cannot open the url,
+    } catch (error) {
+      console.error(error);
+      console.log('Cannot open the url...');
+
+      Alert.alert(
+        'ウォレットアプリKyashをダウンロード',
+        `inoではウォレットアプリKyashを使用して募金のお支払いを受け付けております。Kyashは、コンビニなどで事前にチャージすることで
+        \n
+        ・手数料無料の送金
+        ・バーチャルVisaカード
+        \n
+        が簡単に使えるようになるアプリです。手数料無料の送金は友達同士の割り勘や立替え、バーチャルVisaカードはAmazonやZOZOTOWNなどでのカード払いにも使えて便利です。`,
+        [
+          {
+            text: Platform.OS === 'ios' ? 'App Storeへ' : 'Google Playへ',
+            onPress: async () => {
+              const kyashDownloadUrl = Platform.OS === 'ios' ?
+              'https://itunes.apple.com/jp/app/kyash/id1084264883?l=en&mt=8' :
+              'https://play.google.com/store/apps/details?id=co.kyash&hl=en';
+
+              return Linking.openURL(kyashDownloadUrl);
+            },
+            style: 'cancel'
+          },
+          { text: 'キャンセル' }
+        ]
+      );
+    }
+  }
 
   onCancelReservationButtonPress = () => {
     Alert.alert(
@@ -536,39 +575,54 @@ class DetailScreen extends React.Component {
   }
 
 
-  renderReserveOrCancelButton() {
+  renderActionButton() {
     // The params passed from the previous page
     const isReservation = this.props.navigation.getParam('isReservation', 'default_value');
 
+    // Set the reservation deadline time to 1 hour earlyer from the departure time
+    const reservationDeadline = new Date(this.state.selectedItem.offer.departure_time.replace(/-/g, '/'));
+    reservationDeadline.setHours(reservationDeadline.getHours() - 1);
+
     // If it is Offer
     if (!isReservation) {
-      const reserveButtonTitle = '相乗りオファーを予約';
-
-      if (this.state.selectedItem.reserved_riders.length !== this.state.selectedItem.offer.rider_capacity) {
-        return (
-          <View style={{ padding: 20 }}>
-            <Button
-              title={reserveButtonTitle}
-              color="white"
-              buttonStyle={{ backgroundColor: 'rgb(0,122,255)' }}
-              onPress={this.onReserveOfferButtonPress}
-            />
-          </View>
-        );
-      }
-
-      // When the offer is full, prevent from reserving (just in case)
       return (
         <View style={{ padding: 20 }}>
           <Button
-            title={reserveButtonTitle}
+            // When the offer is full and before the deadline,
+            // prevent from reserving (inactivate the button) just in case
+            disabled={
+              this.state.selectedItem.reserved_riders.length === this.state.selectedItem.offer.rider_capacity ||
+              reservationDeadline < new Date()
+            }
+            title="相乗りオファーを予約"
             color="white"
+            buttonStyle={{ backgroundColor: 'rgb(0,122,255)' }}
+            onPress={this.onReserveOfferButtonPress}
           />
         </View>
       );
 
     // If it is Reservation
-    } else {
+    } else if (isReservation) {
+      // Set the estimated arrival time to 1 hour later from the departure time
+      const estimatedArrivalTime = new Date(this.state.selectedItem.offer.departure_time.replace(/-/g, '/'));
+      estimatedArrivalTime.setHours(estimatedArrivalTime.getHours() + 1);
+
+      // If the carpool is arrived,
+      if (estimatedArrivalTime < new Date()) {
+        return (
+          <View style={{ padding: 20 }}>
+            <Button
+              //icon={<Image source={{ uri: '../assets/kyash_icon.png' }} />}
+              title="Kyashで募金する"
+              color="skyblue"
+              buttonStyle={{ backgroundColor: 'white', borderRadius: 30 }}
+              onPress={this.onDonateButtonPress}
+            />
+          </View>
+        );
+      }
+
       return (
         <View style={{ padding: 20 }}>
           <Button
@@ -615,6 +669,9 @@ class DetailScreen extends React.Component {
       return <AppLoading />;
     }
 
+    // Trim year(frist 5 characters) and second(last 3 characters),
+    // and replace hyphens by slashes
+    // "2018-10-04 17:00:00" ---> "10/04 17:00"
     const trimedDepartureTime = this.state.selectedItem.offer.departure_time.substring(5, this.state.selectedItem.offer.departure_time.length - 3).replace(/-/g, '/');
 
     return (
@@ -688,7 +745,7 @@ class DetailScreen extends React.Component {
 
           </View>
 
-          {this.renderReserveOrCancelButton()}
+          {this.renderActionButton()}
 
         </ScrollView>
       </View>
