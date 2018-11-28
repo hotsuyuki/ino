@@ -497,6 +497,16 @@ class OfferScreen extends React.Component {
     return (
       <View>
         {this.props.ownOffers.map((item, index) => {
+          // Set the disappearing time to 1 hour later from the departure time
+          const disappearingTime = new Date(item.offer.departure_time.replace(/-/g, '/'));
+          disappearingTime.setHours(disappearingTime.getHours() + 1);
+
+          // If the disappearing time is passed,
+          if (disappearingTime < new Date()) {
+            // render nothing
+            return <View />;
+          }
+
           // Trim year(frist 5 characters) and second(last 3 characters),
           // and replace hyphens by slashes
           // "2018-10-04 17:00:00" ---> "10/04 17:00"

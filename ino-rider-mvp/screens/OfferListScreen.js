@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import React from 'react';
 import {
-  StyleSheet, Text, View, ScrollView, RefreshControl, Alert, Image,
+  StyleSheet, Text, View, ScrollView, RefreshControl, Alert, 
   LayoutAnimation, UIManager, Platform,
 } from 'react-native';
 import { ListItem, Icon, Button } from 'react-native-elements';
@@ -192,6 +192,16 @@ class OfferListScreen extends React.Component {
     return (
       <View>
         {this.props.ownReservations.map((item, index) => {
+          // Set the disappearing time to 12 hour later from the departure time
+          const disappearingTime = new Date(item.offer.departure_time.replace(/-/g, '/'));
+          disappearingTime.setHours(disappearingTime.getHours() + 12);
+
+          // If the disappearing time is passed,
+          if (disappearingTime < new Date()) {
+            // render nothing
+            return <View />;
+          }
+
           const isReservation = true;
 
           // Set the estimated arrival time to 1 hour later from the departure time

@@ -608,11 +608,17 @@ class DetailScreen extends React.Component {
       const estimatedArrivalTime = new Date(this.state.selectedItem.offer.departure_time.replace(/-/g, '/'));
       estimatedArrivalTime.setHours(estimatedArrivalTime.getHours() + 1);
 
+      // Set the disappearing time to 12 hour later from the departure time
+      const disappearingTime = new Date(item.offer.departure_time.replace(/-/g, '/'));
+      disappearingTime.setHours(disappearingTime.getHours() + 12);
+
       // If the carpool is arrived,
       if (estimatedArrivalTime < new Date()) {
         return (
           <View style={{ padding: 20 }}>
             <Button
+              // If the disappearing time is passed, inactivate the button (just in case)
+              disabled={disappearingTime < new Date()}
               //icon={<Image source={{ uri: '../assets/kyash_icon.png' }} />}
               title="Kyashで募金する"
               color="skyblue"
