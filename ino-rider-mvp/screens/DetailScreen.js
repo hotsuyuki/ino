@@ -609,7 +609,7 @@ class DetailScreen extends React.Component {
       estimatedArrivalTime.setHours(estimatedArrivalTime.getHours() + 1);
 
       // Set the disappearing time to 12 hour later from the departure time
-      const disappearingTime = new Date(item.offer.departure_time.replace(/-/g, '/'));
+      const disappearingTime = new Date(this.state.selectedItem.offer.departure_time.replace(/-/g, '/'));
       disappearingTime.setHours(disappearingTime.getHours() + 12);
 
       // If the carpool is arrived,
