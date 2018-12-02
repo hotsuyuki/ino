@@ -4,7 +4,7 @@ import {
   StyleSheet, Text, View, ScrollView, RefreshControl, Picker, DatePickerIOS, Alert,
   LayoutAnimation, UIManager, Platform, Linking,
 } from 'react-native';
-import { Button, ButtonGroup, ListItem, Icon } from 'react-native-elements';
+import { Button, ButtonGroup, ListItem, Icon, FormValidationMessage } from 'react-native-elements';
 import { AppLoading, Permissions, Notifications } from 'expo';
 import { connect } from 'react-redux';
 
@@ -24,6 +24,12 @@ const YAMAYA = 'やまや';
 const RESERVED_OFFER = 'reserved_offer';
 const CANCELED_RESERVATION = 'canceled_reservation';
 const RESERVATION_DEADLINE = 'reservation_deadline';
+
+// for form validation
+const formValidation = {
+  isDepartureTimeValid: null,
+};
+
 
 const INITIAL_STATE = {
   // for <ScrollView />
@@ -307,6 +313,25 @@ class OfferScreen extends React.Component {
   }
 
 
+  renderDepartureTimeValid() {
+    // Set the reservation deadline time to 1 hour earlier from the departure time
+    const reservationDeadline = new Date(this.state.chosenDepartureTime.toLocaleString('ja'));
+    reservationDeadline.setHours(reservationDeadline.getHours() - 1);
+
+    if (this.state.offerDetail.departure_time !== INITIAL_STATE.offerDetail.departure_time) {
+      if (new Date() < reservationDeadline) {
+        formValidation.isDepartureTimeValid = true;
+        return;
+      }
+
+      formValidation.isDepartureTimeValid = false;
+      return (
+        <FormValidationMessage>1時間後以降の時刻を指定して下さい</FormValidationMessage>
+      );
+    }
+  }
+
+
   renderDepartureTimePicker() {
     if (this.state.departureTimePickerVisible) {
       return (
@@ -476,7 +501,8 @@ class OfferScreen extends React.Component {
     let isCompleted = false;
     // If both `departure_time` and `rider_capacity` are NOT default value,
     if (this.state.offerDetail.departure_time !== INITIAL_STATE.offerDetail.departure_time &&
-        this.state.offerDetail.rider_capacity !== INITIAL_STATE.offerDetail.rider_capacity) {
+        this.state.offerDetail.rider_capacity !== INITIAL_STATE.offerDetail.rider_capacity &&
+        formValidation.isDepartureTimeValid) {
       isCompleted = true;
     }
 
@@ -677,7 +703,6 @@ class OfferScreen extends React.Component {
             selectedTextStyle={{ color: 'white' }}
           />
 
-          // Departure time picker
           <View style={{ flexDirection: 'row' }}>
             // Departure time picker
             <View style={{ flex: 1 }}>
@@ -748,6 +773,8 @@ class OfferScreen extends React.Component {
               />
             </View>
           </View>
+
+          {this.renderDepartureTimeValid()}
 
           {this.renderDepartureTimePicker()}
 
