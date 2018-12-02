@@ -660,9 +660,13 @@ class DetailScreen extends React.Component {
         );
       }
 
+      const departureTime = new Date(this.state.selectedItem.offer.departure_time.replace(/-/g, '/'));
+
       return (
         <View style={{ padding: 20 }}>
           <Button
+            // If the departure time is passed, inactivate the button
+            disabled={departureTime < new Date()}
             title="予約をキャンセル"
             color="white"
             buttonStyle={{ backgroundColor: 'red' }}
