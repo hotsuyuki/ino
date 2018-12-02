@@ -391,28 +391,17 @@ class EditProfileScreen extends React.Component {
       }
     });
 
-    const doneButtonTitle = '完了';
-
-    // If `this.state.editedDriverInfo` is not default and all forms are valid,
-    if (!isDefault && isValid) {
-      return (
-        // Activate the offer button
-        <View style={{ padding: 20 }}>
-          <Button
-            title={doneButtonTitle}
-            color="white"
-            buttonStyle={{ backgroundColor: 'rgb(0,122,255)' }}
-            onPress={this.onDoneButtonPress}
-          />
-        </View>
-      );
-    }
-
     return (
+      // Activate the offer button
       <View style={{ padding: 20 }}>
         <Button
-          title={doneButtonTitle}
+          // If `this.state.editedRiderInfo` is default or one of the forms is invalid,
+          // inactivate the button
+          disabled={isDefault || !isValid}
+          title="完了"
           color="white"
+          buttonStyle={{ backgroundColor: 'rgb(0,122,255)' }}
+          onPress={this.onDoneButtonPress}
         />
       </View>
     );

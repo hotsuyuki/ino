@@ -480,32 +480,23 @@ class OfferScreen extends React.Component {
       isCompleted = true;
     }
 
-    const offerButtonTitle = '相乗りをオファー';
-
-    // If all pickers are closed and `this.state.offerDetail` is completed,
-    if (!this.state.startPickerVisible &&
-        !this.state.goalPickerVisible &&
-        !this.state.departureTimePickerVisible &&
-        !this.state.riderCapacityPickerVisible &&
-        isCompleted) {
-      return (
-        // Activate the offer button
-        <View style={{ padding: 20 }}>
-          <Button
-            title={offerButtonTitle}
-            color="white"
-            buttonStyle={{ backgroundColor: 'rgb(0,122,255)' }}
-            onPress={this.onOfferButtonPress}
-          />
-        </View>
-      );
-    }
-
     return (
+      // Activate the offer button
       <View style={{ padding: 20 }}>
         <Button
-          title={offerButtonTitle}
+          // If one of all pickers is opend or `this.state.offerDetail` is not completed,
+          // inactivate the button
+          disabled={
+            this.state.startPickerVisible ||
+            this.state.goalPickerVisible ||
+            this.state.departureTimePickerVisible ||
+            this.state.riderCapacityPickerVisible ||
+            !isCompleted
+          }
+          title="相乗りをオファー"
           color="white"
+          buttonStyle={{ backgroundColor: 'rgb(0,122,255)' }}
+          onPress={this.onOfferButtonPress}
         />
       </View>
     );
