@@ -2,7 +2,7 @@ import _ from 'lodash';
 import React from 'react';
 import {
   StyleSheet, Text, View, ScrollView, RefreshControl, Picker, DatePickerIOS, Alert,
-  LayoutAnimation, UIManager, Platform,
+  LayoutAnimation, UIManager, Platform, Linking,
 } from 'react-native';
 import { Button, ButtonGroup, ListItem, Icon } from 'react-native-elements';
 import { AppLoading, Permissions, Notifications } from 'expo';
@@ -16,18 +16,20 @@ const GEKO = 1;
 
 // for TOKO
 const VDRUG = 'Vドラッグ';
-const SHIZEN3PARK = '自然3号館駐車場';
-const SHIZEN5PARKMAE_SHIZEN3PARK = '自然5号館上交差点 経由 自然3号館駐車場';
-const SHIZEN5PARKMAE = '自然5号館上交差点';
-const SHIZEN5PARKMAE_JINSYAPARK = '自然5号館上交差点 経由 人社駐車場';
-const JINSYAPARK = '人社駐車場';
+const HONBUTOMAE = '金沢大学本部棟前';
+//const SHIZEN3PARK = '自然3号館駐車場';
+//const SHIZEN5PARKMAE_SHIZEN3PARK = '自然5号館上交差点 経由 自然3号館駐車場';
+//const SHIZEN5PARKMAE = '自然5号館上交差点';
+//const SHIZEN5PARKMAE_JINSYAPARK = '自然5号館上交差点 経由 人社駐車場';
+//const JINSYAPARK = '人社駐車場';
 
 // for GEKO
-const SHIZEN3ENTER = '自然3号館入口';
-const SHIZEN3ENTER_SHIZEN5PARKMAE = '自然3号館入口 経由 自然5号館上交差点';
+//const SHIZEN3ENTER = '自然3号館入口';
+//const SHIZEN3ENTER_SHIZEN5PARKMAE = '自然3号館入口 経由 自然5号館上交差点';
 //const SHIZEN5PARKMAE = '自然5号館上交差点';
-const KYOIKUCENTERENTER_SHIZEN5PARKMAE = '教育支援ｾﾝﾀｰ入口 経由 自然5号館上交差点';
-const KYOIKUCENTERENTER = '教育支援ｾﾝﾀｰ入口';
+//const KYOIKUCENTERENTER_SHIZEN5PARKMAE = '教育支援ｾﾝﾀｰ入口 経由 自然5号館上交差点';
+//const KYOIKUCENTERENTER = '教育支援ｾﾝﾀｰ入口';
+//const HONBUTOMAE = '金沢大学本部棟前';
 const YAMAYA = 'やまや';
 
 const INITIAL_STATE = {
@@ -47,7 +49,7 @@ const INITIAL_STATE = {
   // for driver's own offers
   offerDetail: {
     start: VDRUG,
-    goal: SHIZEN5PARKMAE_SHIZEN3PARK,
+    goal: HONBUTOMAE,
     departure_time: '-/-  --:--',
     rider_capacity: '---',
   },
@@ -226,6 +228,43 @@ class OfferScreen extends React.Component {
   }
 
 
+  renderMapButton(place) {
+    let mapUrl;
+
+    switch (place) {
+      case HONBUTOMAE:
+        mapUrl = 'https://goo.gl/maps/xJReWgcc3au';
+        break;
+
+      default:
+        // render nothing
+        return <View />;
+    }
+
+    return (
+      <Button
+        title="地図"
+        color="rgb(0,122,255)"
+        buttonStyle={{ backgroundColor: 'transparent' /*, borderRadius: 30*/ }}
+        onPress={() => {
+          Alert.alert(
+            '',
+            'Google mapで場所を確認しますか？',
+            [
+              { text: 'キャンセル' },
+              {
+                text: 'はい',
+                onPress: () => Linking.openURL(mapUrl)
+              },
+              { cancelable: false }
+            ]
+          );
+        }}
+      />
+    );
+  }
+
+
   renderStartPicker() {
     if (this.state.startPickerVisible) {
       if (this.state.togekoFlag === TOKO) {
@@ -253,11 +292,7 @@ class OfferScreen extends React.Component {
               },
             })}
           >
-            <Picker.Item label={`${SHIZEN3ENTER}`} value={`${SHIZEN3ENTER}`} />
-            <Picker.Item label={`${SHIZEN3ENTER_SHIZEN5PARKMAE}`} value={`${SHIZEN3ENTER_SHIZEN5PARKMAE}`} />
-            <Picker.Item label={`${SHIZEN5PARKMAE}`} value={`${SHIZEN5PARKMAE}`} />
-            <Picker.Item label={`${KYOIKUCENTERENTER_SHIZEN5PARKMAE}`} value={`${KYOIKUCENTERENTER_SHIZEN5PARKMAE}`} />
-            <Picker.Item label={`${KYOIKUCENTERENTER}`} value={`${KYOIKUCENTERENTER}`} />
+            <Picker.Item label={`${HONBUTOMAE}`} value={`${HONBUTOMAE}`} />
           </Picker>
         );
       }
@@ -278,11 +313,7 @@ class OfferScreen extends React.Component {
               },
             })}
           >
-            <Picker.Item label={`${SHIZEN3PARK}`} value={`${SHIZEN3PARK}`} />
-            <Picker.Item label={`${SHIZEN5PARKMAE_SHIZEN3PARK}`} value={`${SHIZEN5PARKMAE_SHIZEN3PARK}`} />
-            <Picker.Item label={`${SHIZEN5PARKMAE}`} value={`${SHIZEN5PARKMAE}`} />
-            <Picker.Item label={`${SHIZEN5PARKMAE_JINSYAPARK}`} value={`${SHIZEN5PARKMAE_JINSYAPARK}`} />
-            <Picker.Item label={`${JINSYAPARK}`} value={`${JINSYAPARK}`} />
+            <Picker.Item label={`${HONBUTOMAE}`} value={`${HONBUTOMAE}`} />
           </Picker>
         );
       } else if (this.state.togekoFlag === GEKO) {
@@ -504,7 +535,7 @@ class OfferScreen extends React.Component {
           // If the disappearing time is passed,
           if (disappearingTime < new Date()) {
             // render nothing
-            return <View />;
+            return <View key={index} />;
           }
 
           // Trim year(frist 5 characters) and second(last 3 characters),
@@ -578,42 +609,18 @@ class OfferScreen extends React.Component {
           }
         >
 
-          <ButtonGroup
-            buttons={[
-              '登校',
-              '下校'
-            ]}
-            selectedIndex={this.state.togekoFlag}
-            onPress={(selectedIndex) =>
-              this.setState({
-                togekoFlag: selectedIndex,
-                offerDetail: {
-                  ...this.state.offerDetail,
-                  start: selectedIndex===TOKO ? VDRUG : SHIZEN3ENTER_SHIZEN5PARKMAE,
-                  goal: selectedIndex===TOKO ? SHIZEN5PARKMAE_SHIZEN3PARK : YAMAYA,
-                }
-              })
-            }
-          />
-
           // Start picker
           <ListItem
             title={
-              <View style={{ flexDirection: 'row' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <View style={{ paddingLeft: 3, paddingRight: 3, justifyContent: 'center' }} >
                   <Icon name='map-marker' type='font-awesome' color='gray' size={15} />
                 </View>
                 <Text style={styles.grayTextStyle}>集合：</Text>
+                <Text numberOfLines={1}>{this.state.offerDetail.start}</Text>
+                {this.renderMapButton(this.state.offerDetail.start)}
               </View>
             }
-            subtitle={
-              <View style={styles.listItemStyle}>
-                <Text numberOfLines={1}>
-                  {this.state.offerDetail.start}
-                </Text>
-              </View>
-            }
-            //rightIcon={{ name: !this.state.startPickerVisible ? 'keyboard-arrow-down' : 'keyboard-arrow-up' }}
             rightIcon={
               !this.state.startPickerVisible ?
               { name: 'keyboard-arrow-down' } :
@@ -632,19 +639,13 @@ class OfferScreen extends React.Component {
           // Goal picker
           <ListItem
             title={
-              <View style={{ flexDirection: 'row' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <Icon name='flag-checkered' type='font-awesome' color='gray' size={15} />
                 <Text style={styles.grayTextStyle}>到着：</Text>
+                <Text numberOfLines={1}>{this.state.offerDetail.goal}</Text>
+                {this.renderMapButton(this.state.offerDetail.goal)}
               </View>
             }
-            subtitle={
-              <View style={styles.listItemStyle}>
-                <Text numberOfLines={1}>
-                  {this.state.offerDetail.goal}
-                </Text>
-              </View>
-            }
-            //rightIcon={{ name: !this.state.goalPickerVisible ? 'keyboard-arrow-down' : 'keyboard-arrow-up' }}
             rightIcon={
               !this.state.goalPickerVisible ?
               { name: 'keyboard-arrow-down' } :
@@ -660,6 +661,24 @@ class OfferScreen extends React.Component {
 
           {this.renderGoalPicker()}
 
+          <ButtonGroup
+            buttons={['登校', '下校']}
+            selectedIndex={this.state.togekoFlag}
+            onPress={(selectedIndex) =>
+              this.setState({
+                togekoFlag: selectedIndex,
+                offerDetail: {
+                  ...this.state.offerDetail,
+                  start: selectedIndex === TOKO ? VDRUG : HONBUTOMAE,
+                  goal: selectedIndex === TOKO ? HONBUTOMAE : YAMAYA,
+                }
+              })
+            }
+            selectedButtonStyle={{ backgroundColor: 'rgb(0,122,255)' }}
+            selectedTextStyle={{ color: 'white' }}
+          />
+
+          // Departure time picker
           <View style={{ flexDirection: 'row' }}>
             // Departure time picker
             <View style={{ flex: 1 }}>
@@ -682,7 +701,6 @@ class OfferScreen extends React.Component {
                   </View>
 
                 }
-                //rightIcon={{ name: !this.state.departureTimePickerVisible ? 'keyboard-arrow-down' : 'keyboard-arrow-up' }}
                 rightIcon={
                   !this.state.departureTimePickerVisible ?
                   { name: 'keyboard-arrow-down' } :
@@ -717,7 +735,6 @@ class OfferScreen extends React.Component {
                     </Text>
                   </View>
                 }
-                //rightIcon={{ name: !this.state.riderCapacityPickerVisible ? 'keyboard-arrow-down' : 'keyboard-arrow-up' }}
                 rightIcon={
                   !this.state.riderCapacityPickerVisible ?
                   { name: 'keyboard-arrow-down' } :
