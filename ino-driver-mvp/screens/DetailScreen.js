@@ -10,6 +10,9 @@ import { connect } from 'react-redux';
 import * as actions from '../actions';
 
 
+// for map of start or goal place
+const HONBUTOMAE = '金沢大学本部棟前';
+
 const INITIAL_STATE = {
   // for <ScrollView />
   isRefreshing: false,
@@ -242,6 +245,43 @@ class DetailScreen extends React.Component {
   }
 
 
+  renderMapButton(place) {
+    let mapUrl;
+
+    switch (place) {
+      case HONBUTOMAE:
+        mapUrl = 'https://goo.gl/maps/xJReWgcc3au';
+        break;
+
+      default:
+        // render nothing
+        return <View />;
+    }
+
+    return (
+      <Button
+        title="地図"
+        color="rgb(0,122,255)"
+        buttonStyle={{ backgroundColor: 'transparent' }}
+        onPress={() => {
+          Alert.alert(
+            '',
+            `Google mapで「${place}」の場所を確認しますか？`,
+            [
+              { text: 'キャンセル' },
+              {
+                text: 'はい',
+                onPress: () => Linking.openURL(mapUrl)
+              },
+              { cancelable: false }
+            ]
+          );
+        }}
+      />
+    );
+  }
+
+
   renderReservedRiders() {
     if (this.state.selectedItem.reserved_riders.length === 0) {
       return (
@@ -397,15 +437,17 @@ class DetailScreen extends React.Component {
             <Text style={styles.grayTextStyle}>情報</Text>
 
             <View style={{ paddingLeft: 20 }}>
-              <View style={{ flexDirection: 'row' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <View style={{ paddingLeft: 3, paddingRight: 3, justifyContent: 'center' }} >
                   <Icon name='map-marker' type='font-awesome' size={15} />
                 </View>
                 <Text style={styles.infoTextStyle}>{`集合：${this.state.selectedItem.offer.start}`}</Text>
+                {this.renderMapButton(this.state.selectedItem.offer.start)}
               </View>
-              <View style={{ flexDirection: 'row' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <Icon name='flag-checkered' type='font-awesome' size={15} />
                 <Text style={styles.infoTextStyle}>{`到着：${this.state.selectedItem.offer.goal}`}</Text>
+                {this.renderMapButton(this.state.selectedItem.offer.goal)}
               </View>
               <View style={{ flexDirection: 'row' }}>
                 <Icon name='timer' /*type='font-awesome'*/ size={15} />

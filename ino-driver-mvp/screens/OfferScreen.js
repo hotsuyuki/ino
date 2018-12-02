@@ -11,6 +11,11 @@ import { connect } from 'react-redux';
 import * as actions from '../actions';
 
 
+// for push notifications handler
+const RESERVED_OFFER = 'reserved_offer';
+const CANCELED_RESERVATION = 'canceled_reservation';
+const RESERVATION_DEADLINE = 'reservation_deadline';
+
 // for TOKO
 const TOKO = 0;
 const VDRUG = 'Vドラッグ';
@@ -18,12 +23,8 @@ const HONBUTOMAE = '金沢大学本部棟前';
 
 // for GEKO
 const GEKO = 1;
+//const HONBUTOMAE = '金沢大学本部棟前';
 const YAMAYA = 'やまや';
-
-// for push notifications handler
-const RESERVED_OFFER = 'reserved_offer';
-const CANCELED_RESERVATION = 'canceled_reservation';
-const RESERVATION_DEADLINE = 'reservation_deadline';
 
 // for form validation
 const formValidation = {
@@ -223,11 +224,11 @@ class OfferScreen extends React.Component {
       <Button
         title="地図"
         color="rgb(0,122,255)"
-        buttonStyle={{ backgroundColor: 'transparent' /*, borderRadius: 30*/ }}
+        buttonStyle={{ backgroundColor: 'transparent' }}
         onPress={() => {
           Alert.alert(
             '',
-            'Google mapで場所を確認しますか？',
+            `Google mapで「${place}」の場所を確認しますか？`,
             [
               { text: 'キャンセル' },
               {
