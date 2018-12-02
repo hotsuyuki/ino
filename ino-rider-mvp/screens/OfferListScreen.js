@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import React from 'react';
 import {
-  StyleSheet, Text, View, ScrollView, RefreshControl, Alert, 
+  StyleSheet, Text, View, ScrollView, RefreshControl, Alert,
   LayoutAnimation, UIManager, Platform,
 } from 'react-native';
 import { ListItem, Icon, Button } from 'react-native-elements';
@@ -10,6 +10,10 @@ import { connect } from 'react-redux';
 
 import * as actions from '../actions';
 
+
+// for push notifications handler
+const CANCELED_OFFER = 'canceled_offer';
+const RESERVATION_DEADLINE = 'reservation_deadline';
 
 const INITIAL_STATE = {
   // for <ScrollView />
@@ -125,33 +129,67 @@ class OfferListScreen extends React.Component {
     Notifications.setBadgeNumberAsync(0);
 
     // for debug
-    console.log(`JSON.stringify(notification) = ${JSON.stringify(notification)}`);
+    //console.log(`JSON.stringify(notification) = ${JSON.stringify(notification)}`);
 
-    // When the driver canceled the offer which already reserved,
-    if (notification.data.type === 'canceled_offer') {
-      // If foregrounded by selecting the push notification,
-      if (notification.origin === 'selected') {
-        // Rerender the screen
-        this.props.fetchOwnReservations();
-        this.props.fetchAllOffers();
-      // If received the push notification while the app is already foreground, (iOS only)
-      } else if (notification.origin === 'received' && Platform.OS === 'ios') {
-        Alert.alert(
-          '',
-          `${notification.data.message_title}`,
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                // Rerender the screen
-                this.props.fetchOwnReservations();
-                this.props.fetchAllOffers();
-              },
-            }
-          ],
-          { cancelable: false }
-        );
-      }
+    switch (notification.data.type) {
+      // When the driver canceled the offer which already reserved,
+      case CANCELED_OFFER:
+        // If foregrounded by selecting the push notification,
+        if (notification.origin === 'selected') {
+          // Rerender the screen
+          this.props.fetchOwnReservations();
+          this.props.fetchAllOffers();
+        // If received the push notification while the app is already foreground, (iOS only)
+        } else if (notification.origin === 'received' && Platform.OS === 'ios') {
+          Alert.alert(
+            '',
+            `${notification.data.message_title}`,
+            [
+              {
+                text: 'OK',
+                onPress: () => {
+                  // Rerender the screen
+                  this.props.fetchOwnReservations();
+                  this.props.fetchAllOffers();
+                },
+              }
+            ],
+            { cancelable: false }
+          );
+        }
+        break;
+
+      // When the reservation deadline has come,
+      case RESERVATION_DEADLINE:
+        // If foregrounded by selecting the push notification,
+        if (notification.origin === 'selected') {
+          this.props.navigation.navigate('detail', {
+            riderId: this.props.riderInfo.id,
+            selectedOfferId: notification.data.offer_id,
+            isReservation: true
+          });
+        // If received the push notification while the app is already foreground, (iOS only)
+        } else if (notification.origin === 'received' && Platform.OS === 'ios') {
+          Alert.alert(
+            '',
+            `${notification.data.message_title}`,
+            [
+              {
+                text: 'OK',
+                onPress: () => this.props.navigation.navigate('detail', {
+                  riderId: this.props.riderInfo.id,
+                  selectedOfferId: notification.data.offer_id,
+                  isReservation: true
+                }),
+              }
+            ],
+            { cancelable: false }
+          );
+        }
+        break;
+
+      default:
+        break;
     }
   };
 
@@ -181,6 +219,7 @@ class OfferListScreen extends React.Component {
     // for debug
     //console.log(`this.props.ownReservations.length = ${this.props.ownReservations.length}`);
 
+    // TODO: Search whole departure time in the array whether it's passed the disappearing time or not
     if (this.props.ownReservations.length === 0) {
       return (
         <View style={{ padding: 10 }}>
@@ -289,6 +328,7 @@ class OfferListScreen extends React.Component {
     // for debug
     //console.log(`this.props.allOffers.length = ${this.props.allOffers.length}`);
 
+    // TODO: Search whole departure time in the array whether it's passed the deadline time or not
     if (this.props.allOffers.length === 0) {
       return (
         <View style={{ padding: 10 }}>
@@ -308,7 +348,7 @@ class OfferListScreen extends React.Component {
             }
           });
 
-          // Set the reservation deadline time to 1 hour earlyer from the departure time
+          // Set the reservation deadline time to 1 hour earlier from the departure time
           const reservationDeadline = new Date(item.offer.departure_time.replace(/-/g, '/'));
           reservationDeadline.setHours(reservationDeadline.getHours() - 1);
 

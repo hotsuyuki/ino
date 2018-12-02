@@ -11,26 +11,19 @@ import { connect } from 'react-redux';
 import * as actions from '../actions';
 
 
-const TOKO = 0;
-const GEKO = 1;
-
 // for TOKO
+const TOKO = 0;
 const VDRUG = 'Vドラッグ';
 const HONBUTOMAE = '金沢大学本部棟前';
-//const SHIZEN3PARK = '自然3号館駐車場';
-//const SHIZEN5PARKMAE_SHIZEN3PARK = '自然5号館上交差点 経由 自然3号館駐車場';
-//const SHIZEN5PARKMAE = '自然5号館上交差点';
-//const SHIZEN5PARKMAE_JINSYAPARK = '自然5号館上交差点 経由 人社駐車場';
-//const JINSYAPARK = '人社駐車場';
 
 // for GEKO
-//const SHIZEN3ENTER = '自然3号館入口';
-//const SHIZEN3ENTER_SHIZEN5PARKMAE = '自然3号館入口 経由 自然5号館上交差点';
-//const SHIZEN5PARKMAE = '自然5号館上交差点';
-//const KYOIKUCENTERENTER_SHIZEN5PARKMAE = '教育支援ｾﾝﾀｰ入口 経由 自然5号館上交差点';
-//const KYOIKUCENTERENTER = '教育支援ｾﾝﾀｰ入口';
-//const HONBUTOMAE = '金沢大学本部棟前';
+const GEKO = 1;
 const YAMAYA = 'やまや';
+
+// for push notifications handler
+const RESERVED_OFFER = 'reserved_offer';
+const CANCELED_RESERVATION = 'canceled_reservation';
+const RESERVATION_DEADLINE = 'reservation_deadline';
 
 const INITIAL_STATE = {
   // for <ScrollView />
@@ -162,59 +155,38 @@ class OfferScreen extends React.Component {
     Notifications.setBadgeNumberAsync(0);
 
     // for debug
-    console.log(`JSON.stringify(notification) = ${JSON.stringify(notification)}`);
+    //console.log(`JSON.stringify(notification) = ${JSON.stringify(notification)}`);
 
-    // When someone reserved my offer,
-    if (notification.data.type === 'reserved_offer') {
-      // If foregrounded by selecting the push notification,
-      if (notification.origin === 'selected') {
-        this.props.navigation.navigate('detail', {
-          selectedOfferId: notification.data.offer_id,
-        });
-      // If received the push notification while the app is already foreground, (iOS only)
-      } else if (notification.origin === 'received' && Platform.OS === 'ios') {
-        Alert.alert(
-          '',
-          `${notification.data.message_title}`,
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                this.props.navigation.navigate('detail', {
+    switch (notification.data.type) {
+      // When someone reserved my offer,
+      // When some reserved riders canceled thier reservation,
+      // When the reservation deadline has come,
+      case RESERVED_OFFER || CANCELED_RESERVATION || RESERVATION_DEADLINE:
+        // If foregrounded by selecting the push notification,
+        if (notification.origin === 'selected') {
+          this.props.navigation.navigate('detail', {
+            selectedOfferId: notification.data.offer_id,
+          });
+        // If received the push notification while the app is already foreground, (iOS only)
+        } else if (notification.origin === 'received' && Platform.OS === 'ios') {
+          Alert.alert(
+            '',
+            `${notification.data.message_title}`,
+            [
+              {
+                text: 'OK',
+                onPress: () => this.props.navigation.navigate('detail', {
                   selectedOfferId: notification.data.offer_id,
-                });
-              },
-            }
-          ],
-          { cancelable: false }
-        );
-      }
+                }),
+              }
+            ],
+            { cancelable: false }
+          );
+        }
+        break;
 
-    // When some reserved riders canceled thier reservation,
-    } else if (notification.data.type === 'canceled_reservation') {
-      // If foregrounded by selecting the push notification,
-      if (notification.origin === 'selected') {
-        this.props.navigation.navigate('detail', {
-          selectedOfferId: notification.data.offer_id,
-        });
-      // If received the push notification while the app is already foreground, (iOS only)
-      } else if (notification.origin === 'received' && Platform.OS === 'ios') {
-        Alert.alert(
-          '',
-          `${notification.data.message_title}`,
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                this.props.navigation.navigate('detail', {
-                  selectedOfferId: notification.data.offer_id,
-                });
-              },
-            }
-          ],
-          { cancelable: false }
-        );
-      }
+      default:
+        break;
     }
   };
 
@@ -344,12 +316,13 @@ class OfferScreen extends React.Component {
           date={this.state.chosenDepartureTime}
           onDateChange={(dateTime) => {
             const departureTimeText = dateTime.toLocaleString('ja');
+
             this.setState({
               offerDetail: {
                 ...this.state.offerDetail,
                 // Trim year(first 5 characters) and second(last 3 characters)
-                // and replace hyphens by slashes
-                departure_time: departureTimeText.substring(5, departureTimeText.length - 3).replace(/-/g, '/')
+                // "2018/10/04 17:00:00" ---> "10/04 17:00"
+                departure_time: departureTimeText.substring(5, departureTimeText.length - 3)
               },
               chosenDepartureTime: dateTime,
             });
@@ -396,6 +369,7 @@ class OfferScreen extends React.Component {
           text: 'はい',
           onPress: async () => {
             // Replace srashes by hyphens
+            // "2018/10/04 17:00:00" ---> "2018-10-04 17:00:00"
             const replacedDepartureTime = this.state.chosenDepartureTime.toLocaleString('ja').replace(/\//g, '-');
 
             // Trim "人" at the last character
@@ -415,17 +389,50 @@ class OfferScreen extends React.Component {
 
             // POST the new offer
             try {
-              let response = await fetch('https://inori.work/offers', {
+              let offerResponse = await fetch('https://inori.work/offers', {
                 method: 'POST',
                 headers: {},
                 body: JSON.stringify(offerDetail),
               });
 
-              //let responseJson = await response.json();
+              let offerResponseJson = await offerResponse.json();
+
+              // Set the schedule local notification message
+              const messageTitle = 'オファーした出発時刻の1時間前です。';
+              const messageBody = '予約受付を締め切りました。予約したライダーさんがいるか最終確認しましょう。';
+              const localNotification = {
+                title: messageTitle,
+                body: messageBody,
+                data: {
+                  type: RESERVATION_DEADLINE,
+                  offer_id: offerResponseJson.id,
+                  message_title: messageTitle,
+                  message_body: messageBody
+                },
+                ios: {
+                  sound: true
+                }
+              };
+
+              // Set the schedule time to 1 hour earlier from the departure time
+              // (same as reservation deadline)
+              const schedulingTime = new Date(this.state.chosenDepartureTime.toLocaleString('ja'));
+              schedulingTime.setHours(schedulingTime.getHours() - 1);
+
+              const schedulingOptions = {
+                time: schedulingTime
+              };
+
+
+              // Set the schedule local notification
+              // TODO: Add `localNotificationId` into the corresponding offer in `this.props.ownOffers`
+              // TODO: to do `Notifications.cancelScheduledNotificationAsync(localNotificationId)`
+              // TODO: when the offer is canceled
+              let localNotificationId = Notifications.scheduleLocalNotificationAsync(localNotification, schedulingOptions);
 
               // If failed to POST a new offer (create a new offer),
-              if (parseInt(response.status / 100, 10) === 4 ||
-                  parseInt(response.status / 100, 10) === 5) {
+              if (parseInt(offerResponse.status / 100, 10) === 4 ||
+                  parseInt(offerResponse.status / 100, 10) === 5) {
                 console.log('Create an offer failed...');
 
                 Alert.alert(
@@ -517,6 +524,7 @@ class OfferScreen extends React.Component {
     // for debug
     console.log(`this.props.ownOffers.length = ${this.props.ownOffers.length}`);
 
+    // TODO: Search whole departure time in the array whether it's passed the disappearing time or not
     if (this.props.ownOffers.length === 0) {
       return (
         <View style={{ padding: 10 }}>

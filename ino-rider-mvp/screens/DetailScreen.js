@@ -10,6 +10,9 @@ import { connect } from 'react-redux';
 import * as actions from '../actions';
 
 
+// for push notifications handler
+const RESERVATION_DEADLINE = 'reservation_deadline';
+
 const INITIAL_STATE = {
   // for <ScrollView />
   isRefreshing: false,
@@ -340,21 +343,49 @@ class DetailScreen extends React.Component {
 
             // POST new reservation
             try {
-              let response = await fetch('https://inori.work/reservations', {
+              let reservationResponse = await fetch('https://inori.work/reservations', {
                 method: 'POST',
                 headers: {},
                 body: JSON.stringify(reserveOfferBody),
               });
 
-              // for debug
-              console.log(`JSON.stringify(reserveOfferBody) = ${JSON.stringify(reserveOfferBody)}`);
-              console.log(`response.status = ${response.status}`);
-              let responseJson = await response.json();
-              console.log(`JSON.stringify(responseJson) = ${JSON.stringify(responseJson)}`);
+              //let reservationResponseJson = await reservationResponse.json();
+
+              // Set the schedule local notification message
+              const messageTitle = '予約した出発時刻の1時間前です。';
+              const messageBody = '予約受付を締め切りました。他にも予約したライダーさんがいるか最終確認しましょう。';
+              const localNotification = {
+                title: messageTitle,
+                body: messageBody,
+                data: {
+                  type: RESERVATION_DEADLINE,
+                  offer_id: selectedOfferId,
+                  message_title: messageTitle,
+                  message_body: messageBody
+                },
+                ios: {
+                  sound: true
+                }
+              };
+
+              // Set the schedule time to 1 hour earlier from the departure time
+              // (same as reservation deadline)
+              const schedulingTime = new Date(this.state.selectedItem.offer.departure_time.replace(/-/g, '/'));
+              schedulingTime.setHours(schedulingTime.getHours() - 1);
+
+              const schedulingOptions = {
+                time: schedulingTime
+              };
+
+              // Set the schedule local notification
+              // TODO: Add `localNotificationId` into the corresponding offer in `this.props.ownReservations`
+              // TODO: to do `Notifications.cancelScheduledNotificationAsync(localNotificationId)`
+              // TODO: when the offer is canceled
+              let localNotificationId = Notifications.scheduleLocalNotificationAsync(localNotification, schedulingOptions);
 
               // If failed to DELETE the selected offer,
-              if (parseInt(response.status / 100, 10) === 4 ||
-                  parseInt(response.status / 100, 10) === 5) {
+              if (parseInt(reservationResponse.status / 100, 10) === 4 ||
+                  parseInt(reservationResponse.status / 100, 10) === 5) {
                 console.log('Failed to DELETE the selected offer...');
 
                 Alert.alert(
@@ -579,7 +610,7 @@ class DetailScreen extends React.Component {
     // The params passed from the previous page
     const isReservation = this.props.navigation.getParam('isReservation', 'default_value');
 
-    // Set the reservation deadline time to 1 hour earlyer from the departure time
+    // Set the reservation deadline time to 1 hour earlier from the departure time
     const reservationDeadline = new Date(this.state.selectedItem.offer.departure_time.replace(/-/g, '/'));
     reservationDeadline.setHours(reservationDeadline.getHours() - 1);
 
