@@ -392,16 +392,15 @@ class DetailScreen extends React.Component {
     );
   }
 
+
   renderActionButton() {
-    // Set the disappearing time to 1 hour later from the departure time
-    const disappearingTime = new Date(this.state.selectedItem.offer.departure_time.replace(/-/g, '/'));
-    disappearingTime.setHours(disappearingTime.getHours() + 1);
+    const departureTime = new Date(this.state.selectedItem.offer.departure_time.replace(/-/g, '/'));
 
     return (
       <View style={{ padding: 20 }}>
         <Button
-          // If the disappearing time is passed, inactivate the button (just in case)
-          disabled={disappearingTime < new Date()}
+          // If the departure time is passed, inactivate the button 
+          disabled={departureTime < new Date()}
           title="相乗りオファーをキャンセル"
           color="white"
           buttonStyle={{ backgroundColor: 'red' }}
@@ -410,6 +409,7 @@ class DetailScreen extends React.Component {
       </View>
     );
   }
+
 
   render() {
     if (this.state.selectedItem === INITIAL_STATE.selectedItem) {
