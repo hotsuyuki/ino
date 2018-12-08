@@ -635,7 +635,6 @@ class OfferScreen extends React.Component {
           }
         >
 
-          // Start picker
           <ListItem
             title={
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -662,7 +661,6 @@ class OfferScreen extends React.Component {
 
           {this.renderStartPicker()}
 
-          // Goal picker
           <ListItem
             title={
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -705,7 +703,6 @@ class OfferScreen extends React.Component {
           />
 
           <View style={{ flexDirection: 'row' }}>
-            // Departure time picker
             <View style={{ flex: 1 }}>
               <ListItem
                 title={
@@ -740,7 +737,6 @@ class OfferScreen extends React.Component {
               />
             </View>
 
-            // Rider capacity picker
             <View style={{ flex: 1, paddingLeft: 10 }}>
               <ListItem
                 title={
