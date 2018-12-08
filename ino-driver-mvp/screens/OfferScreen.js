@@ -5,6 +5,7 @@ import {
   LayoutAnimation, UIManager, Platform, Linking,
 } from 'react-native';
 import { Button, ButtonGroup, ListItem, Icon, FormValidationMessage } from 'react-native-elements';
+import DatePicker from 'react-native-datepicker';
 import { AppLoading, Permissions, Notifications } from 'expo';
 import { connect } from 'react-redux';
 
@@ -43,7 +44,7 @@ const INITIAL_STATE = {
   startPickerVisible: false,
   goalPickerVisible: false,
   departureTimePickerVisible: false,
-  chosenDepartureTime: new Date(),
+  chosenDepartureTime: new Date().toLocaleString('ja'),
   riderCapacityPickerVisible: false,
 
   // for driver's own offers
@@ -164,36 +165,33 @@ class OfferScreen extends React.Component {
     // for debug
     //console.log(`JSON.stringify(notification) = ${JSON.stringify(notification)}`);
 
-    switch (notification.data.type) {
-      // When someone reserved my offer,
-      // When some reserved riders canceled thier reservation,
-      // When the reservation deadline has come,
-      case RESERVED_OFFER || CANCELED_RESERVATION || RESERVATION_DEADLINE:
-        // If foregrounded by selecting the push notification,
-        if (notification.origin === 'selected') {
-          this.props.navigation.navigate('detail', {
-            selectedOfferId: notification.data.offer_id,
-          });
-        // If received the push notification while the app is already foreground, (iOS only)
-        } else if (notification.origin === 'received' && Platform.OS === 'ios') {
-          Alert.alert(
-            '',
-            `${notification.data.message_title}`,
-            [
-              {
-                text: 'OK',
-                onPress: () => this.props.navigation.navigate('detail', {
-                  selectedOfferId: notification.data.offer_id,
-                }),
-              }
-            ],
-            { cancelable: false }
-          );
-        }
-        break;
-
-      default:
-        break;
+    // When someone reserved my offer,
+    // When some reserved riders canceled thier reservation,
+    // When the reservation deadline has come,
+    if (notification.data.type === RESERVED_OFFER ||
+        notification.data.type === CANCELED_RESERVATION ||
+        notification.data.type === RESERVATION_DEADLINE) {
+      // If foregrounded by selecting the push notification,
+      if (notification.origin === 'selected') {
+        this.props.navigation.navigate('detail', {
+          selectedOfferId: notification.data.offer_id,
+        });
+      // If received the push notification while the app is already foreground,
+      } else if (notification.origin === 'received') {
+        Alert.alert(
+          '',
+          `${notification.data.message_title}`,
+          [
+            {
+              text: 'OK',
+              onPress: () => this.props.navigation.navigate('detail', {
+                selectedOfferId: notification.data.offer_id,
+              }),
+            }
+          ],
+          { cancelable: false }
+        );
+      }
     }
   };
 
@@ -316,7 +314,7 @@ class OfferScreen extends React.Component {
 
   renderDepartureTimeValid() {
     // Set the reservation deadline time to 1 hour earlier from the departure time
-    const reservationDeadline = new Date(this.state.chosenDepartureTime.toLocaleString('ja'));
+    const reservationDeadline = new Date(this.state.chosenDepartureTime);
     reservationDeadline.setHours(reservationDeadline.getHours() - 1);
 
     if (this.state.offerDetail.departure_time !== INITIAL_STATE.offerDetail.departure_time) {
@@ -335,26 +333,77 @@ class OfferScreen extends React.Component {
 
   renderDepartureTimePicker() {
     if (this.state.departureTimePickerVisible) {
-      return (
-        <DatePickerIOS
-          mode="datetime"
-          minuteInterval={15}
-          date={this.state.chosenDepartureTime}
-          onDateChange={(dateTime) => {
-            const departureTimeText = dateTime.toLocaleString('ja');
+      // Set the available departure time to 1 hour later from the current time
+      const availavleDepartureTime = new Date();
+      availavleDepartureTime.setHours(availavleDepartureTime.getHours() + 1);
 
-            this.setState({
-              offerDetail: {
-                ...this.state.offerDetail,
-                // Trim year(first 5 characters) and second(last 3 characters)
-                // "2018/10/04 17:00:00" ---> "10/04 17:00"
-                departure_time: departureTimeText.substring(5, departureTimeText.length - 3)
-              },
-              chosenDepartureTime: dateTime,
-            });
-          }}
-        />
-      );
+      if (Platform.OS === 'ios') {
+        return (
+          <DatePickerIOS
+            mode="datetime"
+            minuteInterval={15}
+            minimumDate={availavleDepartureTime}
+            date={new Date(this.state.chosenDepartureTime)}
+            onDateChange={(dateTime) => {
+              // `dateTime` = "Thu Oct 04 2018 17:00:00 GMT+0900 (JST)"
+              //console.log(`[iOS] dateTime = ${dateTime}`);
+
+              // "Thu Oct 04 2018 17:00:00 GMT+0900 (JST)" ---> "2018/10/04 17:00:00"
+              const departureTimeText = dateTime.toLocaleString('ja');
+
+              this.setState({
+                offerDetail: {
+                  ...this.state.offerDetail,
+                  // Trim year (first 5 characters) and second (last 3 characters)
+                  // "2018/10/04 17:00:00" ---> "10/04 17:00"
+                  departure_time: departureTimeText.substring(5, departureTimeText.length - 3)
+                },
+                chosenDepartureTime: departureTimeText,
+              });
+            }}
+          />
+        );
+      } else if (Platform.OS === 'android') {
+        return (
+          <View style={{ flex: 1, flexDirection: 'row' }} >
+            <View style={{ flex: 1, alignItems: 'center' }}>
+              <DatePicker
+                mode="datetime"
+                date={new Date(this.state.chosenDepartureTime)}
+                format="YYYY-MM-DD HH:mm"
+                is24Hour
+                minDate={availavleDepartureTime}
+                confirmBtnText="OK"
+                cancelBtnText="キャンセル"
+                onDateChange={(dateTime) => {
+                  // `dateTime` = "2018-10-04 17:00"
+                  //console.log(`[Android] dateTime = ${dateTime}`);
+
+                  // Add second (last 3 characters)
+                  // "2018-10-04 17:00" ---> "2018-10-04 17:00:00"
+                  const departureTime = `${dateTime}:00`;
+
+                  // Replace hyphens by slashes
+                  // "2018-10-04 17:00:00" ---> "2018/10/04 17:00:00"
+                  const departureTimeText = departureTime.replace(/-/g, '/');
+
+                  this.setState({
+                    offerDetail: {
+                      ...this.state.offerDetail,
+                      // Trim year (first 5 characters) and second (last 3 characters)
+                      // "2018/10/04 17:00:00" ---> "10/04 17:00"
+                      departure_time: departureTimeText.substring(5, departureTimeText.length - 3)
+                    },
+                    chosenDepartureTime: departureTimeText,
+                  });
+                }}
+              />
+            </View>
+
+            <View style={{ flex: 1 }} />
+          </View>
+        );
+      }
     }
   }
 
@@ -362,19 +411,25 @@ class OfferScreen extends React.Component {
   renderRiderCapacityPicker() {
     if (this.state.riderCapacityPickerVisible) {
       return (
-        <Picker
-          selectedValue={this.state.offerDetail.rider_capacity}
-          onValueChange={(itemValue) => this.setState({
-            offerDetail: {
-              ...this.state.offerDetail,
-              rider_capacity: itemValue
-            },
-          })}
-        >
-          <Picker.Item label="---" value="---" />
-          <Picker.Item label="1人" value="1人" />
-          <Picker.Item label="2人" value="2人" />
-        </Picker>
+        <View style={{ flex: 1, flexDirection: 'row' }} >
+          <View style={{ flex: 1 }} />
+
+          <View style={{ flex: 1 }}>
+            <Picker
+              selectedValue={this.state.offerDetail.rider_capacity}
+              onValueChange={(itemValue) => this.setState({
+                offerDetail: {
+                  ...this.state.offerDetail,
+                  rider_capacity: itemValue
+                },
+              })}
+            >
+              <Picker.Item label="---" value="---" />
+              <Picker.Item label="1人" value="1人" />
+              <Picker.Item label="2人" value="2人" />
+            </Picker>
+          </View>
+        </View>
       );
     }
   }
@@ -395,8 +450,8 @@ class OfferScreen extends React.Component {
           text: 'はい',
           onPress: async () => {
             // Replace srashes by hyphens
-            // "2018/10/04 17:00:00" ---> "2018-10-04 17:00:00"
-            const replacedDepartureTime = this.state.chosenDepartureTime.toLocaleString('ja').replace(/\//g, '-');
+            // "Thu Oct 04 2018 17:00:00 GMT+0900 (JST)" ---> "2018/10/04 17:00:00" ---> "2018-10-04 17:00:00"
+            const replacedDepartureTime = this.state.chosenDepartureTime.replace(/\//g, '-');
 
             // Trim "人" at the last character
             const trimedRiderCapacity = parseInt(this.state.offerDetail.rider_capacity.substring(0, this.state.offerDetail.rider_capacity.length - 1));
@@ -442,7 +497,7 @@ class OfferScreen extends React.Component {
 
               // Set the schedule time to 1 hour earlier from the departure time
               // (same as reservation deadline)
-              const schedulingTime = new Date(this.state.chosenDepartureTime.toLocaleString('ja'));
+              const schedulingTime = new Date(this.state.chosenDepartureTime);
               schedulingTime.setHours(schedulingTime.getHours() - 1);
 
               const schedulingOptions = {

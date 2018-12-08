@@ -68,6 +68,8 @@ class EditProfileScreen extends React.Component {
 
 
   componentWillUpdate() {
+    // On Android, UIManager animation will affect ModalSelector
+    // https://github.com/moschan/react-native-simple-radio-button/issues/83#issuecomment-428003428
     if (Platform.OS === 'ios') {
       // Ease in & Ease out animation
       UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);

@@ -139,8 +139,8 @@ class OfferListScreen extends React.Component {
           // Rerender the screen
           this.props.fetchOwnReservations();
           this.props.fetchAllOffers();
-        // If received the push notification while the app is already foreground, (iOS only)
-        } else if (notification.origin === 'received' && Platform.OS === 'ios') {
+        // If received the push notification while the app is already foreground,
+        } else if (notification.origin === 'received') {
           Alert.alert(
             '',
             `${notification.data.message_title}`,
@@ -168,8 +168,8 @@ class OfferListScreen extends React.Component {
             selectedOfferId: notification.data.offer_id,
             isReservation: true
           });
-        // If received the push notification while the app is already foreground, (iOS only)
-        } else if (notification.origin === 'received' && Platform.OS === 'ios') {
+        // If received the push notification while the app is already foreground,
+        } else if (notification.origin === 'received') {
           Alert.alert(
             '',
             `${notification.data.message_title}`,
