@@ -63,9 +63,11 @@ class EditProfileScreen extends React.Component {
 
 
   componentWillUpdate() {
-    // Ease in & Ease out animation
-    UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
-    LayoutAnimation.easeInEaseOut();
+    if (Platform.OS === 'ios') {
+      // Ease in & Ease out animation
+      UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
+      LayoutAnimation.easeInEaseOut();
+    }
   }
 
 
@@ -380,7 +382,7 @@ class EditProfileScreen extends React.Component {
 
         <KeyboardAvoidingView
           style={{ flex: 1 /*, justifyContent: 'center'*/ }}
-          behavior={Platform.OS === 'ios' ? 'padding' : ''}
+          behavior="padding"
         >
           <ScrollView style={{ flex: 1 }}>
             <FormLabel>姓：</FormLabel>
