@@ -175,9 +175,10 @@ class LoginScreen extends React.Component {
                     }
                   });
                 }}
+                containerStyle={{ borderBottomWidth: 1, borderBottomColor: 'gray' }}
               />
             </View>
-            <View style={{ flex: 2, justifyContent: 'flex-end' }}>
+            <View style={{ flex: 2, justifyContent: 'center' }}>
               <Text style={{ fontSize: 12 }}>@stu.kanazawa-u.ac.jp</Text>
             </View>
           </View>

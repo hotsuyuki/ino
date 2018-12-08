@@ -238,6 +238,7 @@ class SignupScreen extends React.Component {
         await AsyncStorage.setItem('riderInfo', JSON.stringify(riderInfo));
 
         console.log('Manual signup with the input rider info is succeeded!!!');
+        this.props.navigation.pop();
         this.props.navigation.navigate('root');
 
       // If cannot signup with the input rider info,
@@ -345,6 +346,7 @@ class SignupScreen extends React.Component {
                 }
               });
             }}
+            containerStyle={{ borderBottomWidth: 1, borderBottomColor: 'gray' }}
           />
 
           <FormLabel>名：</FormLabel>
@@ -359,6 +361,7 @@ class SignupScreen extends React.Component {
                 }
               });
             }}
+            containerStyle={{ borderBottomWidth: 1, borderBottomColor: 'gray' }}
           />
 
           <View style={{ flexDirection: 'row', flex: 1, paddingTop: 10, paddingRight: 20 }}>
@@ -390,9 +393,10 @@ class SignupScreen extends React.Component {
                     }
                   });
                 }}
+                containerStyle={{ borderBottomWidth: 1, borderBottomColor: 'gray' }}
               />
             </View>
-            <View style={{ flex: 2, justifyContent: 'flex-end' }}>
+            <View style={{ flex: 2, justifyContent: 'center' }}>
               <Text style={{ fontSize: 12 }}>@stu.kanazawa-u.ac.jp</Text>
             </View>
           </View>
@@ -411,6 +415,7 @@ class SignupScreen extends React.Component {
                 }
               });
             }}
+            containerStyle={{ borderBottomWidth: 1, borderBottomColor: 'gray' }}
           />
           {this.renderPhoneValid()}
 
