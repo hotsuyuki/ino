@@ -29,7 +29,12 @@ export const fetchOwnReservations = () => {
 
         if (parseInt(reservationResponse.status / 100, 10) === 2) {
           let reservationResponseJson = await reservationResponse.json();
-          //console.log('JSON.stringify(reservationResponseJson) = ' + JSON.stringify(reservationResponseJson));
+
+          // Reset the local notifications list if own offers array is empty
+          if (reservationResponseJson.reservations.length === 0) {
+            const localNotifications = [];
+            await AsyncStorage.setItem('localNotifications', JSON.stringify(localNotifications));
+          }
 
           const promiseArray = reservationResponseJson.reservations.map(async (reservation) => {
             // GET corresponding offer

@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   StyleSheet, Text, View, ScrollView, Alert,
-  LayoutAnimation, UIManager, RefreshControl, Linking, Platform,
+  LayoutAnimation, UIManager, RefreshControl, Linking, Platform, AsyncStorage,
 } from 'react-native';
 import { Button, Icon } from 'react-native-elements';
 import { AppLoading, Notifications } from 'expo';
@@ -421,7 +421,20 @@ class DetailScreen extends React.Component {
               // TODO: Add `localNotificationId` into the corresponding offer in `this.props.ownReservations`
               // TODO: to do `Notifications.cancelScheduledNotificationAsync(localNotificationId)`
               // TODO: when the offer is canceled
-              let localNotificationId = Notifications.scheduleLocalNotificationAsync(localNotification, schedulingOptions);
+              let localNotificationId = await Notifications.scheduleLocalNotificationAsync(localNotification, schedulingOptions);
+
+              // Add to local notifications list in order to cancel the local notification when canceling the offer
+              let stringifiedLocalNotifications = await AsyncStorage.getItem('localNotifications');
+              let localNotifications = JSON.parse(stringifiedLocalNotifications);
+              localNotifications.push({
+                offer_id: selectedOfferId,
+                local_notification_id: localNotificationId
+              });
+
+              // for debug
+              //console.log(`JSON.stringify(localNotifications) = ${JSON.stringify(localNotifications)}`);
+
+              await AsyncStorage.setItem('localNotifications', JSON.stringify(localNotifications));
 
               // If failed to DELETE the selected offer,
               if (parseInt(reservationResponse.status / 100, 10) === 4 ||
@@ -463,6 +476,7 @@ class DetailScreen extends React.Component {
     );
   }
 
+
   onDonateButtonPress = async () => {
     const donateUrl = 'kyash://qr/u/1183086485312027642';
 
@@ -499,6 +513,7 @@ class DetailScreen extends React.Component {
       );
     }
   }
+
 
   onCancelReservationButtonPress = () => {
     Alert.alert(
@@ -567,9 +582,30 @@ class DetailScreen extends React.Component {
               });
 
               // for debug
-              console.log(`deleteResponse.status = ${deleteResponse.status}`);
-              let deleteResponseJson = await deleteResponse.json();
-              console.log(`JSON.stringify(deleteResponseJson) = ${JSON.stringify(deleteResponseJson)}`);
+              //console.log(`deleteResponse.status = ${deleteResponse.status}`);
+              //let deleteResponseJson = await deleteResponse.json();
+              //console.log(`JSON.stringify(deleteResponseJson) = ${JSON.stringify(deleteResponseJson)}`);
+
+              // Cancel the schedule local notification
+              let stringifiedLocalNotifications = await AsyncStorage.getItem('localNotifications');
+              let localNotifications = JSON.parse(stringifiedLocalNotifications);
+
+              // for debug
+              //console.log(`[Before] JSON.stringify(localNotifications) = ${JSON.stringify(localNotifications)}`);
+
+              const newLocalNotifications = [];
+              localNotifications.forEach(async (eachNotification) => {
+                if (eachNotification.offer_id === selectedOfferId) {
+                  await Notifications.cancelScheduledNotificationAsync(eachNotification.local_notification_id);
+                } else {
+                  newLocalNotifications.push(eachNotification);
+                }
+              });
+
+              // for debug
+              //console.log(`[After] JSON.stringify(newLocalNotifications) = ${JSON.stringify(newLocalNotifications)}`);
+
+              await AsyncStorage.setItem('localNotifications', JSON.stringify(newLocalNotifications));
 
               // If failed to DELETE the selected reservation,
               if (parseInt(deleteResponse.status / 100, 10) === 4 ||

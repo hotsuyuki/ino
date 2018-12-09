@@ -2,7 +2,7 @@ import _ from 'lodash';
 import React from 'react';
 import {
   StyleSheet, Text, View, ScrollView, RefreshControl, Picker, DatePickerIOS, Alert,
-  LayoutAnimation, UIManager, Platform, Linking,
+  LayoutAnimation, UIManager, Platform, Linking, AsyncStorage,
 } from 'react-native';
 import { Button, ButtonGroup, ListItem, Icon, FormValidationMessage } from 'react-native-elements';
 import DatePicker from 'react-native-datepicker';
@@ -499,22 +499,30 @@ class OfferScreen extends React.Component {
               // (same as reservation deadline)
               const schedulingTime = new Date(this.state.chosenDepartureTime);
               schedulingTime.setHours(schedulingTime.getHours() - 1);
-
               const schedulingOptions = {
                 time: schedulingTime
               };
 
-
               // Set the schedule local notification
-              // TODO: Add `localNotificationId` into the corresponding offer in `this.props.ownOffers`
-              // TODO: to do `Notifications.cancelScheduledNotificationAsync(localNotificationId)`
-              // TODO: when the offer is canceled
-              let localNotificationId = Notifications.scheduleLocalNotificationAsync(localNotification, schedulingOptions);
+              let localNotificationId = await Notifications.scheduleLocalNotificationAsync(localNotification, schedulingOptions);
+
+              // Add to local notifications list in order to cancel the local notification when canceling the offer
+              let stringifiedLocalNotifications = await AsyncStorage.getItem('localNotifications');
+              let localNotifications = JSON.parse(stringifiedLocalNotifications);
+              localNotifications.push({
+                offer_id: offerResponseJson.id,
+                local_notification_id: localNotificationId
+              });
+
+              // for debug
+              //console.log(`JSON.stringify(localNotifications) = ${JSON.stringify(localNotifications)}`);
+
+              await AsyncStorage.setItem('localNotifications', JSON.stringify(localNotifications));
 
               // If failed to POST a new offer (create a new offer),
               if (parseInt(offerResponse.status / 100, 10) === 4 ||
                   parseInt(offerResponse.status / 100, 10) === 5) {
-                console.log('Create an offer failed...');
+                console.log('Failed to create an offer...');
 
                 Alert.alert(
                   '相乗りをオファーできませんでした。',

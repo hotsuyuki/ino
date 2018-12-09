@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   StyleSheet, Text, View, ScrollView, Alert,
-  LayoutAnimation, UIManager, RefreshControl, Linking,
+  LayoutAnimation, UIManager, RefreshControl, Linking, AsyncStorage,
 } from 'react-native';
 import { Button, Icon } from 'react-native-elements';
 import { AppLoading, Notifications } from 'expo';
@@ -355,6 +355,28 @@ class DetailScreen extends React.Component {
 
               //let deleteResponseJson = await deleteResponse.json();
 
+              // Cancel the schedule local notification
+              let stringifiedLocalNotifications = await AsyncStorage.getItem('localNotifications');
+              let localNotifications = JSON.parse(stringifiedLocalNotifications);
+
+              // for debug
+              //console.log(`[Before] JSON.stringify(localNotifications) = ${JSON.stringify(localNotifications)}`);
+
+              const newLocalNotifications = [];
+              localNotifications.forEach(async (eachNotification) => {
+                if (eachNotification.offer_id === selectedOfferId) {
+                  await Notifications.cancelScheduledNotificationAsync(eachNotification.local_notification_id);
+                } else {
+                  newLocalNotifications.push(eachNotification);
+                }
+              });
+
+              // for debug
+              //console.log(`[After] JSON.stringify(newLocalNotifications) = ${JSON.stringify(newLocalNotifications)}`);
+
+              await AsyncStorage.setItem('localNotifications', JSON.stringify(newLocalNotifications));
+
+
               // If failed to DELETE the selected offer,
               if (parseInt(deleteResponse.status / 100, 10) === 4 ||
                   parseInt(deleteResponse.status / 100, 10) === 5) {
@@ -399,7 +421,7 @@ class DetailScreen extends React.Component {
     return (
       <View style={{ padding: 20 }}>
         <Button
-          // If the departure time is passed, inactivate the button 
+          // If the departure time is passed, inactivate the button
           disabled={departureTime < new Date()}
           title="相乗りオファーをキャンセル"
           color="white"

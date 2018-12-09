@@ -30,6 +30,12 @@ export const fetchOwnOffers = () => {
           let offerResponseJson = await offerResponse.json();
           //console.log('JSON.stringify(offerResponseJson) = ' + JSON.stringify(offerResponseJson));
 
+          // Reset the local notifications list if own offers array is empty
+          if (offerResponseJson.offers.length === 0) {
+            const localNotifications = [];
+            await AsyncStorage.setItem('localNotifications', JSON.stringify(localNotifications));
+          }
+
           offerResponseJson.offers.forEach((item) => {
             const eachItem = item;
             /**********************************
