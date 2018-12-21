@@ -192,7 +192,7 @@ class SignupScreen extends React.Component {
 
   renderPhoneValid() {
     const phone = this.state.riderInfo.phone;
-    const regex = /0[89]0[0-9]{4}[0-9]{4}/;
+    const regex = /0[789]0[0-9]{4}[0-9]{4}/;
 
     if (phone !== INITIAL_STATE.riderInfo.phone) {
       if (regex.test(phone) && phone.length === 11) {
@@ -202,7 +202,7 @@ class SignupScreen extends React.Component {
 
       formValidation.isPhoneValid = false;
       return (
-        <FormValidationMessage>080もしくは090から始まる11桁の数字で入力して下さい</FormValidationMessage>
+        <FormValidationMessage>070/080/090から始まる11桁の数字で入力して下さい</FormValidationMessage>
       );
     }
   }
