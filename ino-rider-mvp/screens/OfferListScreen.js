@@ -2,7 +2,7 @@ import _ from 'lodash';
 import React from 'react';
 import {
   StyleSheet, Text, View, ScrollView, RefreshControl, Alert,
-  LayoutAnimation, UIManager, Platform,
+  LayoutAnimation, UIManager,
 } from 'react-native';
 import { ListItem, Icon, Button } from 'react-native-elements';
 import { AppLoading, Permissions, Notifications } from 'expo';
@@ -245,7 +245,8 @@ class OfferListScreen extends React.Component {
 
           // Set the estimated arrival time to 1 hour later from the departure time
           const estimatedArrivalTime = new Date(item.offer.departure_time.replace(/-/g, '/'));
-          estimatedArrivalTime.setHours(estimatedArrivalTime.getHours() + 1);
+          //estimatedArrivalTime.setHours(estimatedArrivalTime.getHours() + 1);
+          estimatedArrivalTime.setMinutes(estimatedArrivalTime.getMinutes() + 30);
 
           // If the carpool is expected to be arrived,
           if (estimatedArrivalTime < new Date()) {
@@ -350,7 +351,9 @@ class OfferListScreen extends React.Component {
 
           // Set the reservation deadline time to 1 hour earlier from the departure time
           const reservationDeadline = new Date(item.offer.departure_time.replace(/-/g, '/'));
-          reservationDeadline.setHours(reservationDeadline.getHours() - 1);
+          //reservationDeadline.setHours(reservationDeadline.getHours() - 1);
+          reservationDeadline.setMinutes(reservationDeadline.getMinutes() - 30);
+
 
           // If this offer is not reservation and before the deadline,
           if (!isReservation && new Date() < reservationDeadline) {

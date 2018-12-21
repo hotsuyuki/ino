@@ -315,7 +315,8 @@ class OfferScreen extends React.Component {
   renderDepartureTimeValid() {
     // Set the reservation deadline time to 1 hour earlier from the departure time
     const reservationDeadline = new Date(this.state.chosenDepartureTime);
-    reservationDeadline.setHours(reservationDeadline.getHours() - 1);
+    //reservationDeadline.setHours(reservationDeadline.getHours() - 1);
+    reservationDeadline.setMinutes(reservationDeadline.getMinutes() - 30);
 
     if (this.state.offerDetail.departure_time !== INITIAL_STATE.offerDetail.departure_time) {
       if (new Date() < reservationDeadline) {
@@ -325,7 +326,8 @@ class OfferScreen extends React.Component {
 
       formValidation.isDepartureTimeValid = false;
       return (
-        <FormValidationMessage>1時間後以降の時刻を指定して下さい</FormValidationMessage>
+        //<FormValidationMessage>1時間後以降の時刻を指定して下さい</FormValidationMessage>
+        <FormValidationMessage>30分後以降の時刻を指定して下さい</FormValidationMessage>
       );
     }
   }
@@ -335,7 +337,8 @@ class OfferScreen extends React.Component {
     if (this.state.departureTimePickerVisible) {
       // Set the available departure time to 1 hour later from the current time
       const availavleDepartureTime = new Date();
-      availavleDepartureTime.setHours(availavleDepartureTime.getHours() + 1);
+      //availavleDepartureTime.setHours(availavleDepartureTime.getHours() + 1);
+      availavleDepartureTime.setMinutes(availavleDepartureTime.getMinutes() + 30);
 
       if (Platform.OS === 'ios') {
         return (
@@ -479,7 +482,8 @@ class OfferScreen extends React.Component {
               let offerResponseJson = await offerResponse.json();
 
               // Set the schedule local notification message
-              const messageTitle = 'オファーした出発時刻の1時間前です。';
+              //const messageTitle = 'オファーした出発時刻の1時間前です。';
+              const messageTitle = 'オファーした出発時刻の30分前です。';
               const messageBody = '予約受付を締め切りました。予約したライダーさんがいるか最終確認しましょう。';
               const localNotification = {
                 title: messageTitle,
@@ -498,7 +502,8 @@ class OfferScreen extends React.Component {
               // Set the schedule time to 1 hour earlier from the departure time
               // (same as reservation deadline)
               const schedulingTime = new Date(this.state.chosenDepartureTime);
-              schedulingTime.setHours(schedulingTime.getHours() - 1);
+              //schedulingTime.setHours(schedulingTime.getHours() - 1);
+              schedulingTime.setMinutes(schedulingTime.getMinutes() - 30);
               const schedulingOptions = {
                 time: schedulingTime
               };
@@ -619,7 +624,8 @@ class OfferScreen extends React.Component {
         {this.props.ownOffers.map((item, index) => {
           // Set the disappearing time to 1 hour later from the departure time
           const disappearingTime = new Date(item.offer.departure_time.replace(/-/g, '/'));
-          disappearingTime.setHours(disappearingTime.getHours() + 1);
+          //disappearingTime.setHours(disappearingTime.getHours() + 1);
+          disappearingTime.setMinutes(disappearingTime.getMinutes() + 30);
 
           // If the disappearing time is passed,
           if (disappearingTime < new Date()) {
