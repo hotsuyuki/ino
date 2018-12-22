@@ -363,11 +363,11 @@ class DetailScreen extends React.Component {
               //console.log(`[Before] JSON.stringify(localNotifications) = ${JSON.stringify(localNotifications)}`);
 
               const newLocalNotifications = [];
-              localNotifications.forEach(async (eachNotification) => {
-                if (eachNotification.offer_id === selectedOfferId) {
-                  await Notifications.cancelScheduledNotificationAsync(eachNotification.local_notification_id);
+              localNotifications.forEach(async (eachLocalNotification) => {
+                if (eachLocalNotification.offer_id === selectedOfferId) {
+                  await Notifications.cancelScheduledNotificationAsync(eachLocalNotification.local_notification_id);
                 } else {
-                  newLocalNotifications.push(eachNotification);
+                  newLocalNotifications.push(eachLocalNotification);
                 }
               });
 

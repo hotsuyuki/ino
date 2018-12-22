@@ -2,7 +2,7 @@ import _ from 'lodash';
 import React from 'react';
 import {
   StyleSheet, Text, View, ScrollView, RefreshControl, Alert,
-  LayoutAnimation, UIManager,
+  LayoutAnimation, UIManager, AsyncStorage,
 } from 'react-native';
 import { ListItem, Icon, Button } from 'react-native-elements';
 import { AppLoading, Permissions, Notifications } from 'expo';
@@ -63,8 +63,8 @@ class OfferListScreen extends React.Component {
     }
 
     // for debug
-    console.log(`existingStatus = ${existingStatus}`);
-    console.log(`finalStatus = ${finalStatus}`);
+    //console.log(`existingStatus = ${existingStatus}`);
+    //console.log(`finalStatus = ${finalStatus}`);
 
     // Stop here if the user did not grant permissions
     if (finalStatus !== 'granted') {
@@ -75,7 +75,7 @@ class OfferListScreen extends React.Component {
     let pushNotificationsToken = await Notifications.getExpoPushTokenAsync();
 
     // for debug
-    console.log(JSON.stringify(pushNotificationsToken));
+    //console.log(JSON.stringify(pushNotificationsToken));
 
     // POST the push notification token
     try {
@@ -91,15 +91,15 @@ class OfferListScreen extends React.Component {
         }),
       });
 
-      // for debug
-      console.log(`response.status = ${response.status}`);
       let responseJson = await response.json();
-      console.log(`JSON.stringify(responseJson) = ${JSON.stringify(responseJson)}`);
+
+      // for debug
+      //console.log(`JSON.stringify(responseJson) = ${JSON.stringify(responseJson)}`);
 
       // If failed to POST the push notification token,
       if (parseInt(response.status / 100, 10) === 4 ||
           parseInt(response.status / 100, 10) === 5) {
-        console.log('POSTing the push notification token failed...');
+        console.log('Failed to POST the push notification token...');
 
         Alert.alert(
           'プッシュ通知の設定に失敗しました。',
@@ -121,10 +121,15 @@ class OfferListScreen extends React.Component {
     // (rather than just tapping the app icon to open it),
     // this function will fire on the next tick after the app starts with the notification data.
     this.notificationSubscription = Notifications.addListener(this.handleNotification);
+
+    // for debug
+    //let stringifiedLocalNotifications = await AsyncStorage.getItem('localNotifications');
+    //let localNotifications = JSON.parse(stringifiedLocalNotifications);
+    //console.log(`JSON.stringify(localNotifications) = ${JSON.stringify(localNotifications)}`);
   }
 
 
-  handleNotification = (notification) => {
+  handleNotification = async (notification) => {
     // Reset the badge number to zero (iOS only)
     Notifications.setBadgeNumberAsync(0);
 
@@ -133,7 +138,28 @@ class OfferListScreen extends React.Component {
 
     switch (notification.data.type) {
       // When the driver canceled the offer which already reserved,
-      case CANCELED_OFFER:
+      case CANCELED_OFFER: {
+        // Cancel the scheduled local notification
+        let stringifiedLocalNotifications = await AsyncStorage.getItem('localNotifications');
+        let localNotifications = JSON.parse(stringifiedLocalNotifications);
+
+        // for debug
+        //console.log(`[Before] JSON.stringify(localNotifications) = ${JSON.stringify(localNotifications)}`);
+
+        const newLocalNotifications = [];
+        localNotifications.forEach(async (eachLocalNotification) => {
+          if (eachLocalNotification.offer_id === notification.data.offer_id) {
+            await Notifications.cancelScheduledNotificationAsync(eachLocalNotification.local_notification_id);
+          } else {
+            newLocalNotifications.push(eachLocalNotification);
+          }
+        });
+
+        // for debug
+        //console.log(`[After] JSON.stringify(newLocalNotifications) = ${JSON.stringify(newLocalNotifications)}`);
+
+        await AsyncStorage.setItem('localNotifications', JSON.stringify(newLocalNotifications));
+
         // If foregrounded by selecting the push notification,
         if (notification.origin === 'selected') {
           // Rerender the screen
@@ -158,6 +184,7 @@ class OfferListScreen extends React.Component {
           );
         }
         break;
+      }
 
       // When the reservation deadline has come,
       case RESERVATION_DEADLINE:

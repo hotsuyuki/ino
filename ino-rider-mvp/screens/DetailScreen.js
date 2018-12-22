@@ -420,9 +420,6 @@ class DetailScreen extends React.Component {
               };
 
               // Set the schedule local notification
-              // TODO: Add `localNotificationId` into the corresponding offer in `this.props.ownReservations`
-              // TODO: to do `Notifications.cancelScheduledNotificationAsync(localNotificationId)`
-              // TODO: when the offer is canceled
               let localNotificationId = await Notifications.scheduleLocalNotificationAsync(localNotification, schedulingOptions);
 
               // Add to local notifications list in order to cancel the local notification when canceling the offer
@@ -579,16 +576,9 @@ class DetailScreen extends React.Component {
             try {
               let deleteResponse = await fetch(`https://inori.work/reservations/${reservationId}`, {
                 method: 'DELETE',
-                //headers: {},
-                //body: {},
               });
 
-              // for debug
-              //console.log(`deleteResponse.status = ${deleteResponse.status}`);
-              //let deleteResponseJson = await deleteResponse.json();
-              //console.log(`JSON.stringify(deleteResponseJson) = ${JSON.stringify(deleteResponseJson)}`);
-
-              // Cancel the schedule local notification
+              // Cancel the scheduled local notification
               let stringifiedLocalNotifications = await AsyncStorage.getItem('localNotifications');
               let localNotifications = JSON.parse(stringifiedLocalNotifications);
 
@@ -596,11 +586,11 @@ class DetailScreen extends React.Component {
               //console.log(`[Before] JSON.stringify(localNotifications) = ${JSON.stringify(localNotifications)}`);
 
               const newLocalNotifications = [];
-              localNotifications.forEach(async (eachNotification) => {
-                if (eachNotification.offer_id === selectedOfferId) {
-                  await Notifications.cancelScheduledNotificationAsync(eachNotification.local_notification_id);
+              localNotifications.forEach(async (eachLocalNotification) => {
+                if (eachLocalNotification.offer_id === selectedOfferId) {
+                  await Notifications.cancelScheduledNotificationAsync(eachLocalNotification.local_notification_id);
                 } else {
-                  newLocalNotifications.push(eachNotification);
+                  newLocalNotifications.push(eachLocalNotification);
                 }
               });
 
