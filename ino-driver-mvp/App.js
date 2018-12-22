@@ -8,6 +8,7 @@ import store from './store';
 
 import LoginScreen from './screens/LoginScreen';
 import SignupScreen from './screens/SignupScreen';
+import OfferListScreen from './screens/OfferListScreen';
 import OfferScreen from './screens/OfferScreen';
 import DetailScreen from './screens/DetailScreen';
 import ProfileScreen from './screens/ProfileScreen';
@@ -48,8 +49,8 @@ export default class App extends React.Component {
 
 
     const MainStack = createStackNavigator({
-      offer: {
-        screen: OfferScreen,
+      offerList: {
+        screen: OfferListScreen,
         navigationOptions: ({ navigation }) => ({
           ...headerNavigationOptions,
           headerLeft: (
@@ -61,9 +62,26 @@ export default class App extends React.Component {
               />
             </View>
           ),
+          headerRight: (
+            <View style={{ paddingRight: 10 }}>
+              <Icon
+                name='plus'
+                type='font-awesome'
+                color='white'
+                onPress={() => navigation.navigate('offer')}
+              />
+            </View>
+          ),
           headerTitle: 'ino',
           headerBackTitle: ' '
         })
+      },
+      offer: {
+        screen: OfferScreen,
+        navigationOptions: {
+          ...headerNavigationOptions,
+          headerTitle: 'オファー',
+        }
       },
       detail: {
         screen: DetailScreen,
@@ -88,7 +106,7 @@ export default class App extends React.Component {
         })
       }
     }, {
-      initialRouteName: 'offer',
+      initialRouteName: 'offerList',
     });
 
 

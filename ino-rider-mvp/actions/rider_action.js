@@ -298,7 +298,7 @@ export const fetchAllOffers = () => {
           return 0;
         });
 
-      // If failed to GET the correesponding driver info,
+      // If failed to GET all offers,
       } else if (parseInt(offerResponse.status / 100, 10) === 4 ||
                  parseInt(offerResponse.status / 100, 10) === 5) {
         Alert.alert(
