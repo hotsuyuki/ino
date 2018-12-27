@@ -453,10 +453,12 @@ class OfferScreen extends React.Component {
           // If one of all pickers is opend or `this.state.offerDetail` is not completed,
           // inactivate the button
           disabled={
+            /*
             this.state.startPickerVisible ||
             this.state.goalPickerVisible ||
             this.state.departureTimePickerVisible ||
             this.state.riderCapacityPickerVisible ||
+            */
             !isCompleted
           }
           title="相乗りをオファー"
