@@ -181,7 +181,7 @@ class OfferScreen extends React.Component {
 
 
   renderDepartureTimeValid() {
-    // Set the reservation deadline time to 1 hour earlier from the departure time
+    // Set the reservation deadline time to (1 hour) 30 minutes earlier from the departure time
     const reservationDeadline = new Date(this.state.chosenDepartureTime);
     //reservationDeadline.setHours(reservationDeadline.getHours() - 1);
     reservationDeadline.setMinutes(reservationDeadline.getMinutes() - 30);
@@ -203,7 +203,7 @@ class OfferScreen extends React.Component {
 
   renderDepartureTimePicker() {
     if (this.state.departureTimePickerVisible) {
-      // Set the available departure time to 1 hour later from the current time
+      // Set the available departure time to (1 hour) 30 minutes later from the current time
       const availavleDepartureTime = new Date();
       //availavleDepartureTime.setHours(availavleDepartureTime.getHours() + 1);
       availavleDepartureTime.setMinutes(availavleDepartureTime.getMinutes() + 30);
@@ -367,7 +367,7 @@ class OfferScreen extends React.Component {
                 }
               };
 
-              // Set the schedule time to 1 hour earlier from the departure time
+              // Set the schedule time to (1 hour) 30 minutes earlier from the departure time
               // (same as reservation deadline)
               const schedulingTime = new Date(this.state.chosenDepartureTime);
               //schedulingTime.setHours(schedulingTime.getHours() - 1);
