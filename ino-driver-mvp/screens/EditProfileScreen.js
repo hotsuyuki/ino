@@ -11,30 +11,22 @@ import { connect } from 'react-redux';
 import * as actions from '../actions';
 
 
+const driverInfoTemplate = {
+  id: 0,
+  first_name: '',
+  last_name: '',
+  grade: '',
+  major: '',
+  car_color: '',
+  car_number: '',
+  mail: '',
+  phone: ''
+};
+
 const INITIAL_STATE = {
   // for driver info
-  initialDriverInfo: {
-    id: 0,
-    first_name: '',
-    last_name: '',
-    grade: '',
-    major: '',
-    car_color: '',
-    car_number: '',
-    mail: '',
-    phone: '',
-  },
-  editedDriverInfo: {
-    id: 0,
-    first_name: '',
-    last_name: '',
-    grade: '',
-    major: '',
-    car_color: '',
-    car_number: '',
-    mail: '',
-    phone: '',
-  },
+  initialDriverInfo: driverInfoTemplate,
+  editedDriverInfo: driverInfoTemplate
 };
 
 // for form validation
