@@ -497,7 +497,7 @@ class OfferScreen extends React.Component {
             rightIcon={
               !this.state.startPickerVisible ?
               { name: 'keyboard-arrow-down' } :
-              { name: 'check', color: 'rgb(0,122,255)' }
+              <Text style={{ color: 'rgb(0,122,255)' }}>閉じる</Text>
             }
             onPress={() => this.setState({
               startPickerVisible: !this.state.startPickerVisible,
@@ -521,7 +521,7 @@ class OfferScreen extends React.Component {
             rightIcon={
               !this.state.goalPickerVisible ?
               { name: 'keyboard-arrow-down' } :
-              { name: 'check', color: 'rgb(0,122,255)' }
+              <Text style={{ color: 'rgb(0,122,255)' }}>閉じる</Text>
             }
             onPress={() => this.setState({
               startPickerVisible: false,
@@ -574,7 +574,7 @@ class OfferScreen extends React.Component {
                 rightIcon={
                   !this.state.departureTimePickerVisible ?
                   { name: 'keyboard-arrow-down' } :
-                  { name: 'check', color: 'rgb(0,122,255)' }
+                  <Text style={{ color: 'rgb(0,122,255)' }}>閉じる</Text>
                 }
                 onPress={() => this.setState({
                   startPickerVisible: false,
@@ -607,7 +607,7 @@ class OfferScreen extends React.Component {
                 rightIcon={
                   !this.state.riderCapacityPickerVisible ?
                   { name: 'keyboard-arrow-down' } :
-                  { name: 'check', color: 'rgb(0,122,255)' }
+                  <Text style={{ color: 'rgb(0,122,255)' }}>閉じる</Text>
                 }
                 onPress={() => this.setState({
                   startPickerVisible: false,
