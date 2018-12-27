@@ -31,7 +31,7 @@ const formValidation = {
 
 const INITIAL_STATE = {
   // for <ButtonGroup />
-  togekoFlag: TOKO,
+  direction: TOKO,
 
   // for <Picker />
   startPickerVisible: false,
@@ -112,7 +112,7 @@ class OfferScreen extends React.Component {
 
   renderStartPicker() {
     if (this.state.startPickerVisible) {
-      if (this.state.togekoFlag === TOKO) {
+      if (this.state.direction === TOKO) {
         return (
           <Picker
             selectedValue={this.state.offerDetail.start}
@@ -126,7 +126,7 @@ class OfferScreen extends React.Component {
             <Picker.Item label={`${VDRUG}`} value={`${VDRUG}`} />
           </Picker>
         );
-      } else if (this.state.togekoFlag === GEKO) {
+      } else if (this.state.direction === GEKO) {
         return (
           <Picker
             selectedValue={this.state.offerDetail.start}
@@ -147,7 +147,7 @@ class OfferScreen extends React.Component {
 
   renderGoalPicker() {
     if (this.state.goalPickerVisible) {
-      if (this.state.togekoFlag === TOKO) {
+      if (this.state.direction === TOKO) {
         return (
           <Picker
             selectedValue={this.state.offerDetail.goal}
@@ -161,7 +161,7 @@ class OfferScreen extends React.Component {
             <Picker.Item label={`${HONBUTOMAE}`} value={`${HONBUTOMAE}`} />
           </Picker>
         );
-      } else if (this.state.togekoFlag === GEKO) {
+      } else if (this.state.direction === GEKO) {
         return (
           <Picker
             selectedValue={this.state.offerDetail.goal}
@@ -535,10 +535,10 @@ class OfferScreen extends React.Component {
 
           <ButtonGroup
             buttons={['登校', '下校']}
-            selectedIndex={this.state.togekoFlag}
+            selectedIndex={this.state.direction}
             onPress={(selectedIndex) =>
               this.setState({
-                togekoFlag: selectedIndex,
+                direction: selectedIndex,
                 offerDetail: {
                   ...this.state.offerDetail,
                   start: selectedIndex === TOKO ? VDRUG : HONBUTOMAE,
