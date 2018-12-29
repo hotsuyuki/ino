@@ -90,10 +90,10 @@ class EditProfileScreen extends React.Component {
       <ModalSelector
         data={data}
         initValue={this.state.initialDriverInfo.grade}
-        onChange={(item) => this.setState({
+        onChange={(option) => this.setState({
           editedDriverInfo: {
             ...this.state.editedDriverInfo,
-            grade: item.label
+            grade: option.label
           },
         })}
         selectTextStyle={{ fontSize: 12, color: 'gray' }}
@@ -196,10 +196,10 @@ class EditProfileScreen extends React.Component {
         data={data}
         initValue={this.state.initialDriverInfo.major}
         //initValue={this.state.editedDriverInfo.major}
-        onChange={(item) => this.setState({
+        onChange={(option) => this.setState({
           editedDriverInfo: {
             ...this.state.editedDriverInfo,
-            major: item.label
+            major: option.label
           },
         })}
         selectTextStyle={{ fontSize: 12, color: 'gray' }}
@@ -235,10 +235,10 @@ class EditProfileScreen extends React.Component {
       <ModalSelector
         data={data}
         initValue={this.state.initialDriverInfo.car_color}
-        onChange={(item) => this.setState({
+        onChange={(option) => this.setState({
           editedDriverInfo: {
             ...this.state.editedDriverInfo,
-            car_color: item.label
+            car_color: option.label
           },
         })}
         selectTextStyle={{ fontSize: 12, color: 'gray' }}

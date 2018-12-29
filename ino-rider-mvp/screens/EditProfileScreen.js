@@ -87,10 +87,10 @@ class EditProfileScreen extends React.Component {
       <ModalSelector
         data={data}
         initValue={this.state.initialRiderInfo.grade}
-        onChange={(item) => this.setState({
+        onChange={(option) => this.setState({
           editedRiderInfo: {
             ...this.state.editedRiderInfo,
-            grade: item.label
+            grade: option.label
           },
         })}
         selectTextStyle={{ fontSize: 12, color: 'gray' }}
@@ -193,10 +193,10 @@ class EditProfileScreen extends React.Component {
         data={data}
         initValue={this.state.initialRiderInfo.major}
         //initValue={this.state.editedRiderInfo.major}
-        onChange={(item) => this.setState({
+        onChange={(option) => this.setState({
           editedRiderInfo: {
             ...this.state.editedRiderInfo,
-            major: item.label
+            major: option.label
           },
         })}
         selectTextStyle={{ fontSize: 12, color: 'gray' }}

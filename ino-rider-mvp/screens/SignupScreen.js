@@ -64,10 +64,10 @@ class SignupScreen extends React.Component {
       <ModalSelector
         data={data}
         initValue={INITIAL_STATE.riderInfo.grade}
-        onChange={(item) => this.setState({
+        onChange={(option) => this.setState({
           riderInfo: {
             ...this.state.riderInfo,
-            grade: item.label
+            grade: option.label
           },
         })}
         selectTextStyle={{ fontSize: 12, color: 'gray' }}
@@ -169,10 +169,10 @@ class SignupScreen extends React.Component {
       <ModalSelector
         data={data}
         initValue={INITIAL_STATE.riderInfo.major}
-        onChange={(item) => this.setState({
+        onChange={(option) => this.setState({
           riderInfo: {
             ...this.state.riderInfo,
-            major: item.label
+            major: option.label
           },
         })}
         selectTextStyle={{ fontSize: 12, color: 'gray' }}

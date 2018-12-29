@@ -67,10 +67,10 @@ class SignupScreen extends React.Component {
       <ModalSelector
         data={data}
         initValue={INITIAL_STATE.driverInfo.grade}
-        onChange={(item) => this.setState({
+        onChange={(option) => this.setState({
           driverInfo: {
             ...this.state.driverInfo,
-            grade: item.label
+            grade: option.label
           },
         })}
         selectTextStyle={{ fontSize: 12, color: 'gray' }}
@@ -172,10 +172,10 @@ class SignupScreen extends React.Component {
       <ModalSelector
         data={data}
         initValue={INITIAL_STATE.driverInfo.major}
-        onChange={(item) => this.setState({
+        onChange={(option) => this.setState({
           driverInfo: {
             ...this.state.driverInfo,
-            major: item.label
+            major: option.label
           },
         })}
         selectTextStyle={{ fontSize: 12, color: 'gray' }}
@@ -211,10 +211,10 @@ class SignupScreen extends React.Component {
       <ModalSelector
         data={data}
         initValue={INITIAL_STATE.driverInfo.car_color}
-        onChange={(item) => this.setState({
+        onChange={(option) => this.setState({
           driverInfo: {
             ...this.state.driverInfo,
-            car_color: item.label
+            car_color: option.label
           },
         })}
         selectTextStyle={{ fontSize: 12, color: 'gray' }}
