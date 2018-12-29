@@ -19,44 +19,44 @@ const THU = 4;
 const FRI = 5;
 const SAT = 6;
 
-const TOKO = 0;
-const GEKO = 1;
+const SCHOOL = 0;
+const HOME = 1;
 
 const scheduleTemplate = [
   {
     day: SUN,
-    toko: { start: -1, end: -1 },
-    geko: { start: -1, end: -1 }
+    school: { start: -1, end: -1 },
+    home: { start: -1, end: -1 }
   },
   {
     day: MON,
-    toko: { start: -1, end: -1 },
-    geko: { start: -1, end: -1 }
+    school: { start: -1, end: -1 },
+    home: { start: -1, end: -1 }
   },
   {
     day: TUE,
-    toko: { start: -1, end: -1 },
-    geko: { start: -1, end: -1 }
+    school: { start: -1, end: -1 },
+    home: { start: -1, end: -1 }
   },
   {
     day: WED,
-    toko: { start: -1, end: -1 },
-    geko: { start: -1, end: -1 }
+    school: { start: -1, end: -1 },
+    home: { start: -1, end: -1 }
   },
   {
     day: THU,
-    toko: { start: -1, end: -1 },
-    geko: { start: -1, end: -1 }
+    school: { start: -1, end: -1 },
+    home: { start: -1, end: -1 }
   },
   {
     day: FRI,
-    toko: { start: -1, end: -1 },
-    geko: { start: -1, end: -1 }
+    school: { start: -1, end: -1 },
+    home: { start: -1, end: -1 }
   },
   {
     day: SAT,
-    toko: { start: -1, end: -1 },
-    geko: { start: -1, end: -1 }
+    school: { start: -1, end: -1 },
+    home: { start: -1, end: -1 }
   },
 ];
 
@@ -110,6 +110,9 @@ class ScheduleScreen extends React.Component {
       if (parseInt(demandResponse.status / 100, 10) === 2) {
         let demandResponseJson = await demandResponse.json();
 
+        // for debug
+        console.log(`JSON.stringify(demandResponseJson) = ${JSON.stringify(demandResponseJson)}`);
+
         // Sort `demandResponseJson.schedule` by `day`
         demandResponseJson.schedule.sort((a, b) => {
           if (a.day < b.day) {
@@ -134,38 +137,38 @@ class ScheduleScreen extends React.Component {
         const tmpSchedule = [
           {
             day: SUN,
-            toko: { start: 0, end: 0 },
-            geko: { start: 0, end: 0 }
+            school: { start: 0, end: 0 },
+            home: { start: 0, end: 0 }
           },
           {
             day: MON,
-            toko: { start: 0, end: 0 },
-            geko: { start: 0, end: 0 }
+            school: { start: 0, end: 0 },
+            home: { start: 0, end: 0 }
           },
           {
             day: TUE,
-            toko: { start: 0, end: 0 },
-            geko: { start: 0, end: 0 }
+            school: { start: 0, end: 0 },
+            home: { start: 0, end: 0 }
           },
           {
             day: WED,
-            toko: { start: 0, end: 0 },
-            geko: { start: 0, end: 0 }
+            school: { start: 0, end: 0 },
+            home: { start: 0, end: 0 }
           },
           {
             day: THU,
-            toko: { start: 0, end: 0 },
-            geko: { start: 0, end: 0 }
+            school: { start: 0, end: 0 },
+            home: { start: 0, end: 0 }
           },
           {
             day: FRI,
-            toko: { start: 0, end: 0 },
-            geko: { start: 0, end: 0 }
+            school: { start: 0, end: 0 },
+            home: { start: 0, end: 0 }
           },
           {
             day: SAT,
-            toko: { start: 0, end: 0 },
-            geko: { start: 0, end: 0 }
+            school: { start: 0, end: 0 },
+            home: { start: 0, end: 0 }
           },
         ];
 
@@ -248,7 +251,7 @@ class ScheduleScreen extends React.Component {
     const selectedData = [];
 
     switch (direction) {
-      case TOKO:
+      case SCHOOL:
         data = [
           { key: index++, label: '8:00', timeId: this.timeString2Id('8:00') },
           { key: index++, label: '8:15', timeId: this.timeString2Id('8:15') },
@@ -281,7 +284,7 @@ class ScheduleScreen extends React.Component {
         ];
         break;
 
-      case GEKO:
+      case HOME:
         data = [
           { key: index++, label: '12:00', timeId: this.timeString2Id('12:00') },
           { key: index++, label: '12:15', timeId: this.timeString2Id('12:15') },
@@ -402,10 +405,10 @@ class ScheduleScreen extends React.Component {
     // If at least one of `this.state.editedSchedule` is NOT default value,
     this.state.editedSchedule.forEach((item) => {
       if (
-        item.toko.start !== this.state.initialSchedule[item.day].toko.start ||
-        item.toko.end !== this.state.initialSchedule[item.day].toko.end ||
-        item.geko.start !== this.state.initialSchedule[item.day].geko.start ||
-        item.geko.end !== this.state.initialSchedule[item.day].geko.end
+        item.school.start !== this.state.initialSchedule[item.day].school.start ||
+        item.school.end !== this.state.initialSchedule[item.day].school.end ||
+        item.home.start !== this.state.initialSchedule[item.day].home.start ||
+        item.home.end !== this.state.initialSchedule[item.day].home.end
       ) {
         isDefault = false;
       }
@@ -433,10 +436,10 @@ class ScheduleScreen extends React.Component {
     // If at least one of `this.state.initialSchedule` is NOT default value,
     this.state.initialSchedule.forEach((item) => {
       if (
-        item.toko.start !== INITIAL_STATE.initialSchedule[item.day].toko.start ||
-        item.toko.end !== INITIAL_STATE.initialSchedule[item.day].toko.end ||
-        item.geko.start !== INITIAL_STATE.initialSchedule[item.day].geko.start ||
-        item.geko.end !== INITIAL_STATE.initialSchedule[item.day].geko.end
+        item.school.start !== INITIAL_STATE.initialSchedule[item.day].school.start ||
+        item.school.end !== INITIAL_STATE.initialSchedule[item.day].school.end ||
+        item.home.start !== INITIAL_STATE.initialSchedule[item.day].home.start ||
+        item.home.end !== INITIAL_STATE.initialSchedule[item.day].home.end
       ) {
         isDefault = false;
       }
@@ -463,16 +466,16 @@ class ScheduleScreen extends React.Component {
                 subtitle={
                   <View>
                     <View style={{ flexDirection: 'row', flex: 1, alignItems: 'center', paddingTop: 10 }}>
-                      <Text style={styles.grayTextStyle}>登校：</Text>
+                      <Text style={styles.grayTextStyle}>登校</Text>
                       <View style={{ flex: 1 }}>
                         <ModalSelector
-                          data={this.chooseTimeRange(TOKO, this.timeString2Id('8:00'))}
-                          initValue={this.timeId2String(item.toko.start)}
+                          data={this.chooseTimeRange(SCHOOL, this.timeString2Id('8:00'))}
+                          initValue={this.timeId2String(item.school.start)}
                           onChange={(option) => {
                             const editedSchedule = this.state.editedSchedule;
-                            editedSchedule[item.day].toko.start = this.timeString2Id(option.label);
-                            if (item.toko.end < editedSchedule[item.day].toko.start) {
-                              editedSchedule[item.day].toko.end = this.timeString2Id(option.label);
+                            editedSchedule[item.day].school.start = this.timeString2Id(option.label);
+                            if (item.school.end < editedSchedule[item.day].school.start) {
+                              editedSchedule[item.day].school.end = this.timeString2Id(option.label);
                             }
                             this.setState({ editedSchedule });
                           }}
@@ -484,11 +487,11 @@ class ScheduleScreen extends React.Component {
                       <Text style={styles.grayTextStyle}> ~ </Text>
                       <View style={{ flex: 1 }}>
                         <ModalSelector
-                          data={this.chooseTimeRange(TOKO, item.toko.start)}
-                          initValue={this.timeId2String(item.toko.end)}
+                          data={this.chooseTimeRange(SCHOOL, item.school.start)}
+                          initValue={this.timeId2String(item.school.end)}
                           onChange={(option) => {
                             const editedSchedule = this.state.editedSchedule;
-                            editedSchedule[item.day].toko.end = this.timeString2Id(option.label);
+                            editedSchedule[item.day].school.end = this.timeString2Id(option.label);
                             this.setState({ editedSchedule });
                           }}
                           selectTextStyle={{ fontSize: 12, color: 'gray' }}
@@ -499,16 +502,16 @@ class ScheduleScreen extends React.Component {
                     </View>
 
                     <View style={{ flexDirection: 'row', flex: 1, alignItems: 'center', paddingTop: 10 }}>
-                      <Text style={styles.grayTextStyle}>下校：</Text>
+                      <Text style={styles.grayTextStyle}>下校</Text>
                       <View style={{ flex: 1 }}>
                         <ModalSelector
-                          data={this.chooseTimeRange(GEKO, this.timeString2Id('12:00'))}
-                          initValue={this.timeId2String(item.geko.start)}
+                          data={this.chooseTimeRange(HOME, this.timeString2Id('12:00'))}
+                          initValue={this.timeId2String(item.home.start)}
                           onChange={(option) => {
                             const editedSchedule = this.state.editedSchedule;
-                            editedSchedule[item.day].geko.start = this.timeString2Id(option.label);
-                            if (item.geko.end < editedSchedule[item.day].geko.start) {
-                              editedSchedule[item.day].geko.end = this.timeString2Id(option.label);
+                            editedSchedule[item.day].home.start = this.timeString2Id(option.label);
+                            if (item.home.end < editedSchedule[item.day].home.start) {
+                              editedSchedule[item.day].home.end = this.timeString2Id(option.label);
                             }
                             this.setState({ editedSchedule });
                           }}
@@ -520,11 +523,11 @@ class ScheduleScreen extends React.Component {
                       <Text style={styles.grayTextStyle}> ~ </Text>
                       <View style={{ flex: 1 }}>
                         <ModalSelector
-                          data={this.chooseTimeRange(GEKO, item.geko.start)}
-                          initValue={this.timeId2String(item.geko.end)}
+                          data={this.chooseTimeRange(HOME, item.home.start)}
+                          initValue={this.timeId2String(item.home.end)}
                           onChange={(option) => {
                             const editedSchedule = this.state.editedSchedule;
-                            editedSchedule[item.day].geko.end = this.timeString2Id(option.label);
+                            editedSchedule[item.day].home.end = this.timeString2Id(option.label);
                             this.setState({ editedSchedule });
                           }}
                           selectTextStyle={{ fontSize: 12, color: 'gray' }}
