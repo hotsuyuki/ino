@@ -87,10 +87,10 @@ class EditProfileScreen extends React.Component {
       <ModalSelector
         data={data}
         initValue={this.state.initialRiderInfo.grade}
-        onChange={(itemValue) => this.setState({
+        onChange={(item) => this.setState({
           editedRiderInfo: {
             ...this.state.editedRiderInfo,
-            grade: itemValue.label
+            grade: item.label
           },
         })}
         selectTextStyle={{ fontSize: 12, color: 'gray' }}
@@ -193,10 +193,10 @@ class EditProfileScreen extends React.Component {
         data={data}
         initValue={this.state.initialRiderInfo.major}
         //initValue={this.state.editedRiderInfo.major}
-        onChange={(itemValue) => this.setState({
+        onChange={(item) => this.setState({
           editedRiderInfo: {
             ...this.state.editedRiderInfo,
-            major: itemValue.label
+            major: item.label
           },
         })}
         selectTextStyle={{ fontSize: 12, color: 'gray' }}
@@ -248,7 +248,7 @@ class EditProfileScreen extends React.Component {
             editedRiderInfo.phone = editedRiderInfo.phone.replace(/[^0-9]/g, '');
 
             // for debug
-            console.log(`JSON.stringify(editedRiderInfo) = ${JSON.stringify(editedRiderInfo)}`);
+            //console.log(`JSON.stringify(editedRiderInfo) = ${JSON.stringify(editedRiderInfo)}`);
 
             // PUT the edited profile
             try {
