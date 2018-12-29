@@ -9,6 +9,7 @@ import store from './store';
 import LoginScreen from './screens/LoginScreen';
 import SignupScreen from './screens/SignupScreen';
 import OfferListScreen from './screens/OfferListScreen';
+import ScheduleScreen from './screens/ScheduleScreen';
 import DetailScreen from './screens/DetailScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import EditProfileScreen from './screens/EditProfileScreen';
@@ -61,9 +62,26 @@ export default class App extends React.Component {
               />
             </View>
           ),
+          headerRight: (
+            <View style={{ paddingRight: 10 }}>
+              <Icon
+                name='calendar'
+                type='font-awesome'
+                color='gray'
+                onPress={() => navigation.navigate('schedule')}
+              />
+            </View>
+          ),
           headerTitle: 'ino',
           headerBackTitle: ' '
         })
+      },
+      schedule: {
+        screen: ScheduleScreen,
+        navigationOptions: {
+          ...headerNavigationOptions,
+          headerTitle: 'スケジュール',
+        }
       },
       detail: {
         screen: DetailScreen,
