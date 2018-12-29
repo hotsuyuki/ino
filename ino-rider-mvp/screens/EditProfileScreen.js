@@ -358,19 +358,32 @@ class EditProfileScreen extends React.Component {
             icon: 'close',
             color: 'gray',
             onPress: () => {
-              Alert.alert(
-                'プロフィール編集を中止しますか？',
-                '入力された内容は保存されません。',
-                [
-                  { text: 'いいえ' },
-                  {
-                    text: 'はい',
-                    onPress: () => this.props.navigation.pop(),
-                    style: 'destructive'
-                  }
-                ],
-                { cancelable: false }
-              );
+              // `this.state.editedRiderInfo` is default or not
+              let isDefault = true;
+              // If at least one of `this.state.editedRiderInfo` is NOT default value,
+              Object.keys(this.state.editedRiderInfo).forEach((key) => {
+                if (this.state.editedRiderInfo[key] !== this.state.initialRiderInfo[key]) {
+                  isDefault = false;
+                }
+              });
+
+              if (isDefault) {
+                this.props.navigation.pop();
+              } else {
+                Alert.alert(
+                  'プロフィール編集を中止しますか？',
+                  '入力された内容は保存されません。',
+                  [
+                    { text: 'いいえ' },
+                    {
+                      text: 'はい',
+                      onPress: () => this.props.navigation.pop(),
+                      style: 'destructive'
+                    }
+                  ],
+                  { cancelable: false }
+                );
+              }
             }
           }}
           centerComponent={{ text: 'プロフィール編集', style: styles.headerStyle }}
