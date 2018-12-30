@@ -43,7 +43,7 @@ class LoginScreen extends React.Component {
         // for debug
         //console.log('mail = ' + JSON.stringify({ mail }));
 
-        // If succeed to login with the stored email address,
+        // If succeeded to login with the stored email address,
         if (parseInt(response.status / 100, 10) === 2) {
           let responseJson = await response.json();
           const driverInfo = responseJson.driver;

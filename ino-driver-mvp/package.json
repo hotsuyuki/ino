@@ -16,6 +16,7 @@
     "react-native-datepicker": "^1.7.2",
     "react-native-elements": "^0.19.1",
     "react-native-modal-selector": "^1.0.0",
+    "react-native-pure-chart": "0.0.24",
     "react-navigation": "^2.18.2",
     "react-redux": "^5.1.0",
     "redux": "^4.0.1",

@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { Button, ButtonGroup, ListItem, Icon, FormValidationMessage } from 'react-native-elements';
 import DatePicker from 'react-native-datepicker';
+import PureChart from 'react-native-pure-chart';
 import { AppLoading, Notifications } from 'expo';
 import { connect } from 'react-redux';
 
@@ -14,13 +15,26 @@ import * as actions from '../actions';
 // for push notifications handler
 const RESERVATION_DEADLINE = 'reservation_deadline';
 
-// for TOKO
-const TOKO = 0;
+// for data of <PureChart />
+const DUMMY = ' ';
+
+const SUN = 0;
+const MON = 1;
+const TUE = 2;
+const WED = 3;
+const THU = 4;
+const FRI = 5;
+const SAT = 6;
+
+// for SCHOOL
+const SCHOOL = 0;
+const SCHOOLCOLOR = 'skyblue';
 const VDRUG = 'Vドラッグ';
 const HONBUTOMAE = '金沢大学本部棟前';
 
-// for GEKO
-const GEKO = 1;
+// for HOME
+const HOME = 1;
+const HOMECOLOR = 'orange';
 //const HONBUTOMAE = '金沢大学本部棟前';
 const YAMAYA = 'やまや';
 
@@ -30,8 +44,38 @@ const formValidation = {
 };
 
 const INITIAL_STATE = {
+  // for aggregated demand schedule
+  demandSchedule: {
+    school: [{ // next day's info
+      data: [
+        { x: DUMMY, y: -1 }, // dummy
+        { x: '8:00', y: -1 }, { x: '8:15', y: -1 }, { x: '8:30', y: -1 }, { x: '8:45', y: -1 },
+        { x: '9:00', y: -1 }, { x: '9:15', y: -1 }, { x: '9:30', y: -1 }, { x: '9:45', y: -1 },
+        { x: '10:00', y: -1 }, { x: '10:15', y: -1 }, { x: '10:30', y: -1 }, { x: '10:45', y: -1 },
+        { x: '11:00', y: -1 }, { x: '11:15', y: -1 }, { x: '11:30', y: -1 }, { x: '11:45', y: -1 },
+        { x: '12:00', y: -1 }, { x: '12:15', y: -1 }, { x: '12:30', y: -1 }, { x: '12:45', y: -1 },
+        { x: '13:00', y: -1 }, { x: '13:15', y: -1 }, { x: '13:30', y: -1 }, { x: '13:45', y: -1 },
+        { x: '14:00', y: -1 }, { x: '14:15', y: -1 }, { x: '14:30', y: -1 }, { x: '14:45', y: -1 },
+      ],
+      color: SCHOOLCOLOR,
+    }],
+    home: [{ // today's info
+      data: [
+        { x: DUMMY, y: -1 }, // dummy
+        { x: '12:00', y: -1 }, { x: '12:15', y: -1 }, { x: '12:30', y: -1 }, { x: '12:45', y: -1 },
+        { x: '13:00', y: -1 }, { x: '13:15', y: -1 }, { x: '13:30', y: -1 }, { x: '13:45', y: -1 },
+        { x: '14:00', y: -1 }, { x: '14:15', y: -1 }, { x: '14:30', y: -1 }, { x: '14:45', y: -1 },
+        { x: '15:00', y: -1 }, { x: '15:15', y: -1 }, { x: '15:30', y: -1 }, { x: '15:45', y: -1 },
+        { x: '16:00', y: -1 }, { x: '16:15', y: -1 }, { x: '16:30', y: -1 }, { x: '16:45', y: -1 },
+        { x: '17:00', y: -1 }, { x: '17:15', y: -1 }, { x: '17:30', y: -1 }, { x: '17:45', y: -1 },
+        { x: '18:00', y: -1 }, { x: '18:15', y: -1 }, { x: '18:30', y: -1 }, { x: '18:45', y: -1 },
+      ],
+      color: HOMECOLOR,
+    }]
+  },
+
   // for <ButtonGroup />
-  direction: TOKO,
+  direction: SCHOOL,
 
   // for <Picker />
   startPickerVisible: false,
@@ -61,6 +105,10 @@ class OfferScreen extends React.Component {
     // Reset the badge number to zero (iOS only)
     Notifications.setBadgeNumberAsync(0);
 
+    // This is not an acntion creator
+    // Just GET the aggregated demand schedule from the server and store into `this.state`
+    this.fetchAgrDemandSchedule(INITIAL_STATE.direction);
+
     // Call action creators
     this.props.getDriverInfo();
   }
@@ -70,6 +118,123 @@ class OfferScreen extends React.Component {
     // Ease in & Ease out animation
     UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
     LayoutAnimation.easeInEaseOut();
+  }
+
+
+  timeString2Id(timeString) {
+    // `timeString` = "2:45" ---> `timeArray` = [2, 45]
+    const timeArray = timeString.split(':');
+
+    // `timeArray` = [2, 45] ---> `timeId` = 11
+    const timeId = (timeArray[0] * 4) + (timeArray[1] / 15);
+
+    return timeId;
+  }
+
+
+  // Just GET the aggregated demand schedule from the server and store into `this.state`
+  async fetchAgrDemandSchedule(direction) {
+    // for debug
+    console.log(`[Before] JSON.stringify(this.state.demandSchedule) = ${JSON.stringify(this.state.demandSchedule)}`);
+
+    const directionString = (direction === SCHOOL) ? 'school' : 'home';
+
+    // GET the own demand schedule
+    try {
+      let agrDemandResponse = await fetch(`https://inori.work/demand/aggregate/${directionString}`);
+
+      // If succeeded to GET the own demand schedule,
+      if (parseInt(agrDemandResponse.status / 100, 10) === 2) {
+        let agrDemandResponseJson = await agrDemandResponse.json();
+
+        // for debug
+        console.log(`JSON.stringify(agrDemandResponseJson) = ${JSON.stringify(agrDemandResponseJson)}`);
+
+        const today = new Date();
+        const todayId = today.getDay();
+
+        let schoolDayId;
+        let homeDayId;
+        switch (todayId) {
+          case FRI:
+            schoolDayId = MON;
+            homeDayId = FRI;
+            break;
+
+          case SAT:
+          case SUN:
+            schoolDayId = MON;
+            homeDayId = MON;
+            break;
+
+          default:
+            schoolDayId = todayId + 1;
+            homeDayId = todayId;
+            break;
+        }
+
+        if (direction === SCHOOL) {
+          const demandScheduleSchool = this.state.demandSchedule.school[0];
+          demandScheduleSchool.data.forEach((item, index) => {
+            if (item.x === DUMMY) {
+              demandScheduleSchool.data[index].y = 0;
+            } else {
+              const timeId = this.timeString2Id(item.x);
+              demandScheduleSchool.data[index].y = agrDemandResponseJson.days[schoolDayId][timeId];
+            }
+          });
+
+          this.setState({
+            demandSchedule: {
+              ...this.state.demandSchedule,
+              school: [demandScheduleSchool]
+            }
+          });
+        } else if (direction === HOME) {
+          const demandScheduleHome = this.state.demandSchedule.home[0];
+          demandScheduleHome.data.forEach((item, index) => {
+            if (item.x === DUMMY) {
+              demandScheduleHome.data[index].y = 0;
+            } else {
+              const timeId = this.timeString2Id(item.x);
+              demandScheduleHome.data[index].y = agrDemandResponseJson.days[homeDayId][timeId];
+            }
+          });
+
+          this.setState({
+            demandSchedule: {
+              ...this.state.demandSchedule,
+              home: [demandScheduleHome]
+            }
+          });
+        }
+
+        // for debug
+        console.log(`[After] JSON.stringify(this.state.demandSchedule) = ${JSON.stringify(this.state.demandSchedule)}`);
+
+      // If failed to GET the own demand schedule,
+      } else if (parseInt(agrDemandResponse.status / 100, 10) === 4 ||
+                 parseInt(agrDemandResponse.status / 100, 10) === 5) {
+        console.log('Failed to GET the demand schedule...');
+
+        Alert.alert(
+          'グラフデータを取得することができませんでした。',
+          '電波の良いところで後ほどお試しください。相乗りオファーを出すことは可能です。',
+          [{ text: 'OK' }]
+        );
+      }
+
+    // If cannot access demand api,
+    } catch (error) {
+      console.error(error);
+      console.log('Cannot access demand api...');
+
+      Alert.alert(
+        'グラフデータを取得することができませんでした。',
+        '電波の良いところで後ほどお試しください。相乗りオファーを出すことは可能です。',
+        [{ text: 'OK' }]
+      );
+    }
   }
 
 
@@ -112,7 +277,7 @@ class OfferScreen extends React.Component {
 
   renderStartPicker() {
     if (this.state.startPickerVisible) {
-      if (this.state.direction === TOKO) {
+      if (this.state.direction === SCHOOL) {
         return (
           <Picker
             selectedValue={this.state.offerDetail.start}
@@ -126,7 +291,7 @@ class OfferScreen extends React.Component {
             <Picker.Item label={`${VDRUG}`} value={`${VDRUG}`} />
           </Picker>
         );
-      } else if (this.state.direction === GEKO) {
+      } else if (this.state.direction === HOME) {
         return (
           <Picker
             selectedValue={this.state.offerDetail.start}
@@ -147,7 +312,7 @@ class OfferScreen extends React.Component {
 
   renderGoalPicker() {
     if (this.state.goalPickerVisible) {
-      if (this.state.direction === TOKO) {
+      if (this.state.direction === SCHOOL) {
         return (
           <Picker
             selectedValue={this.state.offerDetail.goal}
@@ -161,7 +326,7 @@ class OfferScreen extends React.Component {
             <Picker.Item label={`${HONBUTOMAE}`} value={`${HONBUTOMAE}`} />
           </Picker>
         );
-      } else if (this.state.direction === GEKO) {
+      } else if (this.state.direction === HOME) {
         return (
           <Picker
             selectedValue={this.state.offerDetail.goal}
@@ -475,7 +640,7 @@ class OfferScreen extends React.Component {
     // for debug
     //console.log(`(typeof this.props.driverInfo.id) = ${(typeof this.props.driverInfo.id)}`);
 
-    // Wait to fetch own driver info
+    // Wait to fetch own driver info and aggregated demand schedule (to school)
     if ((typeof this.props.driverInfo.id) === 'undefined') {
       return <AppLoading />;
     }
@@ -483,6 +648,25 @@ class OfferScreen extends React.Component {
     return (
       <View style={{ flex: 1 }}>
         <ScrollView style={{ flex: 1 }}>
+          <PureChart
+            type="line"
+            data={this.state.direction === SCHOOL ? this.state.demandSchedule.school : this.state.demandSchedule.home}
+            //height={100}
+            gap={15} // Space between each x values
+            backgroundColor="#efefef"
+            xAxisGridLineColor="#bfbfbf"
+            yAxisGridLineColor="transparent"
+            //hidePoints
+            onPress={(xAxisIndex) => {
+              console.log(`xAxisIndex = ${xAxisIndex}`);
+
+              const timeString = this.state.direction === SCHOOL ?
+              this.state.demandSchedule.school[0].data[xAxisIndex].x :
+              this.state.demandSchedule.home[0].data[xAxisIndex].x;
+              console.log(`timeString = ${timeString}`);
+            }}
+          />
+
           <ListItem
             title={
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -536,17 +720,19 @@ class OfferScreen extends React.Component {
           <ButtonGroup
             buttons={['登校', '下校']}
             selectedIndex={this.state.direction}
-            onPress={(selectedIndex) =>
+            onPress={(selectedIndex) => {
+              this.fetchAgrDemandSchedule(selectedIndex);
+
               this.setState({
                 direction: selectedIndex,
                 offerDetail: {
                   ...this.state.offerDetail,
-                  start: selectedIndex === TOKO ? VDRUG : HONBUTOMAE,
-                  goal: selectedIndex === TOKO ? HONBUTOMAE : YAMAYA,
+                  start: selectedIndex === SCHOOL ? VDRUG : HONBUTOMAE,
+                  goal: selectedIndex === SCHOOL ? HONBUTOMAE : YAMAYA,
                 }
-              })
-            }
-            selectedButtonStyle={{ backgroundColor: 'rgb(0,122,255)' }}
+              });
+            }}
+            selectedButtonStyle={{ backgroundColor: this.state.direction === SCHOOL ? SCHOOLCOLOR : HOMECOLOR }}
             selectedTextStyle={{ color: 'white' }}
           />
 
