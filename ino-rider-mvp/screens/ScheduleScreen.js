@@ -320,16 +320,15 @@ class ScheduleScreen extends React.Component {
               schedule: this.state.editedSchedule
             };
 
-            // TODO: POST or PUT `this.state.editedSchedule` to the server
+            // TODO: POST `this.state.editedSchedule` to the server
             try {
               let response = await fetch('https://inori.work/demand', {
                 method: 'POST',
-                //method: 'PUT',
                 headers: {},
                 body: JSON.stringify(demand),
               });
 
-              // If failed to PUT the edited driver info,
+              // If failed to POST the edited driver info,
               if (parseInt(response.status / 100, 10) === 4 ||
                   parseInt(response.status / 100, 10) === 5) {
                 Alert.alert(

@@ -89,7 +89,8 @@ const INITIAL_STATE = {
     start: VDRUG,
     goal: HONBUTOMAE,
     departure_time: '-/-  --:--',
-    rider_capacity: '---',
+    //rider_capacity: '---',
+    rider_capacity: '2人',
   },
 };
 
@@ -460,7 +461,7 @@ class OfferScreen extends React.Component {
                 },
               })}
             >
-              <Picker.Item label="---" value="---" />
+              {/*<Picker.Item label="---" value="---" />*/}
               <Picker.Item label="1人" value="1人" />
               <Picker.Item label="2人" value="2人" />
             </Picker>
@@ -490,7 +491,7 @@ class OfferScreen extends React.Component {
             const replacedDepartureTime = this.state.chosenDepartureTime.replace(/\//g, '-');
 
             // Trim "人" at the last character
-            const trimedRiderCapacity = parseInt(this.state.offerDetail.rider_capacity.substring(0, this.state.offerDetail.rider_capacity.length - 1));
+            const trimedRiderCapacity = parseInt(this.state.offerDetail.rider_capacity.replace(/人/g, ''), 10);
 
             const offerDetail = {
               id: 0, // for convenience to the server
@@ -606,7 +607,7 @@ class OfferScreen extends React.Component {
     let isCompleted = false;
     // If both `departure_time` and `rider_capacity` are NOT default value,
     if (this.state.offerDetail.departure_time !== INITIAL_STATE.offerDetail.departure_time &&
-        this.state.offerDetail.rider_capacity !== INITIAL_STATE.offerDetail.rider_capacity &&
+        //this.state.offerDetail.rider_capacity !== INITIAL_STATE.offerDetail.rider_capacity &&
         formValidation.isDepartureTimeValid) {
       isCompleted = true;
     }
@@ -664,6 +665,8 @@ class OfferScreen extends React.Component {
               this.state.demandSchedule.school[0].data[xAxisIndex].x :
               this.state.demandSchedule.home[0].data[xAxisIndex].x;
               console.log(`timeString = ${timeString}`);
+
+
             }}
           />
 
@@ -747,11 +750,7 @@ class OfferScreen extends React.Component {
                 }
                 subtitle={
                   <View style={styles.listItemStyle}>
-                    <Text
-                      style={{
-                        color: this.state.offerDetail.departure_time === INITIAL_STATE.offerDetail.departure_time ? 'gray' : 'black'
-                      }}
-                    >
+                    <Text style={{ color: this.state.offerDetail.departure_time === INITIAL_STATE.offerDetail.departure_time ? 'gray' : 'black' }}>
                       {this.state.offerDetail.departure_time}
                     </Text>
                   </View>
@@ -781,11 +780,7 @@ class OfferScreen extends React.Component {
                 }
                 subtitle={
                   <View style={styles.listItemStyle}>
-                    <Text
-                      style={{
-                        color: this.state.offerDetail.rider_capacity === INITIAL_STATE.offerDetail.rider_capacity ? 'gray' : 'black'
-                      }}
-                    >
+                    <Text>
                       {this.state.offerDetail.rider_capacity}
                     </Text>
                   </View>
