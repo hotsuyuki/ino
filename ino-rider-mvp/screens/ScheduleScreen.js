@@ -22,6 +22,7 @@ const SAT = 6;
 const SCHOOL = 0;
 const HOME = 1;
 
+// for INITIAL_STATE
 const scheduleTemplate = [
   {
     day: SUN,
@@ -80,8 +81,8 @@ class ScheduleScreen extends React.Component {
     //this.props.getRiderInfo();
 
     // This is not an acntion creator
-    // Just GET the demand schedule from the server and store into `this.state`
-    this.fetchDemandSchedule();
+    // Just GET the own demand schedule from the server and store into `this.state`
+    this.fetchOwnDemandSchedule();
 
     // Reflesh `this.props.ownReservations` and `this.props.allOffers` in `OfferListScreen`
     // and make `OfferListScreen` rerender by calling action creators
@@ -101,20 +102,20 @@ class ScheduleScreen extends React.Component {
   }
 
 
-  async fetchDemandSchedule() {
+  async fetchOwnDemandSchedule() {
     // GET the own demand schedule
     try {
-      let demandResponse = await fetch(`https://inori.work/demand/${this.props.riderInfo.id}`);
+      let ownDemandResponse = await fetch(`https://inori.work/demand/${this.props.riderInfo.id}`);
 
-      // If succeed to GET the own demand schedule,
-      if (parseInt(demandResponse.status / 100, 10) === 2) {
-        let demandResponseJson = await demandResponse.json();
+      // If succeeded to GET the own demand schedule,
+      if (parseInt(ownDemandResponse.status / 100, 10) === 2) {
+        let ownDemandResponseJson = await ownDemandResponse.json();
 
         // for debug
-        console.log(`JSON.stringify(demandResponseJson) = ${JSON.stringify(demandResponseJson)}`);
+        //console.log(`JSON.stringify(ownDemandResponseJson) = ${JSON.stringify(ownDemandResponseJson)}`);
 
-        // Sort `demandResponseJson.schedule` by `day`
-        demandResponseJson.schedule.sort((a, b) => {
+        // Sort `ownDemandResponseJson.schedule` by `day`
+        ownDemandResponseJson.schedule.sort((a, b) => {
           if (a.day < b.day) {
             return -1;
           }
@@ -125,74 +126,38 @@ class ScheduleScreen extends React.Component {
         });
 
         this.setState({
-          initialSchedule: JSON.parse(JSON.stringify(demandResponseJson.schedule)), // deep copy without reference
-          editedSchedule: demandResponseJson.schedule
+          initialSchedule: JSON.parse(JSON.stringify(ownDemandResponseJson.schedule)), // deep copy without reference
+          editedSchedule: ownDemandResponseJson.schedule
         });
 
       // If failed to GET the own demand schedule,
-      } else if (parseInt(demandResponse.status / 100, 10) === 4 ||
-                 parseInt(demandResponse.status / 100, 10) === 5) {
+      } else if (parseInt(ownDemandResponse.status / 100, 10) === 4 ||
+                 parseInt(ownDemandResponse.status / 100, 10) === 5) {
         console.log('Failed to GET the demand schedule...');
 
-        const tmpSchedule = [
-          {
-            day: SUN,
-            school: { start: 0, end: 0 },
-            home: { start: 0, end: 0 }
-          },
-          {
-            day: MON,
-            school: { start: 0, end: 0 },
-            home: { start: 0, end: 0 }
-          },
-          {
-            day: TUE,
-            school: { start: 0, end: 0 },
-            home: { start: 0, end: 0 }
-          },
-          {
-            day: WED,
-            school: { start: 0, end: 0 },
-            home: { start: 0, end: 0 }
-          },
-          {
-            day: THU,
-            school: { start: 0, end: 0 },
-            home: { start: 0, end: 0 }
-          },
-          {
-            day: FRI,
-            school: { start: 0, end: 0 },
-            home: { start: 0, end: 0 }
-          },
-          {
-            day: SAT,
-            school: { start: 0, end: 0 },
-            home: { start: 0, end: 0 }
-          },
-        ];
-
-        // Sort `tmpSchedule` by `day`
-        tmpSchedule.sort((a, b) => {
-          if (a.day < b.day) {
-            return -1;
-          }
-          if (a.day > b.day) {
-            return 1;
-          }
-          return 0;
-        });
-
-        this.setState({
-          initialSchedule: JSON.parse(JSON.stringify(tmpSchedule)), // deep copy without reference
-          editedSchedule: tmpSchedule
-        });
+        Alert.alert(
+          'データを取得することができませんでした。',
+          '電波の良いところで後ほどお試しください。',
+          [{
+            text: 'OK',
+            onPress: () => this.props.navigation.pop()
+          }]
+        );
       }
 
     // If cannot access demand api,
     } catch (error) {
       console.error(error);
       console.log('Cannot access demand api...');
+
+      Alert.alert(
+        'サーバーへアクセスできませんでした。',
+        '電波の良いところで後ほどお試しください。',
+        [{
+          text: 'OK',
+          onPress: () => this.props.navigation.pop()
+        }]
+      );
     }
   }
 
@@ -350,7 +315,6 @@ class ScheduleScreen extends React.Component {
             console.log(`JSON.stringify(this.state.initialSchedule) = ${JSON.stringify(this.state.initialSchedule)}`);
             console.log(`JSON.stringify(this.state.editedSchedule) = ${JSON.stringify(this.state.editedSchedule)}`);
 
-            /*
             const demand = {
               rider_id: this.props.riderInfo.id,
               schedule: this.state.editedSchedule
@@ -371,9 +335,7 @@ class ScheduleScreen extends React.Component {
                 Alert.alert(
                   '電波の良いところで後ほどお試しください。',
                   '編集内容は保存されていません。',
-                  [
-                    { text: 'OK' },
-                  ]
+                  [{ text: 'OK' }]
                 );
               }
 
@@ -385,12 +347,9 @@ class ScheduleScreen extends React.Component {
               Alert.alert(
                 '電波の良いところで後ほどお試しください。',
                 '編集内容は保存されていません。',
-                [
-                  { text: 'OK' },
-                ]
+                [{ text: 'OK' }]
               );
             }
-            */
           }
         }
       ],
@@ -404,12 +363,9 @@ class ScheduleScreen extends React.Component {
     let isDefault = true;
     // If at least one of `this.state.editedSchedule` is NOT default value,
     this.state.editedSchedule.forEach((item) => {
-      if (
-        item.school.start !== this.state.initialSchedule[item.day].school.start ||
-        item.school.end !== this.state.initialSchedule[item.day].school.end ||
-        item.home.start !== this.state.initialSchedule[item.day].home.start ||
-        item.home.end !== this.state.initialSchedule[item.day].home.end
-      ) {
+      // Compare JS objects
+      // https://stackoverflow.com/questions/1068834/object-comparison-in-javascript
+      if (JSON.stringify(item) !== JSON.stringify(this.state.initialSchedule[item.day])) {
         isDefault = false;
       }
     });
@@ -435,12 +391,9 @@ class ScheduleScreen extends React.Component {
     let isDefault = true;
     // If at least one of `this.state.initialSchedule` is NOT default value,
     this.state.initialSchedule.forEach((item) => {
-      if (
-        item.school.start !== INITIAL_STATE.initialSchedule[item.day].school.start ||
-        item.school.end !== INITIAL_STATE.initialSchedule[item.day].school.end ||
-        item.home.start !== INITIAL_STATE.initialSchedule[item.day].home.start ||
-        item.home.end !== INITIAL_STATE.initialSchedule[item.day].home.end
-      ) {
+      // Compare JS objects
+      // https://stackoverflow.com/questions/1068834/object-comparison-in-javascript
+      if (JSON.stringify(item) !== JSON.stringify(INITIAL_STATE.initialSchedule[item.day])) {
         isDefault = false;
       }
     });

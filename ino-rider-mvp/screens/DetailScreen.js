@@ -73,7 +73,7 @@ class DetailScreen extends React.Component {
     try {
       let offerResponse = await fetch(`https://inori.work/offers/${selectedOfferId}`);
 
-      // If succeed to reGET the selected offer,
+      // If succeeded to reGET the selected offer,
       if (parseInt(offerResponse.status / 100, 10) === 2) {
         let offerResponseJson = await offerResponse.json();
         const selectedItem = offerResponseJson;
