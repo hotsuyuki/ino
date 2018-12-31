@@ -162,25 +162,25 @@ class ScheduleScreen extends React.Component {
   }
 
 
-  dayId2Text(dayId) {
+  dayId2String(dayId) {
     switch (dayId) {
       case MON:
-        return '(月)';
+        return '（月）';
 
       case TUE:
-        return '(火)';
+        return '（火）';
 
       case WED:
-        return '(水)';
+        return '（水）';
 
       case THU:
-        return '(木)';
+        return '（木）';
 
       case FRI:
-        return '(金)';
+        return '（金）';
 
       default:
-        return null;
+        return '';
     }
   }
 
@@ -414,7 +414,7 @@ class ScheduleScreen extends React.Component {
             return (
               <ListItem
                 key={index}
-                title={this.dayId2Text(item.day)}
+                title={this.dayId2String(item.day)}
                 subtitle={
                   <View>
                     <View style={{ flexDirection: 'row', flex: 1, alignItems: 'center', paddingTop: 10 }}>

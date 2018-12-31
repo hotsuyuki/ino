@@ -45,6 +45,8 @@ const formValidation = {
 
 const INITIAL_STATE = {
   // for aggregated demand schedule
+  schoolDayId: SUN,
+  homeDayId: SUN,
   demandSchedule: {
     school: [{ // next day's info
       data: [
@@ -89,7 +91,6 @@ const INITIAL_STATE = {
     start: VDRUG,
     goal: HONBUTOMAE,
     departure_time: '-/-  --:--',
-    //rider_capacity: '---',
     rider_capacity: '2人',
   },
 };
@@ -122,21 +123,10 @@ class OfferScreen extends React.Component {
   }
 
 
-  timeString2Id(timeString) {
-    // `timeString` = "2:45" ---> `timeArray` = [2, 45]
-    const timeArray = timeString.split(':');
-
-    // `timeArray` = [2, 45] ---> `timeId` = 11
-    const timeId = (timeArray[0] * 4) + (timeArray[1] / 15);
-
-    return timeId;
-  }
-
-
   // Just GET the aggregated demand schedule from the server and store into `this.state`
   async fetchAgrDemandSchedule(direction) {
     // for debug
-    console.log(`[Before] JSON.stringify(this.state.demandSchedule) = ${JSON.stringify(this.state.demandSchedule)}`);
+    //console.log(`[Before] JSON.stringify(this.state.demandSchedule) = ${JSON.stringify(this.state.demandSchedule)}`);
 
     const directionString = (direction === SCHOOL) ? 'school' : 'home';
 
@@ -149,10 +139,9 @@ class OfferScreen extends React.Component {
         let agrDemandResponseJson = await agrDemandResponse.json();
 
         // for debug
-        console.log(`JSON.stringify(agrDemandResponseJson) = ${JSON.stringify(agrDemandResponseJson)}`);
+        //console.log(`JSON.stringify(agrDemandResponseJson) = ${JSON.stringify(agrDemandResponseJson)}`);
 
-        const today = new Date();
-        const todayId = today.getDay();
+        const todayId = new Date().getDay();
 
         let schoolDayId;
         let homeDayId;
@@ -186,6 +175,8 @@ class OfferScreen extends React.Component {
           });
 
           this.setState({
+            schoolDayId,
+            homeDayId,
             demandSchedule: {
               ...this.state.demandSchedule,
               school: [demandScheduleSchool]
@@ -203,6 +194,8 @@ class OfferScreen extends React.Component {
           });
 
           this.setState({
+            schoolDayId,
+            homeDayId,
             demandSchedule: {
               ...this.state.demandSchedule,
               home: [demandScheduleHome]
@@ -211,7 +204,7 @@ class OfferScreen extends React.Component {
         }
 
         // for debug
-        console.log(`[After] JSON.stringify(this.state.demandSchedule) = ${JSON.stringify(this.state.demandSchedule)}`);
+        //console.log(`[After] JSON.stringify(this.state.demandSchedule) = ${JSON.stringify(this.state.demandSchedule)}`);
 
       // If failed to GET the own demand schedule,
       } else if (parseInt(agrDemandResponse.status / 100, 10) === 4 ||
@@ -236,6 +229,97 @@ class OfferScreen extends React.Component {
         [{ text: 'OK' }]
       );
     }
+  }
+
+
+  dayId2String(dayId) {
+    switch (dayId) {
+      case MON:
+        return '（月）';
+
+      case TUE:
+        return '（火）';
+
+      case WED:
+        return '（水）';
+
+      case THU:
+        return '（木）';
+
+      case FRI:
+        return '（金）';
+
+      default:
+        return '';
+    }
+  }
+
+
+  timeString2Id(timeString) {
+    // `timeString` = "2:45" ---> `timeArray` = [2, 45]
+    const timeArray = timeString.split(':');
+
+    // `timeArray` = [2, 45] ---> `timeId` = 11
+    const timeId = (timeArray[0] * 4) + (timeArray[1] / 15);
+
+    return timeId;
+  }
+
+
+  setDepartureTime(xAxisIndex) {
+    // `timeString` = "8:00"
+    let timeString = this.state.direction === SCHOOL ?
+    this.state.demandSchedule.school[0].data[xAxisIndex].x :
+    this.state.demandSchedule.home[0].data[xAxisIndex].x;
+
+    // Add second (last 3 characters)
+    // "8:00" ---> "8:00:00"
+    timeString = `${timeString}:00`;
+
+    // `today` = "2018/10/04 17:00:00"
+    const today = new Date().toLocaleString('ja');
+
+    let departureDate = new Date(today);
+    switch (new Date().getDay()) {
+      case FRI:
+        if (this.state.direction === SCHOOL) {
+          departureDate.setDate(departureDate.getDate() + 3);
+        }
+        departureDate = departureDate.toLocaleString('ja');
+        break;
+
+      case SAT:
+        departureDate.setDate(departureDate.getDate() + 2);
+        departureDate = departureDate.toLocaleString('ja');
+        break;
+
+      case SUN:
+        departureDate.setDate(departureDate.getDate() + 1);
+        departureDate = departureDate.toLocaleString('ja');
+        break;
+
+      default:
+        if (this.state.direction === SCHOOL) {
+          departureDate.setDate(departureDate.getDate() + 1);
+        }
+        departureDate = departureDate.toLocaleString('ja');
+        break;
+    }
+
+    // Overwrite date (with correctly incremented date) and time (with selected time)
+    // `today` = "2018/10/04 17:00:00" ---> `departureTimeString` = "2018/10/05 8:00:00"
+    const departureTimeString = `${departureDate.split(' ')[0]} ${timeString}`;
+    //console.log(`departureTimeString = ${departureTimeString}`);
+
+    this.setState({
+      offerDetail: {
+        ...this.state.offerDetail,
+        // Trim year (first 5 characters) and second (last 3 characters)
+        // "2018/10/05 8:00:00" ---> "10/05 8:00"
+        departure_time: departureTimeString.substring(5, departureTimeString.length - 3)
+      },
+      chosenDepartureTime: departureTimeString,
+    });
   }
 
 
@@ -386,16 +470,16 @@ class OfferScreen extends React.Component {
               //console.log(`[iOS] dateTime = ${dateTime}`);
 
               // "Thu Oct 04 2018 17:00:00 GMT+0900 (JST)" ---> "2018/10/04 17:00:00"
-              const departureTimeText = dateTime.toLocaleString('ja');
+              const departureTimeString = dateTime.toLocaleString('ja');
 
               this.setState({
                 offerDetail: {
                   ...this.state.offerDetail,
                   // Trim year (first 5 characters) and second (last 3 characters)
                   // "2018/10/04 17:00:00" ---> "10/04 17:00"
-                  departure_time: departureTimeText.substring(5, departureTimeText.length - 3)
+                  departure_time: departureTimeString.substring(5, departureTimeString.length - 3)
                 },
-                chosenDepartureTime: departureTimeText,
+                chosenDepartureTime: departureTimeString,
               });
             }}
           />
@@ -422,16 +506,16 @@ class OfferScreen extends React.Component {
 
                   // Replace hyphens by slashes
                   // "2018-10-04 17:00:00" ---> "2018/10/04 17:00:00"
-                  const departureTimeText = departureTime.replace(/-/g, '/');
+                  const departureTimeString = departureTime.replace(/-/g, '/');
 
                   this.setState({
                     offerDetail: {
                       ...this.state.offerDetail,
                       // Trim year (first 5 characters) and second (last 3 characters)
                       // "2018/10/04 17:00:00" ---> "10/04 17:00"
-                      departure_time: departureTimeText.substring(5, departureTimeText.length - 3)
+                      departure_time: departureTimeString.substring(5, departureTimeString.length - 3)
                     },
-                    chosenDepartureTime: departureTimeText,
+                    chosenDepartureTime: departureTimeString,
                   });
                 }}
               />
@@ -649,6 +733,9 @@ class OfferScreen extends React.Component {
     return (
       <View style={{ flex: 1 }}>
         <ScrollView style={{ flex: 1 }}>
+          <Text style={styles.grayTextStyle}>
+            {this.dayId2String(this.state.direction === SCHOOL ? this.state.schoolDayId : this.state.homeDayId)}の人気時間帯
+          </Text>
           <PureChart
             type="line"
             data={this.state.direction === SCHOOL ? this.state.demandSchedule.school : this.state.demandSchedule.home}
@@ -658,16 +745,7 @@ class OfferScreen extends React.Component {
             xAxisGridLineColor="#bfbfbf"
             yAxisGridLineColor="transparent"
             //hidePoints
-            onPress={(xAxisIndex) => {
-              console.log(`xAxisIndex = ${xAxisIndex}`);
-
-              const timeString = this.state.direction === SCHOOL ?
-              this.state.demandSchedule.school[0].data[xAxisIndex].x :
-              this.state.demandSchedule.home[0].data[xAxisIndex].x;
-              console.log(`timeString = ${timeString}`);
-
-
-            }}
+            onPress={(xAxisIndex) => this.setDepartureTime(xAxisIndex)}
           />
 
           <ListItem
@@ -740,7 +818,7 @@ class OfferScreen extends React.Component {
           />
 
           <View style={{ flexDirection: 'row' }}>
-            <View style={{ flex: 1 }}>
+            <View style={{ flex: 4 }}>
               <ListItem
                 title={
                   <View style={{ flexDirection: 'row' }}>
@@ -770,7 +848,7 @@ class OfferScreen extends React.Component {
               />
             </View>
 
-            <View style={{ flex: 1, paddingLeft: 10 }}>
+            <View style={{ flex: 3, paddingLeft: 10 }}>
               <ListItem
                 title={
                   <View style={{ flexDirection: 'row' }}>
