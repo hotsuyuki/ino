@@ -405,6 +405,10 @@ class ScheduleScreen extends React.Component {
     return (
       <View style={{ flex: 1 }}>
         <ScrollView style={{ flex: 1 }}>
+          <Text style={styles.grayTextStyle}>
+            よく登下校する時間帯を登録するとドライバーさん達がオファーを出しやすくなります。
+          </Text>
+
           {this.state.editedSchedule.map((item, index) => {
             // If the item is Sunday or Saturday, render nothing
             if (item.day === SUN || item.day === SAT) {
