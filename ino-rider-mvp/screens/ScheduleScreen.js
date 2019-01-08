@@ -349,6 +349,8 @@ class ScheduleScreen extends React.Component {
                 [{ text: 'OK' }]
               );
             }
+
+            this.props.navigation.pop();
           }
         }
       ],
