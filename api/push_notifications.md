@@ -49,27 +49,30 @@ body: JSON.stringify({
   to: 'ExponentPushToken[xxxdriverxxx]',
 
   // A JSON object delivered to your app.
-  data?: {
+  data: {
     type: 'reserved_offer',
     offer_id: 10,
     message_title: 'あなたの相乗りオファーが予約されました。' // `title?` と一緒の値
   },
 
   // The title to display in the notification.
-  title?: 'あなたの相乗りオファーが予約されました。',
+  title: 'あなたの相乗りオファーが予約されました。',
 
   // The message to display in the notification.
-  body?: '',
+  body: '',
+
+  // The delivery priority of the message.
+  priority: 'high',
 
   // A sound to play when the recipient receives this notification. (iOS only)
-  sound?: 'default',
+  sound: 'default',
 
   // Number to display in the badge on the app icon. (iOS only)
-  badge?: 1,
+  badge: 1,
 
   // ID of the Notification Channel through which to display this notification on Android devices.
   // If left null, a "Default" channel will be used. (Android only)
-  channelId?: null
+  channelId: null
 }
 ```
 
@@ -83,27 +86,30 @@ body: JSON.stringify({
   to: 'ExponentPushToken[xxxdriverxxx]',
 
   // A JSON object delivered to your app.
-  data?: {
+  data: {
     type: 'canceled_reservation',
     offer_id: 10,
     message_title: 'あなたの相乗りオファーへの予約がキャンセルされました。' // `title?` と一緒の値
   },
 
   // The title to display in the notification.
-  title?: 'あなたの相乗りオファーへの予約がキャンセルされました。',
+  title: 'あなたの相乗りオファーへの予約がキャンセルされました。',
 
   // The message to display in the notification.
-  body?: '',
+  body: '',
+
+  // The delivery priority of the message.
+  priority: 'high',
 
   // A sound to play when the recipient receives this notification. (iOS only)
-  sound?: 'default',
+  sound: 'default',
 
   // Number to display in the badge on the app icon. (iOS only)
-  badge?: 1,
+  badge: 1,
 
   // ID of the Notification Channel through which to display this notification on Android devices.
   // If left null, a "Default" channel will be used. (Android only)
-  channelId?: null
+  channelId: null
 }
 ```
 
@@ -117,26 +123,63 @@ body: JSON.stringify({
   to: 'ExponentPushToken[yyyrideryyy]',
 
   // A JSON object delivered to your app.
-  data?: {
+  data: {
     type: 'canceled_offer',
     offer_id: 10, // 使用しないが、便宜上
     message_title: '予約済みのオファーがキャンセルされました。' // `title?` と一緒の値
   },
 
   // The title to display in the notification.
-  title?: '予約済みのオファーがキャンセルされました。',
+  title: '予約済みのオファーがキャンセルされました。',
 
   // The message to display in the notification.
-  body?: '',
+  body: '',
+  
+  // The delivery priority of the message.
+  priority: 'high',
 
   // A sound to play when the recipient receives this notification. (iOS only)
-  sound?: 'default',
+  sound: 'default',
 
   // Number to display in the badge on the app icon. (iOS only)
-  badge?: 1,
+  badge: 1,
 
   // ID of the Notification Channel through which to display this notification on Android devices.
   // If left null, a "Default" channel will be used. (Android only)
-  channelId?: null
+  channelId: null
+}
+```
+
+
+### 【うちらのサーバー　→　Expoサーバー　→　スケジュール登録済みライダー】
+
+定刻になったら（登校オファーは前日夜21:00、下校オファーは当日昼15:00）、うちらのサーバーがExpoのサーバーにこんな感じのJSONをPOST
+```js
+{
+  // An Expo push token specifying the recipient of this message.
+  to: 'ExponentPushToken[yyyrideryyy]',
+
+  // A JSON object delivered to your app.
+  data: {
+    type: 'recommend_offer'
+  },
+
+  // The title to display in the notification.
+  title: 'スケジュール内のオファーが○○件あります。',
+
+  // The message to display in the notification.
+  body: '',
+  
+  // The delivery priority of the message.
+  priority: 'high',
+
+  // A sound to play when the recipient receives this notification. (iOS only)
+  sound: 'default',
+  
+  // Badge number is omitted on purpose (not to change the current badge number on the device)
+
+  // ID of the Notification Channel through which to display this notification on Android devices.
+  // If left null, a "Default" channel will be used. (Android only)
+  channelId: null
 }
 ```
