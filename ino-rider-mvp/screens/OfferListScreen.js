@@ -14,6 +14,7 @@ import * as actions from '../actions';
 // for push notifications handler
 const CANCELED_OFFER = 'canceled_offer';
 const RESERVATION_DEADLINE = 'reservation_deadline';
+const RECOMMEND_OFFER = 'recommend_offer';
 
 const INITIAL_STATE = {
   // for <ScrollView />
@@ -75,7 +76,7 @@ class OfferListScreen extends React.Component {
     let pushNotificationsToken = await Notifications.getExpoPushTokenAsync();
 
     // for debug
-    //console.log(JSON.stringify(pushNotificationsToken));
+    console.log(JSON.stringify(pushNotificationsToken));
 
     // POST the push notification token
     try {
@@ -213,6 +214,12 @@ class OfferListScreen extends React.Component {
             { cancelable: false }
           );
         }
+        break;
+
+      case RECOMMEND_OFFER:
+        // Call action creators
+        this.props.fetchOwnReservations();
+        this.props.fetchAllOffers();
         break;
 
       default:
