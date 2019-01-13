@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import React from 'react';
 import {
-  StyleSheet, Text, View, ScrollView, RefreshControl, Alert,
+  StyleSheet, Text, View, ScrollView, RefreshControl, Alert, Image,
   LayoutAnimation, UIManager, AsyncStorage,
 } from 'react-native';
 import { ListItem, Icon, Button } from 'react-native-elements';
@@ -20,6 +20,8 @@ const INITIAL_STATE = {
   // for <ScrollView />
   isRefreshing: false
 };
+
+const FACE_IMAGE_SIZE = 60;
 
 
 class OfferListScreen extends React.Component {
@@ -289,9 +291,19 @@ class OfferListScreen extends React.Component {
                 key={index}
                 title={
                   <View style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}>
-                    <View style={{ flex: 3, justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Icon name='person' />
-                      <Text>{`${item.driver.last_name} ${item.driver.first_name}`}</Text>
+                    <View style={{ flex: 3, alignItems: 'center' }}>
+                      <Image
+                        style={{
+                          width: FACE_IMAGE_SIZE,
+                          height: FACE_IMAGE_SIZE,
+                          borderRadius: FACE_IMAGE_SIZE / 2
+                        }}
+                        source={
+                          item.driver.image_url === '' ?
+                          require('../assets/face_image_placeholder.png') :
+                          { uri: item.driver.image_url }
+                        }
+                      />
                     </View>
 
                     <View style={{ flex: 7, justifyContent: 'space-between' }}>
@@ -320,12 +332,23 @@ class OfferListScreen extends React.Component {
               key={index}
               title={
                 <View style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}>
-                  <View style={{ flex: 3, justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Icon name='person' />
-                    <Text>{`${item.driver.last_name} ${item.driver.first_name}`}</Text>
+                  <View style={{ flex: 3, alignItems: 'center' }}>
+                    <Image
+                      style={{
+                        width: FACE_IMAGE_SIZE,
+                        height: FACE_IMAGE_SIZE,
+                        borderRadius: FACE_IMAGE_SIZE / 2
+                      }}
+                      source={
+                        item.driver.image_url === '' ?
+                        require('../assets/face_image_placeholder.png') :
+                        { uri: item.driver.image_url }
+                      }
+                    />
                   </View>
 
                   <View style={{ flex: 7, justifyContent: 'space-between' }}>
+                    <Text>{`${item.driver.last_name} ${item.driver.first_name}`}</Text>
                     <View style={{ flexDirection: 'row' }}>
                       <View style={{ paddingLeft: 3, paddingRight: 3, justifyContent: 'center' }} >
                         <Icon name='map-marker' type='font-awesome' size={10} />
@@ -398,12 +421,23 @@ class OfferListScreen extends React.Component {
                 key={index}
                 title={
                   <View style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}>
-                    <View style={{ flex: 3, justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Icon name='person' />
-                      <Text>{`${item.driver.last_name} ${item.driver.first_name}`}</Text>
+                    <View style={{ flex: 3, alignItems: 'center' }}>
+                      <Image
+                        style={{
+                          width: FACE_IMAGE_SIZE,
+                          height: FACE_IMAGE_SIZE,
+                          borderRadius: FACE_IMAGE_SIZE / 2
+                        }}
+                        source={
+                          item.driver.image_url === '' ?
+                          require('../assets/face_image_placeholder.png') :
+                          { uri: item.driver.image_url }
+                        }
+                      />
                     </View>
 
                     <View style={{ flex: 7, justifyContent: 'space-between' }}>
+                      <Text>{`${item.driver.last_name} ${item.driver.first_name}`}</Text>
                       <View style={{ flexDirection: 'row' }}>
                         <View style={{ paddingLeft: 3, paddingRight: 3, justifyContent: 'center' }} >
                           <Icon name='map-marker' type='font-awesome' size={10} />

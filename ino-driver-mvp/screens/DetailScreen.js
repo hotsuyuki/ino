@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  StyleSheet, Text, View, ScrollView, Alert,
+  StyleSheet, Text, View, ScrollView, Alert, Image,
   LayoutAnimation, UIManager, RefreshControl, Linking, AsyncStorage,
 } from 'react-native';
 import { Button, Icon } from 'react-native-elements';
@@ -24,6 +24,8 @@ const INITIAL_STATE = {
     reserved_riders: [],
   },
 };
+
+const FACE_IMAGE_SIZE = 60;
 
 
 class DetailScreen extends React.Component {
@@ -299,15 +301,26 @@ class DetailScreen extends React.Component {
               style={{ flexDirection: 'row', alignItems: 'center', paddingBottom: 10 }}
               key={index}
             >
-              <View style={{ flex: 1 }}>
-                <Icon name='person' />
+              <View style={{ flex: 4, alignItems: 'center' }}>
+                <Image
+                  style={{
+                    width: FACE_IMAGE_SIZE,
+                    height: FACE_IMAGE_SIZE,
+                    borderRadius: FACE_IMAGE_SIZE / 2
+                  }}
+                  source={
+                    rider.image_url === '' ?
+                    require('../assets/face_image_placeholder.png') :
+                    { uri: rider.image_url }
+                  }
+                />
               </View>
-              <View style={{ flex: 2 }}>
+              <View style={{ flex: 6 }}>
                 <Text style={styles.nameTextStyle}>{`${rider.last_name} ${rider.first_name}`}</Text>
                 <Text>{`${rider.major}`}</Text>
                 <Text>{`${rider.grade}`}</Text>
               </View>
-              <View style={{ flex: 1 }}>
+              <View style={{ flex: 3 }}>
                 <Icon
                   name='phone'
                   type='font-awesome'
@@ -316,7 +329,7 @@ class DetailScreen extends React.Component {
                   onPress={() => Linking.openURL(`tel:+81${rider.phone.substring(1)}`)}
                 />
               </View>
-              <View style={{ flex: 1 }}>
+              <View style={{ flex: 3 }}>
                 <Icon
                   name='comment'
                   type='font-awesome'

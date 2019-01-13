@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  StyleSheet, Text, View, ScrollView, Alert,
+  StyleSheet, Text, View, ScrollView, Alert, Image,
   LayoutAnimation, UIManager, RefreshControl, Linking, Platform, AsyncStorage,
 } from 'react-native';
 import { Button, Icon } from 'react-native-elements';
@@ -30,6 +30,8 @@ const INITIAL_STATE = {
     reserved_riders: [],
   },
 };
+
+const FACE_IMAGE_SIZE = 60;
 
 let isCancelAlertShown;
 
@@ -655,10 +657,21 @@ class DetailScreen extends React.Component {
               style={{ flexDirection: 'row', alignItems: 'center', paddingBottom: 10 }}
               key={index}
             >
-              <View style={{ flex: 1 }}>
-                <Icon name='person' />
+              <View style={{ flex: 4, alignItems: 'center' }}>
+                <Image
+                  style={{
+                    width: FACE_IMAGE_SIZE,
+                    height: FACE_IMAGE_SIZE,
+                    borderRadius: FACE_IMAGE_SIZE / 2
+                  }}
+                  source={
+                    rider.image_url === '' ?
+                    require('../assets/face_image_placeholder.png') :
+                    { uri: rider.image_url }
+                  }
+                />
               </View>
-              <View style={{ flex: 4 }}>
+              <View style={{ flex: 12 }}>
                 <Text style={styles.nameTextStyle}>{`${rider.last_name} ${rider.first_name}`}</Text>
                 <Text>{`${rider.major}`}</Text>
                 <Text>{`${rider.grade}`}</Text>
@@ -829,18 +842,29 @@ class DetailScreen extends React.Component {
             <Text style={styles.grayTextStyle}>ドライバー</Text>
 
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <View style={{ flex: 1 }}>
-                <Icon name='person' />
+              <View style={{ flex: 4, alignItems: 'center' }}>
+                <Image
+                  style={{
+                    width: FACE_IMAGE_SIZE,
+                    height: FACE_IMAGE_SIZE,
+                    borderRadius: FACE_IMAGE_SIZE / 2
+                  }}
+                  source={
+                    this.state.selectedItem.driver.image_url === '' ?
+                    require('../assets/face_image_placeholder.png') :
+                    { uri: this.state.selectedItem.driver.image_url }
+                  }
+                />
               </View>
-              <View style={{ flex: 2 }}>
+              <View style={{ flex: 6 }}>
                 <Text style={styles.nameTextStyle}>{`${this.state.selectedItem.driver.last_name} ${this.state.selectedItem.driver.first_name}`}</Text>
                 <Text>{`${this.state.selectedItem.driver.major}`}</Text>
                 <Text>{`${this.state.selectedItem.driver.grade}`}</Text>
               </View>
-              <View style={{ flex: 1 }}>
+              <View style={{ flex: 3 }}>
                 {this.renderTelButton()}
               </View>
-              <View style={{ flex: 1 }}>
+              <View style={{ flex: 3 }}>
                 {this.renderSmsButton()}
               </View>
             </View>

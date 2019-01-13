@@ -34,7 +34,11 @@ class ProfileScreen extends React.Component {
         <ScrollView style={{ flex: 1 }}>
           <View style={{ alignItems: 'center', padding: 10 }}>
             <Image
-              style={{ width: FACE_IMAGE_SIZE, height: FACE_IMAGE_SIZE, borderRadius: FACE_IMAGE_SIZE / 2 }}
+              style={{
+                width: FACE_IMAGE_SIZE,
+                height: FACE_IMAGE_SIZE,
+                borderRadius: FACE_IMAGE_SIZE / 2
+              }}
               source={
                 this.props.driverInfo.image_url === '' ?
                 require('../assets/face_image_placeholder.png') :

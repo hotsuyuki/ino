@@ -472,7 +472,11 @@ class EditProfileScreen extends React.Component {
               onPress={() => this.onImagePress()}
             >
               <Image
-                style={{ width: FACE_IMAGE_SIZE, height: FACE_IMAGE_SIZE, borderRadius: FACE_IMAGE_SIZE / 2 }}
+                style={{
+                  width: FACE_IMAGE_SIZE,
+                  height: FACE_IMAGE_SIZE,
+                  borderRadius: FACE_IMAGE_SIZE / 2
+                }}
                 source={
                   this.state.editedRiderInfo.image_url === '' ?
                   require('../assets/face_image_placeholder.png') :
