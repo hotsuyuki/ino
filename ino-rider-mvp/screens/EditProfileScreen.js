@@ -1,11 +1,11 @@
 import React from 'react';
 import {
-  StyleSheet, Text, View, ScrollView, Alert,
+  StyleSheet, Text, View, ScrollView, Alert, TouchableOpacity, Image,
   LayoutAnimation, UIManager, AsyncStorage, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { Header, Button, FormLabel, FormInput, FormValidationMessage } from 'react-native-elements';
 import ModalSelector from 'react-native-modal-selector';
-import { AppLoading } from 'expo';
+import { AppLoading, Permissions, ImagePicker } from 'expo';
 import { connect } from 'react-redux';
 
 import * as actions from '../actions';
@@ -18,7 +18,8 @@ const riderInfoTemplate = {
   grade: '',
   major: '',
   mail: '',
-  phone: ''
+  phone: '',
+  image_url: '',
 };
 
 const INITIAL_STATE = {
@@ -26,6 +27,8 @@ const INITIAL_STATE = {
   initialRiderInfo: riderInfoTemplate,
   editedRiderInfo: riderInfoTemplate
 };
+
+const FACE_IMAGE_SIZE = 120;
 
 // for form validation
 const formValidation = {
@@ -63,6 +66,36 @@ class EditProfileScreen extends React.Component {
       // Ease in & Ease out animation
       UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
       LayoutAnimation.easeInEaseOut();
+    }
+  }
+
+
+  onImagePress = async () => {
+    let cameraRollPermission = await AsyncStorage.getItem('cameraRollPermission');
+
+    if (cameraRollPermission !== 'granted') {
+      let permission = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+
+      if (permission.status !== 'granted') {
+        return;
+      }
+
+      await AsyncStorage.setItem('cameraRollPermission', permission.status);
+    }
+
+    let imageResult = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true
+    });
+
+    if (!imageResult.cancelled) {
+      // Rerender with the new uploaded face image
+      this.setState({
+        editedRiderInfo: {
+          ...this.state.editedRiderInfo,
+          image_url: imageResult.uri
+        }
+      });
     }
   }
 
@@ -267,20 +300,13 @@ class EditProfileScreen extends React.Component {
                   console.warn(error);
                 }
 
-                // Reflesh `this.props.riderInfo` in `ProfileScreen`
-                // and make `ProfileScreen` rerender by calling action creators
-                this.props.getRiderInfo();
-                this.props.navigation.pop();
-
-              // if failed to PUT the edited driver info,
+              // if failed to PUT the edited rider info,
               } else if (parseInt(response.status / 100, 10) === 4 ||
                          parseInt(response.status / 100, 10) === 5) {
                 Alert.alert(
                   '電波の良いところで後ほどお試しください。',
                   '編集内容は保存されていません。',
-                  [
-                    { text: 'OK' },
-                  ]
+                  [{ text: 'OK' }]
                 );
               }
 
@@ -292,9 +318,57 @@ class EditProfileScreen extends React.Component {
               Alert.alert(
                 '電波の良いところで後ほどお試しください。',
                 '編集内容は保存されていません。',
-                [
-                  { text: 'OK' },
-                ]
+                [{ text: 'OK' }]
+              );
+            }
+
+            // POST the edited face image
+            try {
+              const formData = new FormData();
+              formData.append('face_image', {
+                type: 'image/jpeg',
+                name: 'face_image.jpg',
+                uri: this.state.editedRiderInfo.image_url,
+              });
+
+              let response = await fetch(`https://inori.work/riders/${this.props.riderInfo.id}/image`, {
+                method: 'POST',
+                headers: {
+                  Accept: 'application/json',
+                  'Content-Type': 'multipart/form-data',
+                },
+                body: formData,
+              });
+
+              // If succeeded to upload the new face image,
+              if (parseInt(response.status / 100, 10) === 2) {
+                let responseJson = await response.json();
+
+                // for debug
+                console.log(`JSON.stringify(responseJson) =  ${JSON.stringify(responseJson)}`);
+
+                // Reflesh `this.props.riderInfo` in `ProfileScreen`
+                // and make `ProfileScreen` rerender by calling action creators
+                this.props.getRiderInfo();
+                this.props.navigation.pop();
+
+              // If succeeded to upload the new face image,
+              } else if (parseInt(response.status / 100, 10) === 4 ||
+                         parseInt(response.status / 100, 10) === 5) {
+                Alert.alert(
+                  '電波の良いところで後ほどお試しください。',
+                  '編集内容は保存されていません。',
+                  [{ text: 'OK' }]
+                );
+              }
+            } catch (error) {
+              console.warn(error);
+              console.log('Cannot access riders image api...');
+
+              Alert.alert(
+                '電波の良いところで後ほどお試しください。',
+                '編集内容は保存されていません。',
+                [{ text: 'OK' }]
               );
             }
           }
@@ -394,6 +468,21 @@ class EditProfileScreen extends React.Component {
           behavior="padding"
         >
           <ScrollView style={{ flex: 1 }}>
+            <TouchableOpacity
+              style={{ alignItems: 'center', padding: 10 }}
+              onPress={() => this.onImagePress()}
+            >
+              <Image
+                style={{ width: FACE_IMAGE_SIZE, height: FACE_IMAGE_SIZE, borderRadius: FACE_IMAGE_SIZE / 2 }}
+                source={
+                  this.state.editedRiderInfo.image_url === '' ?
+                  require('../assets/face_image_placeholder.png') :
+                  { uri: this.state.editedRiderInfo.image_url }
+                }
+              />
+              <Text style={styles.itemTextStyle}>顔写真を選択</Text>
+            </TouchableOpacity>
+
             <FormLabel>姓：</FormLabel>
             <FormInput
               autoCapitalize="none"
@@ -494,6 +583,10 @@ const styles = StyleSheet.create({
     color: 'gray',
     fontSize: 18,
     fontWeight: 'bold'
+  },
+  itemTextStyle: {
+    color: 'gray',
+    padding: 10,
   },
 });
 

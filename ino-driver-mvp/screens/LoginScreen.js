@@ -29,46 +29,59 @@ class LoginScreen extends React.Component {
     // Get stored driver info
     try {
       let stringifiedDriverInfo = await AsyncStorage.getItem('driverInfo');
-      let mail = JSON.parse(stringifiedDriverInfo).mail;
 
-      // Try access login api
-      try {
-        let response = await fetch('https://inori.work/drivers/signin', {
-        //let response = await fetch('https://inori.work/drivers/login', { TODO: Change URL
-          method: 'POST',
-          headers: {},
-          body: JSON.stringify({ mail }),
-        });
-
+      if (stringifiedDriverInfo === null) {
         // for debug
-        //console.log('mail = ' + JSON.stringify({ mail }));
+        console.log(`stringifiedDriverInfo = ${stringifiedDriverInfo}`);
+        this.setState({ isLogedin: false });
+      } else {
+        let mail = JSON.parse(stringifiedDriverInfo).mail;
 
-        // If succeeded to login with the stored email address,
-        if (parseInt(response.status / 100, 10) === 2) {
-          let responseJson = await response.json();
-          const driverInfo = responseJson.driver;
+        // Try access login api
+        try {
+          let response = await fetch('https://inori.work/drivers/signin', {
+          //let response = await fetch('https://inori.work/drivers/login', { TODO: Change URL
+            method: 'POST',
+            headers: {},
+            body: JSON.stringify({ mail }),
+          });
 
           // for debug
-          console.log('JSON.stringify(driverInfo) = ' + JSON.stringify(driverInfo));
+          //console.log('mail = ' + JSON.stringify({ mail }));
 
-          await AsyncStorage.setItem('driverInfo', JSON.stringify(driverInfo));
+          // If succeeded to login with the stored email address,
+          if (parseInt(response.status / 100, 10) === 2) {
+            let responseJson = await response.json();
+            const driverInfo = responseJson.driver;
 
-          console.log('Automatic login with the stored email address is succeeded!!!');
-          this.setState({ isLogedin: true });
-          this.props.navigation.navigate('offerList');
+            // for debug
+            console.log(`JSON.stringify(driverInfo) = ${JSON.stringify(driverInfo)}`);
 
-        // If failed login with the stored email address,
-        } else if (parseInt(response.status / 100, 10) === 4 ||
-                   parseInt(response.status / 100, 10) === 5) {
-          console.log('Automatic login with the stored email address failed...');
+            await AsyncStorage.setItem('driverInfo', JSON.stringify(driverInfo));
+
+            console.log('Automatic login with the stored email address is succeeded!!!');
+            this.setState({
+              isLogedin: true,
+              driverInfo: {
+                mail: ''
+              }
+            });
+            this.props.navigation.navigate('offerList');
+
+          // If failed login with the stored email address,
+          } else if (parseInt(response.status / 100, 10) === 4 ||
+                     parseInt(response.status / 100, 10) === 5) {
+            console.log('Automatic login with the stored email address failed...');
+            this.setState({ isLogedin: false });
+          }
+        // If cannot access the login api,
+        } catch (error) {
+          console.warn(error);
+          console.log('Cannot access the login api...');
           this.setState({ isLogedin: false });
         }
-      // If cannot access the login api,
-      } catch (error) {
-        console.warn(error);
-        console.log('Cannot access the login api...');
-        this.setState({ isLogedin: false });
       }
+
     // If cannot get stored driver info,
     } catch (error) {
       console.warn(error);
@@ -105,7 +118,12 @@ class LoginScreen extends React.Component {
         await AsyncStorage.setItem('driverInfo', JSON.stringify(driverInfo));
 
         console.log('Manual login with the input email address is succeeded!!!');
-        this.setState({ isLogedin: true });
+        this.setState({
+          isLogedin: true,
+          driverInfo: {
+            mail: ''
+          }
+        });
         this.props.navigation.navigate('offerList');
 
       // If failed to login with the stored email address,
@@ -154,7 +172,6 @@ class LoginScreen extends React.Component {
 
 
   render() {
-    //if (_.isNull(this.state.isLogedin)) {
     if (this.state.isLogedin === INITIAL_STATE.isLogedin) {
       return <AppLoading />;
     }

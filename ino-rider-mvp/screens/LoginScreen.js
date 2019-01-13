@@ -29,46 +29,59 @@ class LoginScreen extends React.Component {
     // Get stored rider info
     try {
       let stringifiedRiderInfo = await AsyncStorage.getItem('riderInfo');
-      let mail = JSON.parse(stringifiedRiderInfo).mail;
 
-      // Try access login api
-      try {
-        let response = await fetch('https://inori.work/riders/signin', {
-        //let response = await fetch('https://inori.work/riders/login', { TODO: Change URL
-          method: 'POST',
-          headers: {},
-          body: JSON.stringify({ mail }),
-        });
-
+      if (stringifiedRiderInfo === null) {
         // for debug
-        //console.log('mail = ' + JSON.stringify({ mail }));
+        console.log(`stringifiedRiderInfo = ${stringifiedRiderInfo}`);
+        this.setState({ isLogedin: false });
+      } else {
+        let mail = JSON.parse(stringifiedRiderInfo).mail;
 
-        // If succeed login with the stored email address,
-        if (parseInt(response.status / 100, 10) === 2) {
-          let responseJson = await response.json();
-          const riderInfo = responseJson.rider;
+        // Try access login api
+        try {
+          let response = await fetch('https://inori.work/riders/signin', {
+          //let response = await fetch('https://inori.work/riders/login', { TODO: Change URL
+            method: 'POST',
+            headers: {},
+            body: JSON.stringify({ mail }),
+          });
 
           // for debug
-          console.log('JSON.stringify(riderInfo) = ' + JSON.stringify(riderInfo));
+          //console.log('mail = ' + JSON.stringify({ mail }));
 
-          await AsyncStorage.setItem('riderInfo', JSON.stringify(riderInfo));
+          // If succeed login with the stored email address,
+          if (parseInt(response.status / 100, 10) === 2) {
+            let responseJson = await response.json();
+            const riderInfo = responseJson.rider;
 
-          console.log('Automatic login with the stored email address is succeeded!!!');
-          this.setState({ isLogedin: true });
-          this.props.navigation.navigate('offerList');
+            // for debug
+            console.log('JSON.stringify(riderInfo) = ' + JSON.stringify(riderInfo));
 
-        // If cannot login with the stored email address,
-        } else if (parseInt(response.status / 100, 10) === 4 ||
-                   parseInt(response.status / 100, 10) === 5) {
-          console.log('Automatic login with the stored email address failed...');
+            await AsyncStorage.setItem('riderInfo', JSON.stringify(riderInfo));
+
+            console.log('Automatic login with the stored email address is succeeded!!!');
+            this.setState({
+              isLogedin: true,
+              riderInfo: {
+                mail: ''
+              }
+            });
+            this.props.navigation.navigate('offerList');
+
+          // If cannot login with the stored email address,
+          } else if (parseInt(response.status / 100, 10) === 4 ||
+                     parseInt(response.status / 100, 10) === 5) {
+            console.log('Automatic login with the stored email address failed...');
+            this.setState({ isLogedin: false });
+          }
+        // If cannot access the login api,
+        } catch (error) {
+          console.warn(error);
+          console.log('Cannot access the login api...');
           this.setState({ isLogedin: false });
         }
-      // If cannot access the login api,
-      } catch (error) {
-        console.warn(error);
-        console.log('Cannot access the login api...');
-        this.setState({ isLogedin: false });
       }
+
     // If cannot get stored rider info,
     } catch (error) {
       console.warn(error);
@@ -105,7 +118,12 @@ class LoginScreen extends React.Component {
         await AsyncStorage.setItem('riderInfo', JSON.stringify(riderInfo));
 
         console.log('Manual login with the input email address is succeeded!!!');
-        this.setState({ isLogedin: true });
+        this.setState({
+          isLogedin: true,
+          riderInfo: {
+            mail: ''
+          }
+        });
         this.props.navigation.navigate('offerList');
 
       // If cannot login with the stored email address,

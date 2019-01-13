@@ -1,13 +1,16 @@
 import React from 'react';
 import {
-  StyleSheet, Text, View, ScrollView, Alert,
+  StyleSheet, Text, View, ScrollView, Alert, Image,
   AsyncStorage,
 } from 'react-native';
-import { Icon, Button } from 'react-native-elements';
+import { Button } from 'react-native-elements';
 import { connect } from 'react-redux';
 import { AppLoading, Notifications } from 'expo';
 
 import * as actions from '../actions';
+
+
+const FACE_IMAGE_SIZE = 120;
 
 
 class ProfileScreen extends React.Component {
@@ -29,7 +32,16 @@ class ProfileScreen extends React.Component {
     return (
       <View style={{ flex: 1 }}>
         <ScrollView style={{ flex: 1 }}>
-          <Icon name='person' size={100} style={{ justifyContent: 'center', padding: 30 }} />
+          <View style={{ alignItems: 'center', padding: 10 }}>
+            <Image
+              style={{ width: FACE_IMAGE_SIZE, height: FACE_IMAGE_SIZE, borderRadius: FACE_IMAGE_SIZE / 2 }}
+              source={
+                this.props.driverInfo.image_url === '' ?
+                require('../assets/face_image_placeholder.png') :
+                { uri: this.props.driverInfo.image_url }
+              }
+            />
+          </View>
 
           <Text style={styles.itemTextStyle}>氏名</Text>
           <Text style={styles.contentTextStyle}>{`${this.props.driverInfo.last_name} ${this.props.driverInfo.first_name}`}</Text>

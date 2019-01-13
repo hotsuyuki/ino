@@ -1,13 +1,16 @@
 import React from 'react';
 import {
-  StyleSheet, Text, View, ScrollView, Alert,
+  StyleSheet, Text, View, ScrollView, Alert, Image,
   AsyncStorage,
 } from 'react-native';
-import { Icon, Button } from 'react-native-elements';
+import { Button } from 'react-native-elements';
 import { connect } from 'react-redux';
 import { AppLoading, Notifications } from 'expo';
 
 import * as actions from '../actions';
+
+
+const FACE_IMAGE_SIZE = 120;
 
 
 class ProfileScreen extends React.Component {
@@ -21,9 +24,6 @@ class ProfileScreen extends React.Component {
 
 
   render() {
-    // for debug
-    console.log(`typeof this.props.riderInfo.id = ${typeof this.props.riderInfo.id}`);
-
     // Wait to fetch own rider info
     if ((typeof this.props.riderInfo.id) === 'undefined') {
       return <AppLoading />;
@@ -32,7 +32,16 @@ class ProfileScreen extends React.Component {
     return (
       <View style={{ flex: 1 }}>
         <ScrollView style={{ flex: 1 }}>
-          <Icon name='person' size={100} style={{ justifyContent: 'center', padding: 30 }} />
+          <View style={{ alignItems: 'center', padding: 10 }}>
+            <Image
+              style={{ width: FACE_IMAGE_SIZE, height: FACE_IMAGE_SIZE, borderRadius: FACE_IMAGE_SIZE / 2 }}
+              source={
+                this.props.riderInfo.image_url === '' ?
+                require('../assets/face_image_placeholder.png') :
+                { uri: this.props.riderInfo.image_url }
+              }
+            />
+          </View>
 
           <Text style={styles.grayTextStyle}>氏名</Text>
           <Text style={styles.contentTextStyle}>{`${this.props.riderInfo.last_name} ${this.props.riderInfo.first_name}`}</Text>
