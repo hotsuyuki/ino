@@ -335,57 +335,11 @@ class EditProfileScreen extends React.Component {
         {
           text: 'はい',
           onPress: async () => {
-            const editedDriverInfo = this.state.editedDriverInfo;
-
-            // Truncate whitespaces and elace hyphens (just in case)
-            editedDriverInfo.mail = `${editedDriverInfo.mail.replace(/\s/g, '').toLowerCase()}@stu.kanazawa-u.ac.jp`;
-            // Elace hyphens (just in case)
-            editedDriverInfo.phone = editedDriverInfo.phone.replace(/[^0-9]/g, '');
-
-            console.log(`JSON.stringify(editedDriverInfo) = ${JSON.stringify(editedDriverInfo)}`);
-
-            // PUT the edited profile
+            // First, POST the edited face image
             try {
-              let response = await fetch(`https://inori.work/drivers/${editedDriverInfo.id}`, {
-                method: 'PUT',
-                headers: {},
-                body: JSON.stringify(editedDriverInfo),
-              });
+              // for debug
+              console.log(`this.state.editedDriverInfo.image_url = ${this.state.editedDriverInfo.image_url}`);
 
-              if (parseInt(response.status / 100, 10) === 2) {
-                let responseJson = await response.json();
-
-                try {
-                  await AsyncStorage.setItem('driverInfo', JSON.stringify(responseJson.driver));
-                } catch (error) {
-                  console.warn(error);
-                  console.log('Cannot get stored driver info...');
-                }
-
-              // if failed to PUT the edited driver info,
-              } else if (parseInt(response.status / 100, 10) === 4 ||
-                         parseInt(response.status / 100, 10) === 5) {
-                Alert.alert(
-                  '電波の良いところで後ほどお試しください。',
-                  '編集内容は保存されていません。',
-                  [{ text: 'OK' }]
-                );
-              }
-
-            // If cannot access drivers api,
-            } catch (error) {
-              console.error(error);
-              console.log('Cannot access drivers api...');
-
-              Alert.alert(
-                '電波の良いところで後ほどお試しください。',
-                '編集内容は保存されていません。',
-                [{ text: 'OK' }]
-              );
-            }
-
-            // POST the edited face image
-            try {
               const formData = new FormData();
               formData.append('face_image', {
                 type: 'image/jpeg',
@@ -393,7 +347,7 @@ class EditProfileScreen extends React.Component {
                 uri: this.state.editedDriverInfo.image_url,
               });
 
-              let response = await fetch(`https://inori.work/drivers/${this.props.driverInfo.id}/image`, {
+              let imageResponse = await fetch(`https://inori.work/drivers/${this.props.driverInfo.id}/image`, {
                 method: 'POST',
                 headers: {
                   Accept: 'application/json',
@@ -402,25 +356,70 @@ class EditProfileScreen extends React.Component {
                 body: formData,
               });
 
-              // If succeeded to upload the new face image,
-              if (parseInt(response.status / 100, 10) === 2) {
-                let responseJson = await response.json();
+              // If succeeded to POST the new face image,
+              if (parseInt(imageResponse.status / 100, 10) === 2) {
+                let imageResponseJson = await imageResponse.json();
 
-                // for debug
-                console.log(`JSON.stringify(responseJson) =  ${JSON.stringify(responseJson)}`);
+                const editedDriverInfo = this.state.editedDriverInfo;
 
-                // Reflesh `this.props.driverInfo` in `ProfileScreen` and `this.props.ownOffers` in `OfferScreen`
-                // and make `ProfileScreen` and `OfferScreen` rerender by calling an action creator
-                this.props.getDriverInfo();
-                this.props.fetchOwnOffers();
-                this.props.navigation.pop();
+                // Truncate whitespaces and elace hyphens (just in case)
+                editedDriverInfo.mail = `${editedDriverInfo.mail.replace(/\s/g, '').toLowerCase()}@stu.kanazawa-u.ac.jp`;
+                // Elace hyphens (just in case)
+                editedDriverInfo.phone = editedDriverInfo.phone.replace(/[^0-9]/g, '');
+                // Add responded image URL
+                editedDriverInfo.image_url = imageResponseJson.image_url;
 
-              // If succeeded to upload the new face image,
-              } else if (parseInt(response.status / 100, 10) === 4 ||
-                         parseInt(response.status / 100, 10) === 5) {
+                // Then, PUT the edited profile
+                try {
+                  let profileResponse = await fetch(`https://inori.work/drivers/${editedDriverInfo.id}`, {
+                    method: 'PUT',
+                    headers: {},
+                    body: JSON.stringify(editedDriverInfo),
+                  });
+
+                  if (parseInt(profileResponse.status / 100, 10) === 2) {
+                    let profileResponseJson = await profileResponse.json();
+
+                    await AsyncStorage.setItem('driverInfo', JSON.stringify(profileResponseJson.driver));
+
+                    // Reflesh `this.props.driverInfo` in `ProfileScreen` and `this.props.ownOffers` in `OfferScreen`
+                    // and make `ProfileScreen` and `OfferScreen` rerender by calling an action creator
+                    this.props.getDriverInfo();
+                    this.props.fetchOwnOffers();
+                    this.props.navigation.pop();
+
+                  // if failed to PUT the edited driver info,
+                  } else if (parseInt(profileResponse.status / 100, 10) === 4 ||
+                             parseInt(profileResponse.status / 100, 10) === 5) {
+                    console.log('Failed to PUT the edited driver info...');
+
+                    Alert.alert(
+                      '電波の良いところで後ほどお試しください。',
+                      '編集内容は保存されていません。',
+                      [{ text: 'OK' }]
+                    );
+                  }
+
+                // If cannot access drivers api,
+                } catch (error) {
+                  console.error(error);
+                  console.log('Cannot access drivers api...');
+
+                  Alert.alert(
+                    '電波の良いところで後ほどお試しください。',
+                    '編集内容は保存されていません。',
+                    [{ text: 'OK' }]
+                  );
+                }
+
+              // If failed to POST the new face image,
+              } else if (parseInt(imageResponse.status / 100, 10) === 4 ||
+                         parseInt(imageResponse.status / 100, 10) === 5) {
+                console.log('Failed to POST the new face image...');
+
                 Alert.alert(
-                  '電波の良いところで後ほどお試しください。',
-                  '編集内容は保存されていません。',
+                  '画像のアップロードに失敗しました。',
+                  '同じ画像で何度も失敗する場合は、他の画像をお試しください。もしくは一度スクショを撮ってスクショの方の画像を登録ください。(特にAndroidはカメラで撮った画像だとよく失敗します...)',
                   [{ text: 'OK' }]
                 );
               }

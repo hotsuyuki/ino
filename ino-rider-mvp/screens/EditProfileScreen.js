@@ -273,57 +273,11 @@ class EditProfileScreen extends React.Component {
         {
           text: 'はい',
           onPress: async () => {
-            const editedRiderInfo = this.state.editedRiderInfo;
-
-            // Truncate whitespaces and add "@stu.kanazawa-u.ac.jp" // TODO: Make it more robust
-            editedRiderInfo.mail = `${editedRiderInfo.mail.replace(/\s/g, '').toLowerCase()}@stu.kanazawa-u.ac.jp`;
-            // Truncate whitespaces and elace hyphens (just in case)
-            editedRiderInfo.phone = editedRiderInfo.phone.replace(/[^0-9]/g, '');
-
-            // for debug
-            //console.log(`JSON.stringify(editedRiderInfo) = ${JSON.stringify(editedRiderInfo)}`);
-
-            // PUT the edited profile
+            // First, POST the edited face image
             try {
-              let response = await fetch(`https://inori.work/riders/${this.props.riderInfo.id}`, {
-                method: 'PUT',
-                headers: {},
-                body: JSON.stringify(editedRiderInfo),
-              });
+              // for debug
+              console.log(`this.state.editedRiderInfo.image_url = ${this.state.editedRiderInfo.image_url}`);
 
-              if (parseInt(response.status / 100, 10) === 2) {
-                let responseJson = await response.json();
-
-                try {
-                  await AsyncStorage.setItem('riderInfo', JSON.stringify(responseJson.rider));
-                } catch (error) {
-                  console.warn(error);
-                }
-
-              // if failed to PUT the edited rider info,
-              } else if (parseInt(response.status / 100, 10) === 4 ||
-                         parseInt(response.status / 100, 10) === 5) {
-                Alert.alert(
-                  '電波の良いところで後ほどお試しください。',
-                  '編集内容は保存されていません。',
-                  [{ text: 'OK' }]
-                );
-              }
-
-            // If cannot access riders api,
-            } catch (error) {
-              console.error(error);
-              console.log('Cannot access riders api...');
-
-              Alert.alert(
-                '電波の良いところで後ほどお試しください。',
-                '編集内容は保存されていません。',
-                [{ text: 'OK' }]
-              );
-            }
-
-            // POST the edited face image
-            try {
               const formData = new FormData();
               formData.append('face_image', {
                 type: 'image/jpeg',
@@ -331,7 +285,7 @@ class EditProfileScreen extends React.Component {
                 uri: this.state.editedRiderInfo.image_url,
               });
 
-              let response = await fetch(`https://inori.work/riders/${this.props.riderInfo.id}/image`, {
+              let imageResponse = await fetch(`https://inori.work/riders/${this.props.riderInfo.id}/image`, {
                 method: 'POST',
                 headers: {
                   Accept: 'application/json',
@@ -340,24 +294,69 @@ class EditProfileScreen extends React.Component {
                 body: formData,
               });
 
-              // If succeeded to upload the new face image,
-              if (parseInt(response.status / 100, 10) === 2) {
-                let responseJson = await response.json();
+              // If succeeded to POST the new face image,
+              if (parseInt(imageResponse.status / 100, 10) === 2) {
+                let imageResponseJson = await imageResponse.json();
 
-                // for debug
-                console.log(`JSON.stringify(responseJson) =  ${JSON.stringify(responseJson)}`);
+                const editedRiderInfo = this.state.editedRiderInfo;
 
-                // Reflesh `this.props.riderInfo` in `ProfileScreen`
-                // and make `ProfileScreen` rerender by calling action creators
-                this.props.getRiderInfo();
-                this.props.navigation.pop();
+                // Truncate whitespaces and add "@stu.kanazawa-u.ac.jp" // TODO: Make it more robust
+                editedRiderInfo.mail = `${editedRiderInfo.mail.replace(/\s/g, '').toLowerCase()}@stu.kanazawa-u.ac.jp`;
+                // Truncate whitespaces and elace hyphens (just in case)
+                editedRiderInfo.phone = editedRiderInfo.phone.replace(/[^0-9]/g, '');
+                // Add responded image URL
+                editedRiderInfo.image_url = imageResponseJson.image_url;
 
-              // If succeeded to upload the new face image,
-              } else if (parseInt(response.status / 100, 10) === 4 ||
-                         parseInt(response.status / 100, 10) === 5) {
+                // Then, PUT the edited profile
+                try {
+                  let profileResponse = await fetch(`https://inori.work/riders/${this.props.riderInfo.id}`, {
+                    method: 'PUT',
+                    headers: {},
+                    body: JSON.stringify(editedRiderInfo),
+                  });
+
+                  if (parseInt(profileResponse.status / 100, 10) === 2) {
+                    let profileResponseJson = await profileResponse.json();
+
+                    await AsyncStorage.setItem('riderInfo', JSON.stringify(profileResponseJson.rider));
+
+                    // Reflesh `this.props.riderInfo` in `ProfileScreen`
+                    // and make `ProfileScreen` rerender by calling action creators
+                    this.props.getRiderInfo();
+                    this.props.navigation.pop();
+
+                  // if failed to PUT the edited rider info,
+                  } else if (parseInt(profileResponse.status / 100, 10) === 4 ||
+                             parseInt(profileResponse.status / 100, 10) === 5) {
+                    console.log('Failed to PUT the edited rider info...');
+
+                    Alert.alert(
+                      '電波の良いところで後ほどお試しください。',
+                      '編集内容は保存されていません。',
+                      [{ text: 'OK' }]
+                    );
+                  }
+
+                // If cannot access riders api,
+                } catch (error) {
+                  console.error(error);
+                  console.log('Cannot access riders api...');
+
+                  Alert.alert(
+                    '電波の良いところで後ほどお試しください。',
+                    '編集内容は保存されていません。',
+                    [{ text: 'OK' }]
+                  );
+                }
+
+              // If failed to POST the new face image,
+              } else if (parseInt(imageResponse.status / 100, 10) === 4 ||
+                         parseInt(imageResponse.status / 100, 10) === 5) {
+                console.log('Failed to POST the new face image...');
+
                 Alert.alert(
-                  '電波の良いところで後ほどお試しください。',
-                  '編集内容は保存されていません。',
+                  '画像のアップロードに失敗しました。',
+                  '同じ画像で何度も失敗する場合は、他の画像をお試しください。もしくは一度スクショを撮ってスクショの方の画像を登録ください。(特にAndroidはカメラで撮った画像だとよく失敗します...)',
                   [{ text: 'OK' }]
                 );
               }

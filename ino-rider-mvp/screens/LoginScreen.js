@@ -66,7 +66,7 @@ class LoginScreen extends React.Component {
                 mail: ''
               }
             });
-            this.props.navigation.navigate('offerList');
+            this.props.navigation.navigate('root');
 
           // If cannot login with the stored email address,
           } else if (parseInt(response.status / 100, 10) === 4 ||
@@ -124,7 +124,7 @@ class LoginScreen extends React.Component {
             mail: ''
           }
         });
-        this.props.navigation.navigate('offerList');
+        this.props.navigation.navigate('root');
 
       // If cannot login with the stored email address,
       } else if (parseInt(response.status / 100, 10) === 4 ||
