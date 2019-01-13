@@ -62,9 +62,7 @@ class ProfileScreen extends React.Component {
             <Button
               title="ログアウト"
               buttonStyle={{ backgroundColor: 'red' }}
-              onPress={async () => {
-                await AsyncStorage.removeItem('riderInfo');
-
+              onPress={() => {
                 Alert.alert(
                   '',
                   'ログアウトしてもよろしいですか？',
@@ -72,7 +70,9 @@ class ProfileScreen extends React.Component {
                     { text: 'いいえ' },
                     {
                       text: 'はい',
-                      onPress: () => {
+                      onPress: async () => {
+                        await AsyncStorage.removeItem('riderInfo');
+
                         this.props.navigation.pop();
                         this.props.navigation.navigate('login');
                       },
