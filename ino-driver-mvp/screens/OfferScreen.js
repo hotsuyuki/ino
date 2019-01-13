@@ -431,10 +431,9 @@ class OfferScreen extends React.Component {
 
 
   renderDepartureTimeValid() {
-    // Set the reservation deadline time to (1 hour) 30 minutes earlier from the departure time
+    // Set the reservation deadline time to 1 hour earlier from the departure time
     const reservationDeadline = new Date(this.state.chosenDepartureTime);
-    //reservationDeadline.setHours(reservationDeadline.getHours() - 1);
-    reservationDeadline.setMinutes(reservationDeadline.getMinutes() - 30);
+    reservationDeadline.setHours(reservationDeadline.getHours() - 1);
 
     if (this.state.offerDetail.departure_time !== INITIAL_STATE.offerDetail.departure_time) {
       if (new Date() < reservationDeadline) {
@@ -453,10 +452,9 @@ class OfferScreen extends React.Component {
 
   renderDepartureTimePicker() {
     if (this.state.departureTimePickerVisible) {
-      // Set the available departure time to (1 hour) 30 minutes later from the current time
+      // Set the available departure time to 1 hour later from the current time
       const availavleDepartureTime = new Date();
-      //availavleDepartureTime.setHours(availavleDepartureTime.getHours() + 1);
-      availavleDepartureTime.setMinutes(availavleDepartureTime.getMinutes() + 30);
+      availavleDepartureTime.setHours(availavleDepartureTime.getHours() + 1);
 
       if (Platform.OS === 'ios') {
         return (
@@ -600,8 +598,7 @@ class OfferScreen extends React.Component {
               let offerResponseJson = await offerResponse.json();
 
               // Set the schedule local notification message
-              //const messageTitle = 'オファーした出発時刻の1時間前です。';
-              const messageTitle = 'オファーした出発時刻の30分前です。';
+              const messageTitle = '出発時刻の1時間前です。';
               const messageBody = '予約受付を締め切りました。予約したライダーさんがいるか最終確認しましょう。';
               const localNotification = {
                 title: messageTitle,
@@ -617,11 +614,10 @@ class OfferScreen extends React.Component {
                 }
               };
 
-              // Set the schedule time to (1 hour) 30 minutes earlier from the departure time
+              // Set the scheduled time for local push notification to 1 hour earlier from the departure time
               // (same as reservation deadline)
               const schedulingTime = new Date(this.state.chosenDepartureTime);
-              //schedulingTime.setHours(schedulingTime.getHours() - 1);
-              schedulingTime.setMinutes(schedulingTime.getMinutes() - 30);
+              schedulingTime.setHours(schedulingTime.getHours() - 1);
               const schedulingOptions = {
                 time: schedulingTime
               };

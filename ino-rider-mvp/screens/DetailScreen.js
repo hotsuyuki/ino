@@ -392,8 +392,7 @@ class DetailScreen extends React.Component {
               //let reservationResponseJson = await reservationResponse.json();
 
               // Set the schedule local notification message
-              //const messageTitle = '予約した出発時刻の1時間前です。';
-              const messageTitle = '予約した出発時刻の30分前です。';
+              const messageTitle = '出発時刻の1時間前です。';
               const messageBody = '予約受付を締め切りました。他にも予約したライダーさんがいるか最終確認しましょう。';
               const localNotification = {
                 title: messageTitle,
@@ -409,12 +408,10 @@ class DetailScreen extends React.Component {
                 }
               };
 
-              // Set the schedule time to 1 hour earlier from the departure time
+              // Set the scheduled time for local push notification to 1 hour earlier from the departure time
               // (same as reservation deadline)
               const schedulingTime = new Date(this.state.selectedItem.offer.departure_time.replace(/-/g, '/'));
-              //schedulingTime.setHours(schedulingTime.getHours() - 1);
-              schedulingTime.setMinutes(schedulingTime.getMinutes() - 30);
-
+              schedulingTime.setHours(schedulingTime.getHours() - 1);
               const schedulingOptions = {
                 time: schedulingTime
               };
@@ -680,16 +677,15 @@ class DetailScreen extends React.Component {
 
     // Set the reservation deadline time to 1 hour earlier from the departure time
     const reservationDeadline = new Date(this.state.selectedItem.offer.departure_time.replace(/-/g, '/'));
-    //reservationDeadline.setHours(reservationDeadline.getHours() - 1);
-    reservationDeadline.setMinutes(reservationDeadline.getMinutes() - 30);
+    reservationDeadline.setHours(reservationDeadline.getHours() - 1);
 
     // If it is Offer
     if (!isReservation) {
       return (
         <View style={{ padding: 20 }}>
           <Button
-            // When the offer is full and before the deadline,
-            // prevent from reserving (inactivate the button) just in case
+            // If the offer is full or the reservation deadline is passed,
+            // inactivate the button (just in case)
             disabled={
               this.state.selectedItem.reserved_riders.length === this.state.selectedItem.offer.rider_capacity ||
               reservationDeadline < new Date()
@@ -704,9 +700,8 @@ class DetailScreen extends React.Component {
 
     // If it is Reservation
     } else if (isReservation) {
-      // Set the estimated arrival time to 1 hour later from the departure time
+      // Set the estimated arrival time to 30 minutes later from the departure time
       const estimatedArrivalTime = new Date(this.state.selectedItem.offer.departure_time.replace(/-/g, '/'));
-      //estimatedArrivalTime.setHours(estimatedArrivalTime.getHours() + 1);
       estimatedArrivalTime.setMinutes(estimatedArrivalTime.getMinutes() + 30);
 
       // Set the disappearing time to 12 hour later from the departure time
