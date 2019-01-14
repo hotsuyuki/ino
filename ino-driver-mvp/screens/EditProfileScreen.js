@@ -53,7 +53,7 @@ class EditProfileScreen extends React.Component {
 
     const driverInfo = this.props.driverInfo;
     // Trim "@stu.kanazawa-u.ac.jp" // TODO: Make it more robust
-    driverInfo.mail = driverInfo.mail.replace('@stu.kanazawa-u.ac.jp', '');
+    driverInfo.mail = driverInfo.mail.replace(/@stu.kanazawa-u.ac.jp/g, '');
 
     this.setState({
       initialDriverInfo: driverInfo,
@@ -335,52 +335,63 @@ class EditProfileScreen extends React.Component {
         {
           text: 'はい',
           onPress: async () => {
-            // First, POST the edited face image
+            // for debug
+            //console.log(`this.state.editedDriverInfo.image_url = ${this.state.editedDriverInfo.image_url}`);
+
+            // Deep copy without reference
+            const editedDriverInfo = JSON.parse(JSON.stringify(this.state.editedDriverInfo));
+            // Truncate whitespaces and add "@stu.kanazawa-u.ac.jp" // TODO: Make it more robust
+            editedDriverInfo.mail = `${editedDriverInfo.mail.replace(/\s/g, '').replace(/@stu.kanazawa-u.ac.jp/g, '').toLowerCase()}@stu.kanazawa-u.ac.jp`;
+            // Elace hyphens (just in case)
+            editedDriverInfo.phone = editedDriverInfo.phone.replace(/[^0-9]/g, '');
+            // Add local image path for convenience
+            editedDriverInfo.image_url = this.state.editedDriverInfo.image_url;
+
+            // First, PUT the edited profile
             try {
-              // for debug
-              console.log(`this.state.editedDriverInfo.image_url = ${this.state.editedDriverInfo.image_url}`);
-
-              const formData = new FormData();
-              formData.append('face_image', {
-                type: 'image/jpeg',
-                name: 'face_image.jpg',
-                uri: this.state.editedDriverInfo.image_url,
+              let profileResponse = await fetch(`https://inori.work/drivers/${editedDriverInfo.id}`, {
+                method: 'PUT',
+                headers: {},
+                body: JSON.stringify(editedDriverInfo),
               });
 
-              let imageResponse = await fetch(`https://inori.work/drivers/${this.props.driverInfo.id}/image`, {
-                method: 'POST',
-                headers: {
-                  Accept: 'application/json',
-                  'Content-Type': 'multipart/form-data',
-                },
-                body: formData,
-              });
+              if (parseInt(profileResponse.status / 100, 10) === 2) {
+                let profileResponseJson = await profileResponse.json();
 
-              // If succeeded to POST the new face image,
-              if (parseInt(imageResponse.status / 100, 10) === 2) {
-                let imageResponseJson = await imageResponse.json();
+                // for debug
+                //console.log(`JSON.stringify(profileResponseJson) = ${JSON.stringify(profileResponseJson)}`);
 
-                const editedDriverInfo = this.state.editedDriverInfo;
-
-                // Truncate whitespaces and elace hyphens (just in case)
-                editedDriverInfo.mail = `${editedDriverInfo.mail.replace(/\s/g, '').toLowerCase()}@stu.kanazawa-u.ac.jp`;
-                // Elace hyphens (just in case)
-                editedDriverInfo.phone = editedDriverInfo.phone.replace(/[^0-9]/g, '');
-                // Add responded image URL
-                editedDriverInfo.image_url = imageResponseJson.image_url;
-
-                // Then, PUT the edited profile
+                // Then, POST the edited face image
                 try {
-                  let profileResponse = await fetch(`https://inori.work/drivers/${editedDriverInfo.id}`, {
-                    method: 'PUT',
-                    headers: {},
-                    body: JSON.stringify(editedDriverInfo),
+                  const formData = new FormData();
+                  formData.append('face_image', {
+                    type: 'image/jpeg',
+                    name: 'face_image.jpg',
+                    uri: this.state.editedDriverInfo.image_url,
                   });
 
-                  if (parseInt(profileResponse.status / 100, 10) === 2) {
-                    let profileResponseJson = await profileResponse.json();
+                  let imageResponse = await fetch(`https://inori.work/drivers/${this.props.driverInfo.id}/image`, {
+                    method: 'POST',
+                    headers: {
+                      Accept: 'application/json',
+                      'Content-Type': 'multipart/form-data',
+                    },
+                    body: formData,
+                  });
 
+                  // If succeeded to POST the new face image,
+                  if (parseInt(imageResponse.status / 100, 10) === 2) {
+                    let imageResponseJson = await imageResponse.json();
+
+                    // for debug
+                    //console.log(`JSON.stringify(imageResponseJson) = ${JSON.stringify(imageResponseJson)}`);
+
+                    profileResponseJson.driver.image_url = imageResponseJson.image_url;
                     await AsyncStorage.setItem('driverInfo', JSON.stringify(profileResponseJson.driver));
+
+                    // for debug
+                    let stringifiedDriverInfo = await AsyncStorage.getItem('driverInfo');
+                    console.log(`stringifiedDriverInfo = ${stringifiedDriverInfo}`);
 
                     // Reflesh `this.props.driverInfo` in `ProfileScreen` and `this.props.ownOffers` in `OfferScreen`
                     // and make `ProfileScreen` and `OfferScreen` rerender by calling an action creator
@@ -388,22 +399,21 @@ class EditProfileScreen extends React.Component {
                     this.props.fetchOwnOffers();
                     this.props.navigation.pop();
 
-                  // if failed to PUT the edited driver info,
-                  } else if (parseInt(profileResponse.status / 100, 10) === 4 ||
-                             parseInt(profileResponse.status / 100, 10) === 5) {
-                    console.log('Failed to PUT the edited driver info...');
+                  // If failed to POST the new face image,
+                  } else if (parseInt(imageResponse.status / 100, 10) === 4 ||
+                             parseInt(imageResponse.status / 100, 10) === 5) {
+                    console.log('Failed to POST the new face image...');
+                    console.log(`imageResponse.status = ${imageResponse.status}`);
 
                     Alert.alert(
-                      '電波の良いところで後ほどお試しください。',
-                      '編集内容は保存されていません。',
+                      '画像のアップロードに失敗しました。',
+                      '同じ画像で何度も失敗する場合は、他の画像をお試しください。もしくは一度スクショを撮ってスクショの方の画像をアップロードください。(特にAndroidはカメラで撮った画像だとよく失敗します...)',
                       [{ text: 'OK' }]
                     );
                   }
-
-                // If cannot access drivers api,
                 } catch (error) {
-                  console.error(error);
-                  console.log('Cannot access drivers api...');
+                  console.warn(error);
+                  console.log('Cannot access drivers image api...');
 
                   Alert.alert(
                     '電波の良いところで後ほどお試しください。',
@@ -412,20 +422,22 @@ class EditProfileScreen extends React.Component {
                   );
                 }
 
-              // If failed to POST the new face image,
-              } else if (parseInt(imageResponse.status / 100, 10) === 4 ||
-                         parseInt(imageResponse.status / 100, 10) === 5) {
-                console.log('Failed to POST the new face image...');
+              // if failed to PUT the edited driver info,
+              } else if (parseInt(profileResponse.status / 100, 10) === 4 ||
+                         parseInt(profileResponse.status / 100, 10) === 5) {
+                console.log('Failed to PUT the edited driver info...');
 
                 Alert.alert(
-                  '画像のアップロードに失敗しました。',
-                  '同じ画像で何度も失敗する場合は、他の画像をお試しください。もしくは一度スクショを撮ってスクショの方の画像を登録ください。(特にAndroidはカメラで撮った画像だとよく失敗します...)',
+                  '電波の良いところで後ほどお試しください。',
+                  '編集内容は保存されていません。',
                   [{ text: 'OK' }]
                 );
               }
+
+            // If cannot access drivers api,
             } catch (error) {
-              console.warn(error);
-              console.log('Cannot access drivers image api...');
+              console.error(error);
+              console.log('Cannot access drivers api...');
 
               Alert.alert(
                 '電波の良いところで後ほどお試しください。',
