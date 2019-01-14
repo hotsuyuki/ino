@@ -438,7 +438,7 @@ class EditProfileScreen extends React.Component {
     return (
       <View style={{ flex: 1 }}>
         <Header
-          statusBarProps={{ barStyle: 'light-content' }}
+          statusBarProps={{ barStyle: 'dark-content' }}
           backgroundColor="white"
           leftComponent={{
             icon: 'close',
