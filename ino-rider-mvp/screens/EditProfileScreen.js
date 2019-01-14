@@ -293,6 +293,7 @@ class EditProfileScreen extends React.Component {
                 body: JSON.stringify(editedRiderInfo),
               });
 
+              // If succeeded to PUT the edited driver info,
               if (parseInt(profileResponse.status / 100, 10) === 2) {
                 let profileResponseJson = await profileResponse.json();
 
@@ -317,7 +318,7 @@ class EditProfileScreen extends React.Component {
                     body: formData,
                   });
 
-                  // If succeeded to POST the new face image,
+                  // If succeeded to POST the edited face image,
                   if (parseInt(imageResponse.status / 100, 10) === 2) {
                     let imageResponseJson = await imageResponse.json();
 
@@ -336,10 +337,10 @@ class EditProfileScreen extends React.Component {
                     this.props.getRiderInfo();
                     this.props.navigation.pop();
 
-                  // If failed to POST the new face image,
+                  // If failed to POST the edited face image,
                   } else if (parseInt(imageResponse.status / 100, 10) === 4 ||
                              parseInt(imageResponse.status / 100, 10) === 5) {
-                    console.log('Failed to POST the new face image...');
+                    console.log('Failed to POST the edited face image...');
                     console.log(`imageResponse.status = ${imageResponse.status}`);
 
                     Alert.alert(

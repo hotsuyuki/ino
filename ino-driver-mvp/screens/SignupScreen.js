@@ -1,10 +1,11 @@
 import React from 'react';
 import {
-  StyleSheet, Text, View, ScrollView, Alert,
+  StyleSheet, Text, View, ScrollView, Alert, TouchableOpacity, Image,
   LayoutAnimation, UIManager, AsyncStorage, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { Button, FormLabel, FormInput, FormValidationMessage } from 'react-native-elements';
 import ModalSelector from 'react-native-modal-selector';
+import { Permissions, ImagePicker } from 'expo';
 
 
 const INITIAL_STATE = {
@@ -18,8 +19,11 @@ const INITIAL_STATE = {
     car_number: '',
     mail: '',
     phone: '',
+    image_url: '',
   }
 };
+
+const FACE_IMAGE_SIZE = 120;
 
 // for form validation
 const formValidation = {
@@ -43,6 +47,36 @@ class SignupScreen extends React.Component {
       // Ease in & Ease out animation
       UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
       LayoutAnimation.easeInEaseOut();
+    }
+  }
+
+
+  onImagePress = async () => {
+    let cameraRollPermission = await AsyncStorage.getItem('cameraRollPermission');
+
+    if (cameraRollPermission !== 'granted') {
+      let permission = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+
+      if (permission.status !== 'granted') {
+        return;
+      }
+
+      await AsyncStorage.setItem('cameraRollPermission', permission.status);
+    }
+
+    let imageResult = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true
+    });
+
+    if (!imageResult.cancelled) {
+      // Rerender with the new uploaded face image
+      this.setState({
+        driverInfo: {
+          ...this.state.driverInfo,
+          image_url: imageResult.uri
+        }
+      });
     }
   }
 
@@ -269,68 +303,6 @@ class SignupScreen extends React.Component {
   }
 
 
-  onOkButtonPress = async () => {
-    const driverInfo = this.state.driverInfo;
-
-    // Add temporary `id`
-    driverInfo.id = 0;
-    // Truncate whitespaces and add "@stu.kanazawa-u.ac.jp" // TODO: Make it more robust
-    driverInfo.mail = `${driverInfo.mail.replace(/\s/g, '').toLowerCase()}@stu.kanazawa-u.ac.jp`;
-    // Elace hyphens (just in case)
-    driverInfo.phone = driverInfo.phone.replace(/[^0-9]/g, '');
-
-    // Try access signup api
-    try {
-      let response = await fetch('https://inori.work/drivers/signup', {
-        method: 'POST',
-        headers: {},
-        body: JSON.stringify(driverInfo),
-      });
-
-      // If succeed signup with the input driver info,
-      if (parseInt(response.status / 100, 10) === 2) {
-        let responseJson = await response.json();
-        driverInfo.id = responseJson.id;
-
-        // for debug
-        //console.log('responseJson = ' + JSON.stringify(responseJson));
-        console.log('driverInfo = ' + JSON.stringify(driverInfo));
-
-        await AsyncStorage.setItem('driverInfo', JSON.stringify(driverInfo));
-
-        console.log('Manual signup with the input driver info is succeeded!!!');
-        this.props.navigation.pop();
-        this.props.navigation.navigate('root');
-
-      // If failed to signup with the input driver info,
-      } else if (parseInt(response.status / 100, 10) === 4 ||
-                 parseInt(response.status / 100, 10) === 5) {
-        console.log('Manual signup with the input driver info failed...');
-
-        Alert.alert(
-          'エラーが発生しました。',
-          '編集内容は保存されていません。電波の良いところで後ほどお試しください。',
-          [
-            { text: 'OK' },
-          ]
-        );
-      }
-    // If cannot access the signup api,
-    } catch (error) {
-      console.error(error);
-      console.log('Cannot access the signup api...');
-
-      Alert.alert(
-        'エラーが発生しました。',
-        '編集内容は保存されていません。電波の良いところで後ほどお試しください。',
-        [
-          { text: 'OK' },
-        ]
-      );
-    }
-  }
-
-
   onSignupButtonPress = () => {
     Alert.alert(
       'この内容で登録しますか？',
@@ -346,7 +318,115 @@ class SignupScreen extends React.Component {
         { text: 'キャンセル' },
         {
           text: 'はい',
-          onPress: this.onOkButtonPress
+          onPress: async () => {
+            // Deep copy without reference
+            const driverInfo = JSON.parse(JSON.stringify(this.state.driverInfo));
+            // Add temporary `id`
+            driverInfo.id = 0;
+            // Truncate whitespaces and add "@stu.kanazawa-u.ac.jp" // TODO: Make it more robust
+            driverInfo.mail = `${driverInfo.mail.replace(/\s/g, '').replace(/@stu.kanazawa-u.ac.jp/g, '').toLowerCase()}@stu.kanazawa-u.ac.jp`;
+            // Elace hyphens (just in case)
+            driverInfo.phone = driverInfo.phone.replace(/[^0-9]/g, '');
+            // Add local image path for convenience
+            driverInfo.image_url = this.state.driverInfo.image_url;
+
+            // First, POST the input profile
+            try {
+              let profileResponse = await fetch('https://inori.work/drivers/signup', {
+                method: 'POST',
+                headers: {},
+                body: JSON.stringify(driverInfo),
+              });
+
+              // If succeeded to POST the input driver info,
+              if (parseInt(profileResponse.status / 100, 10) === 2) {
+                let profileResponseJson = await profileResponse.json();
+
+                driverInfo.id = profileResponseJson.id;
+
+                // Then, POST the input face image
+                try {
+                  const formData = new FormData();
+                  formData.append('face_image', {
+                    type: 'image/jpeg',
+                    name: 'face_image.jpg',
+                    uri: this.state.driverInfo.image_url,
+                  });
+
+                  let imageResponse = await fetch(`https://inori.work/drivers/${driverInfo.id}/image`, {
+                    method: 'POST',
+                    headers: {
+                      Accept: 'application/json',
+                      'Content-Type': 'multipart/form-data',
+                    },
+                    body: formData,
+                  });
+
+                  // If succeeded to POST the input face image,
+                  if (parseInt(imageResponse.status / 100, 10) === 2) {
+                    let imageResponseJson = await imageResponse.json();
+
+                    driverInfo.image_url = imageResponseJson.image_url;
+                    await AsyncStorage.setItem('driverInfo', JSON.stringify(driverInfo));
+
+                    // for debug
+                    let stringifiedDriverInfo = AsyncStorage.getItem('driverInfo');
+                    console.log(`stringifiedDriverInfo = ${stringifiedDriverInfo}`);
+
+                    console.log('Manual signup with the input driver info is succeeded!!!');
+                    this.props.navigation.pop();
+                    this.props.navigation.navigate('root');
+
+                  // If failed to POST the input face image,
+                  } else if (parseInt(imageResponse.status / 100, 10) === 4 ||
+                             parseInt(imageResponse.status / 100, 10) === 5) {
+                    console.log('Failed to POST the input face image...');
+                    console.log(`imageResponse.status = ${imageResponse.status}`);
+
+                    Alert.alert(
+                      '画像のアップロードに失敗しました。',
+                      '同じ画像で何度も失敗する場合は、他の画像をお試しください。もしくは一度スクショを撮ってスクショの方の画像をアップロードください。(特にAndroidはカメラで撮った画像だとよく失敗します...)',
+                      [{ text: 'OK' }]
+                    );
+                  }
+                } catch (error) {
+                  console.warn(error);
+                  console.log('Cannot access drivers image api...');
+
+                  Alert.alert(
+                    '電波の良いところで後ほどお試しください。',
+                    '編集内容は保存されていません。',
+                    [{ text: 'OK' }]
+                  );
+                }
+
+              // If failed to POST the input driver info,
+              } else if (parseInt(profileResponse.status / 100, 10) === 4 ||
+                         parseInt(profileResponse.status / 100, 10) === 5) {
+                console.log('Manual signup with the input driver info failed...');
+
+                Alert.alert(
+                  'エラーが発生しました。',
+                  '編集内容は保存されていません。電波の良いところで後ほどお試しください。',
+                  [
+                    { text: 'OK' },
+                  ]
+                );
+              }
+            // If cannot access the signup api,
+            } catch (error) {
+              console.error(error);
+              console.log('Cannot access the signup api...');
+
+              Alert.alert(
+                'エラーが発生しました。',
+                '編集内容は保存されていません。電波の良いところで後ほどお試しください。',
+                [
+                  { text: 'OK' },
+                ]
+              );
+            }
+          }
         }
       ],
       { cancelable: false }
@@ -397,6 +477,25 @@ class SignupScreen extends React.Component {
         behavior="padding"
       >
           <ScrollView style={{ flex: 1 }}>
+            <TouchableOpacity
+              style={{ alignItems: 'center', padding: 10 }}
+              onPress={() => this.onImagePress()}
+            >
+              <Image
+                style={{
+                  width: FACE_IMAGE_SIZE,
+                  height: FACE_IMAGE_SIZE,
+                  borderRadius: FACE_IMAGE_SIZE / 2
+                }}
+                source={
+                  this.state.driverInfo.image_url === '' ?
+                  require('../assets/face_image_placeholder.png') :
+                  { uri: this.state.driverInfo.image_url }
+                }
+              />
+              <Text style={styles.itemTextStyle}>顔写真を選択</Text>
+            </TouchableOpacity>
+
             <FormLabel>姓：</FormLabel>
             <FormInput
               autoCapitalize="none"
@@ -517,6 +616,10 @@ class SignupScreen extends React.Component {
 
 
 const styles = StyleSheet.create({
+  itemTextStyle: {
+    color: 'gray',
+    padding: 10,
+  },
 });
 
 

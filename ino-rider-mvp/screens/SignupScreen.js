@@ -1,10 +1,11 @@
 import React from 'react';
 import {
-  StyleSheet, Text, View, ScrollView, Alert,
+  StyleSheet, Text, View, ScrollView, Alert, TouchableOpacity, Image,
   LayoutAnimation, UIManager, AsyncStorage, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { Button, FormLabel, FormInput, FormValidationMessage } from 'react-native-elements';
 import ModalSelector from 'react-native-modal-selector';
+import { Permissions, ImagePicker } from 'expo';
 
 
 const INITIAL_STATE = {
@@ -15,9 +16,12 @@ const INITIAL_STATE = {
     grade: '学年を選択して下さい',
     major: '学類/専攻を選択して下さい',
     mail: '',
-    phone: ''
+    phone: '',
+    image_url: '',
   }
 };
+
+const FACE_IMAGE_SIZE = 120;
 
 // for form validation
 const formValidation = {
@@ -40,6 +44,36 @@ class SignupScreen extends React.Component {
       // Ease in & Ease out animation
       UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationEnabledExperimental(true);
       LayoutAnimation.easeInEaseOut();
+    }
+  }
+
+
+  onImagePress = async () => {
+    let cameraRollPermission = await AsyncStorage.getItem('cameraRollPermission');
+
+    if (cameraRollPermission !== 'granted') {
+      let permission = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+
+      if (permission.status !== 'granted') {
+        return;
+      }
+
+      await AsyncStorage.setItem('cameraRollPermission', permission.status);
+    }
+
+    let imageResult = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true
+    });
+
+    if (!imageResult.cancelled) {
+      // Rerender with the new uploaded face image
+      this.setState({
+        riderInfo: {
+          ...this.state.riderInfo,
+          image_url: imageResult.uri
+        }
+      });
     }
   }
 
@@ -208,68 +242,6 @@ class SignupScreen extends React.Component {
   }
 
 
-  onOkButtonPress = async () => {
-    const riderInfo = this.state.riderInfo;
-
-    // Add temporary `id`
-    riderInfo.id = 0;
-    // Truncate whitespaces and add "@stu.kanazawa-u.ac.jp" // TODO: Make it more robust
-    riderInfo.mail = `${riderInfo.mail.replace(/\s/g, '').toLowerCase()}@stu.kanazawa-u.ac.jp`;
-    // Truncate whitespaces and elace hyphens (just in case)
-    riderInfo.phone = riderInfo.phone.replace(/[^0-9]/g, '');
-
-    // Try access signup api
-    try {
-      let response = await fetch('https://inori.work/riders/signup', {
-        method: 'POST',
-        headers: {},
-        body: JSON.stringify(riderInfo),
-      });
-
-      // If succeed signup with the input rider info,
-      if (parseInt(response.status / 100, 10) === 2) {
-        let responseJson = await response.json();
-        riderInfo.id = responseJson.id;
-
-        // for debug
-        //console.log('responseJson = ' + JSON.stringify(responseJson));
-        console.log('riderInfo = ' + JSON.stringify(riderInfo));
-
-        await AsyncStorage.setItem('riderInfo', JSON.stringify(riderInfo));
-
-        console.log('Manual signup with the input rider info is succeeded!!!');
-        this.props.navigation.pop();
-        this.props.navigation.navigate('root');
-
-      // If cannot signup with the input rider info,
-      } else if (parseInt(response.status / 100, 10) === 4 ||
-                 parseInt(response.status / 100, 10) === 5) {
-        console.log('Manual signup with the input rider info failed...');
-
-        Alert.alert(
-          'エラーが発生しました。',
-          '編集内容は保存されていません。電波の良いところで後ほどお試しください。',
-          [
-            { text: 'OK' },
-          ]
-        );
-      }
-    // If cannot access the signup api,
-    } catch (error) {
-      console.error(error);
-      console.log('Cannot access the signup api...');
-
-      Alert.alert(
-        'エラーが発生しました。',
-        '編集内容は保存されていません。電波の良いところで後ほどお試しください。',
-        [
-          { text: 'OK' },
-        ]
-      );
-    }
-  }
-
-
   onSignupButtonPress = () => {
     Alert.alert(
       'この内容で登録しますか？',
@@ -284,7 +256,115 @@ class SignupScreen extends React.Component {
         { text: 'キャンセル' },
         {
           text: 'はい',
-          onPress: this.onOkButtonPress
+          onPress: async () => {
+            // Deep copy without reference
+            const riderInfo = JSON.parse(JSON.stringify(this.state.riderInfo));
+            // Add temporary `id`
+            riderInfo.id = 0;
+            // Truncate whitespaces and add "@stu.kanazawa-u.ac.jp" // TODO: Make it more robust
+            riderInfo.mail = `${riderInfo.mail.replace(/\s/g, '').replace(/@stu.kanazawa-u.ac.jp/g, '').toLowerCase()}@stu.kanazawa-u.ac.jp`;
+            // Truncate whitespaces and elace hyphens (just in case)
+            riderInfo.phone = riderInfo.phone.replace(/[^0-9]/g, '');
+            // Add local image path for convenience
+            riderInfo.image_url = this.state.riderInfo.image_url;
+
+            // First, POST the input profile
+            try {
+              let profileResponse = await fetch('https://inori.work/riders/signup', {
+                method: 'POST',
+                headers: {},
+                body: JSON.stringify(riderInfo),
+              });
+
+              // If succeeded to POST the input rider info,
+              if (parseInt(profileResponse.status / 100, 10) === 2) {
+                let profileResponseJson = await profileResponse.json();
+
+                riderInfo.id = profileResponseJson.id;
+
+                // Then, POST the input face image
+                try {
+                  const formData = new FormData();
+                  formData.append('face_image', {
+                    type: 'image/jpeg',
+                    name: 'face_image.jpg',
+                    uri: this.state.riderInfo.image_url,
+                  });
+
+                  let imageResponse = await fetch(`https://inori.work/riders/${riderInfo.id}/image`, {
+                    method: 'POST',
+                    headers: {
+                      Accept: 'application/json',
+                      'Content-Type': 'multipart/form-data',
+                    },
+                    body: formData,
+                  });
+
+                  // If succeeded to POST the input face image,
+                  if (parseInt(imageResponse.status / 100, 10) === 2) {
+                    let imageResponseJson = await imageResponse.json();
+
+                    riderInfo.image_url = imageResponseJson.image_url;
+                    await AsyncStorage.setItem('riderInfo', JSON.stringify(riderInfo));
+
+                    // for debug
+                    let stringifiedRiderInfo = AsyncStorage.getItem('riderInfo');
+                    console.log(`stringifiedRiderInfo = ${stringifiedRiderInfo}`);
+
+                    console.log('Manual signup with the input rider info is succeeded!!!');
+                    this.props.navigation.pop();
+                    this.props.navigation.navigate('root');
+
+                  // If failed to POST the input face image,
+                  } else if (parseInt(imageResponse.status / 100, 10) === 4 ||
+                             parseInt(imageResponse.status / 100, 10) === 5) {
+                    console.log('Failed to POST the input face image...');
+                    console.log(`imageResponse.status = ${imageResponse.status}`);
+
+                    Alert.alert(
+                      '画像のアップロードに失敗しました。',
+                      '同じ画像で何度も失敗する場合は、他の画像をお試しください。もしくは一度スクショを撮ってスクショの方の画像をアップロードください。(特にAndroidはカメラで撮った画像だとよく失敗します...)',
+                      [{ text: 'OK' }]
+                    );
+                  }
+                } catch (error) {
+                  console.warn(error);
+                  console.log('Cannot access riders image api...');
+
+                  Alert.alert(
+                    '電波の良いところで後ほどお試しください。',
+                    '編集内容は保存されていません。',
+                    [{ text: 'OK' }]
+                  );
+                }
+
+              // If failed to POST the input rider info,
+              } else if (parseInt(profileResponse.status / 100, 10) === 4 ||
+                         parseInt(profileResponse.status / 100, 10) === 5) {
+                console.log('Manual signup with the input rider info failed...');
+
+                Alert.alert(
+                  'エラーが発生しました。',
+                  '編集内容は保存されていません。電波の良いところで後ほどお試しください。',
+                  [
+                    { text: 'OK' },
+                  ]
+                );
+              }
+            // If cannot access the signup api,
+            } catch (error) {
+              console.error(error);
+              console.log('Cannot access the signup api...');
+
+              Alert.alert(
+                'エラーが発生しました。',
+                '編集内容は保存されていません。電波の良いところで後ほどお試しください。',
+                [
+                  { text: 'OK' },
+                ]
+              );
+            }
+          }
         }
       ],
       { cancelable: false }
@@ -328,12 +408,34 @@ class SignupScreen extends React.Component {
 
 
   render() {
+    // for debug
+    console.log(`this.state.riderInfo.image_url = ${this.state.riderInfo.image_url}`);
+
     return (
       <KeyboardAvoidingView
         style={{ flex: 1 /*, justifyContent: 'center'*/ }}
         behavior="padding"
       >
         <ScrollView style={{ flex: 1 }}>
+          <TouchableOpacity
+            style={{ alignItems: 'center', padding: 10 }}
+            onPress={() => this.onImagePress()}
+          >
+            <Image
+              style={{
+                width: FACE_IMAGE_SIZE,
+                height: FACE_IMAGE_SIZE,
+                borderRadius: FACE_IMAGE_SIZE / 2
+              }}
+              source={
+                this.state.riderInfo.image_url === '' ?
+                require('../assets/face_image_placeholder.png') :
+                { uri: this.state.riderInfo.image_url }
+              }
+            />
+            <Text style={styles.itemTextStyle}>顔写真を選択</Text>
+          </TouchableOpacity>
+
           <FormLabel>姓：</FormLabel>
           <FormInput
             autoCapitalize="none"
@@ -429,6 +531,10 @@ class SignupScreen extends React.Component {
 
 
 const styles = StyleSheet.create({
+  itemTextStyle: {
+    color: 'gray',
+    padding: 10,
+  },
 });
 
 
