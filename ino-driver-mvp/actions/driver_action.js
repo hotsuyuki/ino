@@ -29,7 +29,6 @@ export const fetchOwnOffers = () => {
 
         if (parseInt(offerResponse.status / 100, 10) === 2) {
           let offerResponseJson = await offerResponse.json();
-          //console.log('JSON.stringify(offerResponseJson) = ' + JSON.stringify(offerResponseJson));
 
           // Reset the local notifications list if own offers array is empty
           if (offerResponseJson.offers.length === 0) {
@@ -43,11 +42,8 @@ export const fetchOwnOffers = () => {
             eachItem: {
               offer: {
                 id:,
-                driver_id:,
-                start:,
-                goal:,
-                departure_time:,
-                rider_capacity:
+                driver_id:, start:, goal:,
+                departure_time:, rider_capacity:
               },
               reserved_riders: [`id1`, `id2`, ...]
             }
@@ -58,22 +54,15 @@ export const fetchOwnOffers = () => {
             eachItem: {
               driver:{
                 id:,
-                first_name:,
-                last_name:,
-                grade:,
-                major:,
-                mail:,
-                phone:
-                car_color:,
-                car_number:
+                first_name:, last_name:,
+                grade:, major:,
+                mail:, phone:,
+                car_color:, car_number:
               },
               offer: {
                 id:,
-                driver_id:,
-                start:,
-                goal:,
-                departure_time:,
-                rider_capacity:
+                driver_id:, start:, goal:,
+                departure_time:, rider_capacity:
               },
               reserved_riders: [`id1`, `id2`, ...]
             }
@@ -101,9 +90,7 @@ export const fetchOwnOffers = () => {
           Alert.alert(
             'エラーが発生しました。',
             '電波の良いところで後ほどお試しください。',
-            [
-              { text: 'OK' },
-            ]
+            [{ text: 'OK' }]
           );
         }
 
@@ -113,12 +100,10 @@ export const fetchOwnOffers = () => {
         console.log('Cannot access offers api...');
 
         Alert.alert(
-            'エラーが発生しました。',
-            '電波の良いところで後ほどお試しください。',
-            [
-              { text: 'OK' },
-            ]
-          );
+          'エラーが発生しました。',
+          '電波の良いところで後ほどお試しください。',
+          [{ text: 'OK' }]
+        );
       }
     // If cannot get stored driver info,
     } catch (error) {
@@ -146,7 +131,6 @@ export const fetchAllOffers = () => {
 
       if (parseInt(offerResponse.status / 100, 10) === 2) {
         let offerResponseJson = await offerResponse.json();
-        //console.log('JSON.stringify(offerResponseJson) = ' + JSON.stringify(offerResponseJson));
 
         const promiseArray = offerResponseJson.offers.map(async (item) => {
           const eachItem = item;
@@ -154,11 +138,8 @@ export const fetchAllOffers = () => {
           eachItem: {
             offer: {
               id:,
-              driver_id:,
-              start:,
-              goal:,
-              departure_time:,
-              rider_capacity:
+              driver_id:, start:, goal:,
+              departure_time:, rider_capacity:
             },
             reserved_riders: [`id1`, `id2`, ...]
           }
@@ -176,22 +157,15 @@ export const fetchAllOffers = () => {
               eachItem: {
                 driver:{
                   id:,
-                  first_name:,
-                  last_name:,
-                  grade:,
-                  major:,
-                  mail:,
-                  phone:
-                  car_color:,
-                  car_number:
+                  first_name:, last_name:,
+                  grade:, major:,
+                  mail:, phone:,
+                  car_color:, car_number:
                 },
                 offer: {
                   id:,
-                  driver_id:,
-                  start:,
-                  goal:,
-                  departure_time:,
-                  rider_capacity:
+                  driver_id:, start:, goal:,
+                  departure_time:, rider_capacity:
                 },
                 reserved_riders: [`id1`, `id2`, ...]
               }
@@ -205,9 +179,7 @@ export const fetchAllOffers = () => {
               Alert.alert(
                 'エラーが発生しました。',
                 '電波の良いところで後ほどお試しください。',
-                [
-                  { text: 'OK' },
-                ]
+                [{ text: 'OK' }]
               );
             }
 
@@ -219,9 +191,7 @@ export const fetchAllOffers = () => {
             Alert.alert(
               'エラーが発生しました。',
               '電波の良いところで後ほどお試しください。',
-              [
-                { text: 'OK' },
-              ]
+              [{ text: 'OK' }]
             );
           }
         });
@@ -245,9 +215,7 @@ export const fetchAllOffers = () => {
         Alert.alert(
           'エラーが発生しました。',
           '電波の良いところで後ほどお試しください。',
-          [
-            { text: 'OK' },
-          ]
+          [{ text: 'OK' }]
         );
       }
 
@@ -259,9 +227,7 @@ export const fetchAllOffers = () => {
       Alert.alert(
         'エラーが発生しました。',
         '電波の良いところで後ほどお試しください。',
-        [
-          { text: 'OK' },
-        ]
+        [{ text: 'OK' }]
       );
     }
 

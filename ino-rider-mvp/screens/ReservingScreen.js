@@ -1,17 +1,14 @@
 import React from 'react';
 import {
-  StyleSheet, Text, View, ScrollView, Alert, Image, TouchableOpacity,
+  StyleSheet, Text, View, ScrollView, Alert, Image, StatusBar, TouchableOpacity,
   LayoutAnimation, UIManager, RefreshControl, Linking, Platform, AsyncStorage,
 } from 'react-native';
-import { Button, Icon } from 'react-native-elements';
+import { Header, Button, Icon } from 'react-native-elements';
 import { AppLoading, Notifications } from 'expo';
 import { connect } from 'react-redux';
 
 import * as actions from '../actions';
 
-
-// for push notifications handler
-const RESERVATION_DEADLINE = 'reservation_deadline';
 
 // for map of start or goal place
 const HONBUTOMAE = '金沢大学本部棟前';
@@ -29,7 +26,7 @@ const KYASH_IMAGE = '../assets/kyash_icon.png';
 let isCancelAlertShown = null;
 
 
-class DetailScreen extends React.Component {
+class ReservingScreen extends React.Component {
   constructor(props) {
     super(props);
     this.state = INITIAL_STATE;
@@ -40,27 +37,20 @@ class DetailScreen extends React.Component {
     // Reset the badge number to zero (iOS only)
     Notifications.setBadgeNumberAsync(0);
 
+    // Get stored reservation info
+    let stringifiedReservationInfo = await AsyncStorage.getItem('reservationInfo');
+    const reservationInfo = JSON.parse(stringifiedReservationInfo);
+
+    const isReservation = true;
+
     // Call action creators
     this.props.getRiderInfo();
+    this.props.fetchSelectedOffer(reservationInfo.offer_id, isReservation);
 
     // Reflesh `this.props.ownReservations` and `this.props.allOffers` in `OfferListScreen`
     // and make `OfferListScreen` rerender by calling action creators
     this.props.fetchOwnReservations();
     this.props.fetchAllOffers();
-
-    // Navigate to ReservingScreen or not
-    let stringifiedReservationInfo = await AsyncStorage.getItem('reservationInfo');
-    console.log(`[DetailScreen] stringifiedReservationInfo = ${stringifiedReservationInfo}`);
-
-    if (stringifiedReservationInfo !== null) {
-      const reservationInfo = JSON.parse(stringifiedReservationInfo);
-
-      // If the scheduling time (1 hour before the departure time) is alredy passed,
-      if (new Date(reservationInfo.scheduling_time) < new Date()) {
-        console.log('[DetailScreen] navigate(reserving) in componentWillMount()');
-        this.props.navigation.navigate('reserving');
-      }
-    }
 
     isCancelAlertShown = false;
   }
@@ -73,39 +63,38 @@ class DetailScreen extends React.Component {
   }
 
 
-  onScrollViewRefresh = async () => {
+  componentDidMount() {
+    // Add navigation listener of changing the StatusBar configuration
+    // https://reactnavigation.org/docs/en/status-bar.html#tabnavigator
+    this.navigationListener = this.props.navigation.addListener('didFocus', () => {
+      StatusBar.setBarStyle('light-content');
+      //isAndroid && StatusBar.setBackgroundColor('black');
+    });
+  }
+
+
+  componentWillUnmount() {
+    // Remove navigation listener of changing the StatusBar configuration
+    // https://reactnavigation.org/docs/en/status-bar.html#tabnavigator
+    this.navigationListener.remove();
+  }
+
+
+  onScrollViewRefresh = () => {
     this.setState({ isRefreshing: true });
 
-    // Reset the badge number to zero (iOS only)
-    Notifications.setBadgeNumberAsync(0);
+    const isReservation = true;
 
     // Call action creators
     this.props.getRiderInfo();
-    this.props.fetchSelectedOffer(this.props.selectedOffer.offer.id, this.props.selectedOffer.isReservation);
+    this.props.fetchSelectedOffer(this.props.selectedOffer.offer.id, isReservation);
 
     // Reflesh `this.props.ownReservations` and `this.props.allOffers` in `OfferListScreen`
     // and make `OfferListScreen` rerender by calling action creators
     this.props.fetchOwnReservations();
     this.props.fetchAllOffers();
 
-    // Navigate to ReservingScreen or not
-    let stringifiedReservationInfo = await AsyncStorage.getItem('reservationInfo');
-    console.log(`[DetailScreen] stringifiedReservationInfo = ${stringifiedReservationInfo}`);
-
-    if (stringifiedReservationInfo === null) {
-      this.setState({ isRefreshing: false });
-    } else {
-      const reservationInfo = JSON.parse(stringifiedReservationInfo);
-
-      // If the scheduling time (1 hour before the departure time) is NOT passed yet,
-      if (new Date() < new Date(reservationInfo.scheduling_time)) {
-        this.setState({ isRefreshing: false });
-      } else {
-        this.setState({ isRefreshing: false });
-        console.log('[DetailScreen] navigate(reserving) in onScrollViewRefresh()');
-        this.props.navigation.navigate('reserving');
-      }
-    }
+    this.setState({ isRefreshing: false });
   }
 
 
@@ -158,11 +147,7 @@ class DetailScreen extends React.Component {
     // "2018-10-04 17:00:00" ---> "10/04 17:00"
     const trimedDepartureTime = this.props.selectedOffer.offer.departure_time.substring(5, this.props.selectedOffer.offer.departure_time.length - 3).replace(/-/g, '/');
 
-    if (this.props.selectedOffer.isReservation) {
-      body = `${body} ${trimedDepartureTime}の相乗りを予約させて頂きました。よろしくお願いします！`;
-    } else {
-      body = `${body} ${trimedDepartureTime}の相乗りについてですが、`;
-    }
+    body = `${body} ${trimedDepartureTime}の相乗りを予約させて頂きました。よろしくお願いします！`;
 
     return (
       <Icon
@@ -180,17 +165,15 @@ class DetailScreen extends React.Component {
 
 
   renderTelButton() {
-    if (this.props.selectedOffer.isReservation) {
-      return (
-        <Icon
-          name='phone'
-          type='font-awesome'
-          raised
-          // Replace first "0" with "+81" // TODO: Make it more robust
-          onPress={() => Linking.openURL(`tel:+81${this.props.selectedOffer.driver.phone.substring(1)}`)}
-        />
-      );
-    }
+    return (
+      <Icon
+        name='phone'
+        type='font-awesome'
+        raised
+        // Replace first "0" with "+81" // TODO: Make it more robust
+        onPress={() => Linking.openURL(`tel:+81${this.props.selectedOffer.driver.phone.substring(1)}`)}
+      />
+    );
   }
 
 
@@ -213,7 +196,11 @@ class DetailScreen extends React.Component {
             >
               <View style={{ flex: 4, alignItems: 'center' }}>
                 <Image
-                  style={{ width: FACE_IMAGE_SIZE, height: FACE_IMAGE_SIZE, borderRadius: FACE_IMAGE_SIZE / 2 }}
+                  style={{
+                    width: FACE_IMAGE_SIZE,
+                    height: FACE_IMAGE_SIZE,
+                    borderRadius: FACE_IMAGE_SIZE / 2
+                  }}
                   source={
                     rider.image_url === '' ?
                     require(FACE_IMAGE_PLACEHOLDER) :
@@ -230,121 +217,6 @@ class DetailScreen extends React.Component {
           );
         })}
       </View>
-    );
-  }
-
-
-  onReserveOfferButtonPress = () => {
-    Alert.alert(
-      '',
-      '相乗りを予約しますか？',
-      [
-        { text: 'キャンセル' },
-        {
-          text: 'はい',
-          onPress: async () => {
-            const reserveOfferBody = {
-              id: 0,
-              offer_id: this.props.selectedOffer.offer.id,
-              departure_time: this.props.selectedOffer.offer.departure_time,
-              rider_id: this.props.riderInfo.id
-            };
-
-            // POST new reservation
-            try {
-              let reservationResponse = await fetch('https://inori.work/reservations', {
-                method: 'POST',
-                headers: {},
-                body: JSON.stringify(reserveOfferBody),
-              });
-
-              console.log(`reservationResponse.status = ${reservationResponse.status}`);
-
-              // If succeeded to POST new reservation,
-              if (parseInt(reservationResponse.status / 100, 10) === 2) {
-                // Set the schedule local notification message
-                const messageTitle = '出発時刻の1時間前です。';
-                const messageBody = '予約受付を締め切りました。他にも予約したライダーさんがいるか最終確認しましょう。';
-                const localNotification = {
-                  title: messageTitle,
-                  body: messageBody,
-                  data: {
-                    type: RESERVATION_DEADLINE,
-                    offer_id: this.props.selectedOffer.offer.id,
-                    message_title: messageTitle,
-                    message_body: messageBody
-                  },
-                  ios: { sound: true }
-                };
-
-                // Set the scheduled time for local push notification to 1 hour before the departure time
-                // (same as reservation deadline)
-                const schedulingTime = new Date(this.props.selectedOffer.offer.departure_time.replace(/-/g, '/'));
-                schedulingTime.setHours(schedulingTime.getHours() - 1);
-                const schedulingOptions = {
-                  time: schedulingTime
-                };
-
-                // Set the schedule local notification
-                let localNotificationId = await Notifications.scheduleLocalNotificationAsync(localNotification, schedulingOptions);
-
-                // Add to local notifications list in order to cancel the local notification when the offer is canceled
-                let stringifiedLocalNotifications = await AsyncStorage.getItem('localNotifications');
-                let localNotifications = JSON.parse(stringifiedLocalNotifications);
-                localNotifications.push({
-                  offer_id: this.props.selectedOffer.offer.id,
-                  local_notification_id: localNotificationId
-                });
-
-                //console.log(`[debug] JSON.stringify(localNotifications) = ${JSON.stringify(localNotifications)}`);
-
-                await AsyncStorage.setItem('localNotifications', JSON.stringify(localNotifications));
-
-                // Reflesh `this.props.ownReservations` and `this.props.allOffers` in `OfferListScreen`
-                // and `this.props.selectedOffer` in `ReservingScreen`
-                // to make `OfferListScreen` rerender by calling action creators
-                this.props.fetchOwnReservations();
-                this.props.fetchAllOffers();
-                this.props.fetchSelectedOffer(this.props.selectedOffer.offer.id, this.props.selectedOffer.isReservation);
-
-                const reservationInfo = {
-                  offer_id: this.props.selectedOffer.offer.id,
-                  scheduling_time: schedulingTime,
-                };
-                await AsyncStorage.setItem('reservationInfo', JSON.stringify(reservationInfo));
-
-                this.props.resetSelectedOffer();
-                this.props.navigation.pop();
-
-              // If failed to POST new reservation,
-              } else if (
-                parseInt(reservationResponse.status / 100, 10) === 4 ||
-                parseInt(reservationResponse.status / 100, 10) === 5
-              ) {
-                console.log('Failed to POST new reservation...');
-
-                Alert.alert(
-                  '相乗りを予約できませんでした。',
-                  '電波の良いところで後ほどお試しください。',
-                  [{ text: 'OK' }]
-                );
-              }
-
-            // If cannot access reservations api,
-            } catch (error) {
-              console.error(error);
-              console.log('Cannot access reservations api...');
-
-              Alert.alert(
-                '相乗りを予約できませんでした。',
-                '電波の良いところで後ほどお試しください。',
-                [{ text: 'OK' }]
-              );
-            }
-          },
-        }
-      ],
-      { cancelable: false }
     );
   }
 
@@ -371,8 +243,10 @@ class DetailScreen extends React.Component {
         this.props.fetchOwnReservations();
         this.props.fetchAllOffers();
 
+        // Escape ReservingScreen and move back to OfferListScreen
+        await AsyncStorage.removeItem('reservationInfo');
         this.props.resetSelectedOffer();
-        this.props.navigation.pop();
+        this.props.navigation.navigate('offerList');
 
       // If Kyash is NOT installed yet,
       } catch (error) {
@@ -407,8 +281,10 @@ class DetailScreen extends React.Component {
           this.props.fetchOwnReservations();
           this.props.fetchAllOffers();
 
+          // Escape ReservingScreen and move back to OfferListScreen
+          await AsyncStorage.removeItem('reservationInfo');
           this.props.resetSelectedOffer();
-          this.props.navigation.pop();
+          this.props.navigation.navigate('offerList');
 
         // If Kyash is NOT installed yet,
         } else {
@@ -436,35 +312,93 @@ class DetailScreen extends React.Component {
   }
 
 
-  onCancelReservationButtonPress = () => {
+  onSkipButtonPress = async () => {
     Alert.alert(
-      '予約をキャンセルしてもよろしいですか？',
-      'ドライバーには通知が行きます。',
+      'チップの支払いをスキップしますか？',
+      'チップは任意ですが、ドライバーさん達がまた明日オファーを出すやる気に繋がります。',
       [
-        { text: 'いいえ' },
         {
-          text: 'はい',
+          text: 'キャンセル',
+          style: 'cancel'
+        },
+        {
+          text: 'スキップする',
           onPress: async () => {
-            // GET corresponding reservation id
-            let reservationId;
-            try {
-              let reservationResponse = await fetch(`https://inori.work/reservations?rider_id=${this.props.riderInfo.id}`);
+            // Reflesh `this.props.ownReservations` and `this.props.allOffers` in `OfferListScreen`
+            // and make `OfferListScreen` rerender by calling action creators
+            this.props.fetchOwnReservations();
+            this.props.fetchAllOffers();
 
-              if (parseInt(reservationResponse.status / 100, 10) === 2) {
-                let reservationResponseJson = await reservationResponse.json();
+            // Escape ReservingScreen and move back to OfferListScreen
+            await AsyncStorage.removeItem('reservationInfo');
+            this.props.resetSelectedOffer();
+            this.props.navigation.navigate('offerList');
+          }
+        }
+      ]
+    );
+  }
 
-                reservationResponseJson.reservations.forEach((reservation) => {
-                  if (reservation.offer_id === this.props.selectedOffer.offer.id) {
-                    reservationId = reservation.id;
-                  }
-                });
 
-              // if failed to GET own reservations,
-              } else if (
-                parseInt(reservationResponse.status / 100, 10) === 4 ||
-                parseInt(reservationResponse.status / 100, 10) === 5
-              ) {
-                console.log('Failed to GET own reservations...');
+  onCancelReservationButtonPress = () => {
+    const departureTime = new Date(this.props.selectedOffer.offer.departure_time.replace(/-/g, '/'));
+
+    // If the departure time is passed,
+    // `departureTime` < `new Date()`
+    if (departureTime < new Date()) {
+      Alert.alert(
+        '',
+        '出発時刻を過ぎているのでキャンセルできません。画面を更新します。',
+        [
+          {
+            text: 'OK',
+            onPress: () => this.onScrollViewRefresh()
+          }
+        ]
+      );
+
+    // `new Date()` < `departureTime`
+    } else {
+      Alert.alert(
+        '予約をキャンセルしてもよろしいですか？',
+        'ドライバーには通知が行きます。',
+        [
+          { text: 'いいえ' },
+          {
+            text: 'はい',
+            onPress: async () => {
+              // GET corresponding reservation id
+              let reservationId;
+              try {
+                let reservationResponse = await fetch(`https://inori.work/reservations?rider_id=${this.props.riderInfo.id}`);
+
+                if (parseInt(reservationResponse.status / 100, 10) === 2) {
+                  let reservationResponseJson = await reservationResponse.json();
+
+                  reservationResponseJson.reservations.forEach((reservation) => {
+                    if (reservation.offer_id === this.props.selectedOffer.offer.id) {
+                      reservationId = reservation.id;
+                    }
+                  });
+
+                // if failed to GET own reservations,
+                } else if (
+                  parseInt(reservationResponse.status / 100, 10) === 4 ||
+                  parseInt(reservationResponse.status / 100, 10) === 5
+                ) {
+                  console.log('Failed to GET own reservations...');
+
+                  Alert.alert(
+                    'エラーが発生しました。',
+                    '電波の良いところで後ほどお試しください。',
+                    [{ text: 'OK' }]
+                  );
+                }
+
+              // if cannot access reservaions api,
+              } catch (error) {
+                console.error(error);
+                console.log('Cannot access reservations api...');
 
                 Alert.alert(
                   'エラーが発生しました。',
@@ -473,57 +407,59 @@ class DetailScreen extends React.Component {
                 );
               }
 
-            // if cannot access reservaions api,
-            } catch (error) {
-              console.error(error);
-              console.log('Cannot access reservations api...');
+              //console.log(`[debug] reservationId = ${reservationId}`);
 
-              Alert.alert(
-                'エラーが発生しました。',
-                '電波の良いところで後ほどお試しください。',
-                [{ text: 'OK' }]
-              );
-            }
-
-            //console.log(`[debug] reservationId = ${reservationId}`);
-
-            // DELETE the selected reservation
-            try {
-              let deleteResponse = await fetch(`https://inori.work/reservations/${reservationId}`, {
-                method: 'DELETE',
-              });
-
-              // If succeeded to DELETE the selected reservation,
-              if (parseInt(deleteResponse.status / 100, 10) === 2) {
-                // Cancel the scheduled local notification
-                let stringifiedLocalNotifications = await AsyncStorage.getItem('localNotifications');
-                let localNotifications = JSON.parse(stringifiedLocalNotifications);
-
-                const newLocalNotifications = [];
-                localNotifications.forEach(async (eachLocalNotification) => {
-                  if (eachLocalNotification.offer_id === this.props.selectedOffer.offer.id) {
-                    await Notifications.cancelScheduledNotificationAsync(eachLocalNotification.local_notification_id);
-                  } else {
-                    newLocalNotifications.push(eachLocalNotification);
-                  }
+              // DELETE the selected reservation
+              try {
+                let deleteResponse = await fetch(`https://inori.work/reservations/${reservationId}`, {
+                  method: 'DELETE',
                 });
 
-                await AsyncStorage.setItem('localNotifications', JSON.stringify(newLocalNotifications));
+                // If succeeded to DELETE the selected reservation,
+                if (parseInt(deleteResponse.status / 100, 10) === 2) {
+                  // Cancel the scheduled local notification
+                  let stringifiedLocalNotifications = await AsyncStorage.getItem('localNotifications');
+                  let localNotifications = JSON.parse(stringifiedLocalNotifications);
 
-                // Reflesh `this.props.driverInfo` in `OfferListScreen`
-                // and make `OfferListScreen` rerender by calling action creators
-                this.props.fetchOwnReservations();
-                this.props.fetchAllOffers();
+                  const newLocalNotifications = [];
+                  localNotifications.forEach(async (eachLocalNotification) => {
+                    if (eachLocalNotification.offer_id === this.props.selectedOffer.offer.id) {
+                      await Notifications.cancelScheduledNotificationAsync(eachLocalNotification.local_notification_id);
+                    } else {
+                      newLocalNotifications.push(eachLocalNotification);
+                    }
+                  });
 
-                this.props.resetSelectedOffer();
-                this.props.navigation.pop();
+                  await AsyncStorage.setItem('localNotifications', JSON.stringify(newLocalNotifications));
 
-              // If failed to DELETE the selected reservation,
-              } else if (
-                parseInt(deleteResponse.status / 100, 10) === 4 ||
-                parseInt(deleteResponse.status / 100, 10) === 5
-              ) {
-                console.log('Failed to DELETE the selected reservation...');
+                  // Reflesh `this.props.driverInfo` in `OfferListScreen`
+                  // and make `OfferListScreen` rerender by calling action creators
+                  this.props.fetchOwnReservations();
+                  this.props.fetchAllOffers();
+
+                  // Escape ReservingScreen and move back to OfferListScreen
+                  await AsyncStorage.removeItem('reservationInfo');
+                  this.props.resetSelectedOffer();
+                  this.props.navigation.navigate('offerList');
+
+                // If failed to DELETE the selected reservation,
+                } else if (
+                  parseInt(deleteResponse.status / 100, 10) === 4 ||
+                  parseInt(deleteResponse.status / 100, 10) === 5
+                ) {
+                  console.log('Failed to DELETE the selected reservation...');
+
+                  Alert.alert(
+                    '予約をキャンセルできませんでした。',
+                    '電波の良いところで後ほどお試しください。',
+                    [{ text: 'OK' }]
+                  );
+                }
+
+              // If cannot access reservaions api,
+              } catch (error) {
+                console.error(error);
+                console.log('Cannot access reservations api...');
 
                 Alert.alert(
                   '予約をキャンセルできませんでした。',
@@ -531,59 +467,25 @@ class DetailScreen extends React.Component {
                   [{ text: 'OK' }]
                 );
               }
-
-            // if cannot access reservaions api,
-            } catch (error) {
-              console.error(error);
-              console.log('Cannot access reservations api...');
-
-              Alert.alert(
-                '予約をキャンセルできませんでした。',
-                '電波の良いところで後ほどお試しください。',
-                [{ text: 'OK' }]
-              );
-            }
-          },
-          style: 'destructive'
-        }
-      ],
-      { cancelable: false }
-    );
+            },
+            style: 'destructive'
+          }
+        ],
+        { cancelable: false }
+      );
+    }
   }
 
 
   renderActionButton() {
-    // Set the reservation deadline time to 1 hour before the departure time
-    const reservationDeadline = new Date(this.props.selectedOffer.offer.departure_time.replace(/-/g, '/'));
-    reservationDeadline.setHours(reservationDeadline.getHours() - 1);
+    const departureTime = new Date(this.props.selectedOffer.offer.departure_time.replace(/-/g, '/'));
 
-    // If it is Offer
-    if (!this.props.selectedOffer.isReservation) {
+    // If the departure time is passed,
+    // `departureTime` < `new Date()`
+    if (departureTime < new Date()) {
       return (
-        <View style={{ padding: 20, backgroundColor: 'white' }}>
-          <Button
-            // If the offer is full or the reservation deadline is passed,
-            // inactivate the button (just in case)
-            disabled={
-              this.props.selectedOffer.reserved_riders.length === this.props.selectedOffer.offer.rider_capacity ||
-              reservationDeadline < new Date()
-            }
-            title="相乗りオファーを予約"
-            color="white"
-            buttonStyle={{ backgroundColor: 'rgb(0,122,255)' }}
-            onPress={this.onReserveOfferButtonPress}
-          />
-        </View>
-      );
-
-    // If it is Reservation
-    } else if (this.props.selectedOffer.isReservation) {
-      const departureTime = new Date(this.props.selectedOffer.offer.departure_time.replace(/-/g, '/'));
-
-      // If the departure time is passed,
-      if (departureTime < new Date()) {
-        return (
-          <View style={{ flexDirection: 'row', padding: 20, backgroundColor: 'white' }}>
+        <View style={{ paddingTop: 20, backgroundColor: 'white' }}>
+          <View style={{ flexDirection: 'row', backgroundColor: 'white' }}>
             <TouchableOpacity
               style={{ flex: 1, alignItems: 'flex-end' }}
               onPress={this.onTipButtonPress}
@@ -605,37 +507,43 @@ class DetailScreen extends React.Component {
               />
             </TouchableOpacity>
           </View>
-        );
-      }
-
-      return (
-        <View style={{ padding: 20, backgroundColor: 'white' }}>
           <Button
-            // If the departure time is passed, inactivate the button (just in case)
-            disabled={departureTime < new Date()}
-            title="予約をキャンセル"
-            color="white"
-            buttonStyle={{ backgroundColor: 'red' }}
-            onPress={this.onCancelReservationButtonPress}
+            title="スキップ"
+            color="gray"
+            buttonStyle={{ backgroundColor: 'transparent' }}
+            onPress={this.onSkipButtonPress}
           />
         </View>
       );
     }
+
+    return (
+      <View style={{ padding: 20, backgroundColor: 'white' }}>
+        <Button
+          // If the departure time is passed, inactivate the button (just in case)
+          disabled={departureTime < new Date()}
+          title="予約をキャンセル"
+          color="white"
+          buttonStyle={{ backgroundColor: 'red' }}
+          onPress={this.onCancelReservationButtonPress}
+        />
+      </View>
+    );
   }
 
 
   render() {
-    console.log(`[DetailScreen] JSON.stringify(this.props.selectedOffer) = ${JSON.stringify(this.props.selectedOffer)}`);
+    //console.log(`[ReservingScreen] JSON.stringify(this.props.selectedOffer) = ${JSON.stringify(this.props.selectedOffer)}`);
 
     // Wait to GET the selected item
     if (this.props.selectedOffer === null) {
       return <AppLoading />;
     }
 
-    console.log(`[DetailScreen] this.props.selectedOffer.isCanceld = ${this.props.selectedOffer.isCanceld}`);
-    console.log(`[DetailScreen] isCancelAlertShown = ${isCancelAlertShown}`);
+    console.log(`[ReservingScreen] this.props.selectedOffer.isCanceld = ${this.props.selectedOffer.isCanceld}`);
+    console.log(`[ReservingScreen] isCancelAlertShown = ${isCancelAlertShown}`);
 
-    // If failed to GET the selected offer,
+    // If failed to reGET the selected offer,
     // (e.g. the driver has already canceled the selected offer)
     if (this.props.selectedOffer.isCanceld) {
       if (!isCancelAlertShown) {
@@ -643,7 +551,7 @@ class DetailScreen extends React.Component {
 
         Alert.alert(
           '',
-          '[DetailScreen] このオファーは既にキャンセルされました。',
+          '[ReservingScreen] このオファーは既にキャンセルされました。',
           [
             {
               text: 'OK',
@@ -653,8 +561,11 @@ class DetailScreen extends React.Component {
                 this.props.fetchOwnReservations();
                 this.props.fetchAllOffers();
 
+                // Escape ReservingScreen and move back to OfferListScreen
+                await AsyncStorage.removeItem('reservationInfo');
+                console.log('[ReservingScreen] navigate(offerList)');
                 this.props.resetSelectedOffer();
-                this.props.navigation.pop();
+                this.props.navigation.navigate('offerList');
               },
             }
           ],
@@ -672,6 +583,12 @@ class DetailScreen extends React.Component {
 
     return (
       <View style={{ flex: 1 }}>
+        <Header
+          statusBarProps={{ barStyle: 'light-content' }}
+          backgroundColor="black"
+          centerComponent={{ text: '予約完了', style: styles.headerStyle }}
+        />
+
         <ScrollView
           style={{ flex: 1 }}
           refreshControl={
@@ -681,7 +598,6 @@ class DetailScreen extends React.Component {
             />
           }
         >
-
           <View>
             <Text style={styles.grayTextStyle}>情報</Text>
 
@@ -721,7 +637,11 @@ class DetailScreen extends React.Component {
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <View style={{ flex: 4, alignItems: 'center' }}>
                 <Image
-                  style={{ width: FACE_IMAGE_SIZE, height: FACE_IMAGE_SIZE, borderRadius: FACE_IMAGE_SIZE / 2 }}
+                  style={{
+                    width: FACE_IMAGE_SIZE,
+                    height: FACE_IMAGE_SIZE,
+                    borderRadius: FACE_IMAGE_SIZE / 2
+                  }}
                   source={
                     this.props.selectedOffer.driver.image_url === '' ?
                     require(FACE_IMAGE_PLACEHOLDER) :
@@ -759,6 +679,11 @@ class DetailScreen extends React.Component {
 
 
 const styles = StyleSheet.create({
+  headerStyle: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold'
+  },
   grayTextStyle: {
     color: 'gray',
     padding: 10,
@@ -782,4 +707,4 @@ const mapStateToProps = (state) => {
 };
 
 
-export default connect(mapStateToProps, actions)(DetailScreen);
+export default connect(mapStateToProps, actions)(ReservingScreen);

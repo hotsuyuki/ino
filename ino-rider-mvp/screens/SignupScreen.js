@@ -313,7 +313,7 @@ class SignupScreen extends React.Component {
 
                     console.log('Manual signup with the input rider info is succeeded!!!');
                     this.props.navigation.pop();
-                    this.props.navigation.navigate('root');
+                    this.props.navigation.navigate('offerList');
 
                   // If failed to POST the input face image,
                   } else if (parseInt(imageResponse.status / 100, 10) === 4 ||

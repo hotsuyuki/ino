@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import React from 'react';
 import {
-  StyleSheet, Text, View, ScrollView, RefreshControl, Alert, Image,
+  StyleSheet, Text, View, ScrollView, RefreshControl, Alert, Image, StatusBar,
   LayoutAnimation, UIManager, AsyncStorage,
 } from 'react-native';
 import { ListItem, Icon, Button } from 'react-native-elements';
@@ -11,18 +11,13 @@ import { connect } from 'react-redux';
 import * as actions from '../actions';
 
 
-// for push notifications handler
-const CANCELED_OFFER = 'canceled_offer';
-const RESERVATION_DEADLINE = 'reservation_deadline';
-const RECOMMEND_OFFER = 'recommend_offer';
-
 const INITIAL_STATE = {
   // for <ScrollView />
   isRefreshing: false
 };
 
 const FACE_IMAGE_SIZE = 60;
-
+const FACE_IMAGE_PLACEHOLDER = '../assets/face_image_placeholder.png';
 
 class OfferListScreen extends React.Component {
   constructor(props) {
@@ -49,212 +44,62 @@ class OfferListScreen extends React.Component {
   }
 
 
-  // Get push notifications token and permissions
-  // https://docs.expo.io/versions/latest/guides/push-notifications
   async componentDidMount() {
-    const { status: existingStatus } = await Permissions.getAsync(Permissions.NOTIFICATIONS);
-
-    let finalStatus = existingStatus;
-
-    // only ask if permissions have not already been determined, because
-    // iOS won't necessarily prompt the user a second time.
-    if (existingStatus !== 'granted') {
-      // Android remote notification permissions are granted during the app install,
-      // so this will only ask on iOS
-      const { status } = await Permissions.askAsync(Permissions.NOTIFICATIONS);
-      finalStatus = status;
-    }
-
-    // for debug
-    //console.log(`existingStatus = ${existingStatus}`);
-    //console.log(`finalStatus = ${finalStatus}`);
-
-    // Stop here if the user did not grant permissions
-    if (finalStatus !== 'granted') {
-      return;
-    }
-
-    // Get the token that uniquely identifies this device
-    let pushNotificationsToken = await Notifications.getExpoPushTokenAsync();
-
-    // for debug
-    console.log(JSON.stringify(pushNotificationsToken));
-
-    // POST the push notification token
-    try {
-      let response = await fetch('https://inori.work/tokens/push/riders', {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          id: this.props.riderInfo.id,
-          token: pushNotificationsToken
-        }),
-      });
-
-      let responseJson = await response.json();
-
-      // for debug
-      //console.log(`JSON.stringify(responseJson) = ${JSON.stringify(responseJson)}`);
-
-      // If failed to POST the push notification token,
-      if (parseInt(response.status / 100, 10) === 4 ||
-          parseInt(response.status / 100, 10) === 5) {
-        console.log('Failed to POST the push notification token...');
-
-        Alert.alert(
-          'プッシュ通知の設定に失敗しました。',
-          '電波の良いところで後ほどアプリを再起動して下さい。',
-          [
-            { text: 'OK' },
-          ]
-        );
-      }
-
-    // If cannot access tokens api,
-    } catch (error) {
-      console.error(error);
-      console.log('Cannot access tokens api...');
-    }
-
-    // Handle notifications that are received or selected while the app is open.
-    // If the app was closed and then opened by tapping the notification
-    // (rather than just tapping the app icon to open it),
-    // this function will fire on the next tick after the app starts with the notification data.
-    this.notificationSubscription = Notifications.addListener(this.handleNotification);
-
-    // for debug
-    //let stringifiedLocalNotifications = await AsyncStorage.getItem('localNotifications');
-    //let localNotifications = JSON.parse(stringifiedLocalNotifications);
-    //console.log(`JSON.stringify(localNotifications) = ${JSON.stringify(localNotifications)}`);
-  }
-
-
-  handleNotification = async (notification) => {
-    // Reset the badge number to zero (iOS only)
-    Notifications.setBadgeNumberAsync(0);
-
-    // for debug
-    //console.log(`JSON.stringify(notification) = ${JSON.stringify(notification)}`);
-
-    switch (notification.data.type) {
-      // When the driver canceled the offer which already reserved,
-      case CANCELED_OFFER: {
-        // Cancel the scheduled local notification
-        let stringifiedLocalNotifications = await AsyncStorage.getItem('localNotifications');
-        let localNotifications = JSON.parse(stringifiedLocalNotifications);
-
-        // for debug
-        //console.log(`[Before] JSON.stringify(localNotifications) = ${JSON.stringify(localNotifications)}`);
-
-        const newLocalNotifications = [];
-        localNotifications.forEach(async (eachLocalNotification) => {
-          if (eachLocalNotification.offer_id === notification.data.offer_id) {
-            await Notifications.cancelScheduledNotificationAsync(eachLocalNotification.local_notification_id);
-          } else {
-            newLocalNotifications.push(eachLocalNotification);
-          }
-        });
-
-        // for debug
-        //console.log(`[After] JSON.stringify(newLocalNotifications) = ${JSON.stringify(newLocalNotifications)}`);
-
-        await AsyncStorage.setItem('localNotifications', JSON.stringify(newLocalNotifications));
-
-        // If foregrounded by selecting the push notification,
-        if (notification.origin === 'selected') {
-          // Rerender the screen
-          this.props.fetchOwnReservations();
-          this.props.fetchAllOffers();
-        // If received the push notification while the app is already foreground,
-        } else if (notification.origin === 'received') {
-          Alert.alert(
-            '',
-            `${notification.data.message_title}`,
-            [
-              {
-                text: 'OK',
-                onPress: () => {
-                  // Rerender the screen
-                  this.props.fetchOwnReservations();
-                  this.props.fetchAllOffers();
-                },
-              }
-            ],
-            { cancelable: false }
-          );
-        }
-        break;
-      }
-
-      // When the reservation deadline has come,
-      case RESERVATION_DEADLINE:
-        // If foregrounded by selecting the push notification,
-        if (notification.origin === 'selected') {
-          this.props.navigation.navigate('detail', {
-            riderId: this.props.riderInfo.id,
-            selectedOfferId: notification.data.offer_id,
-            isReservation: true
-          });
-        // If received the push notification while the app is already foreground,
-        } else if (notification.origin === 'received') {
-          Alert.alert(
-            '',
-            `${notification.data.message_title}`,
-            [
-              {
-                text: 'OK',
-                onPress: () => this.props.navigation.navigate('detail', {
-                  riderId: this.props.riderInfo.id,
-                  selectedOfferId: notification.data.offer_id,
-                  isReservation: true
-                }),
-              }
-            ],
-            { cancelable: false }
-          );
-        }
-        break;
-
-      case RECOMMEND_OFFER:
-        // Call action creators
-        this.props.fetchOwnReservations();
-        this.props.fetchAllOffers();
-        break;
-
-      default:
-        break;
-    }
-  };
-
-
-  onScrollViewRefresh = () => {
-    this.setState({ isRefreshing: true });
-
-    // Rerender the screen
-    this.props.fetchOwnReservations();
-    this.props.fetchAllOffers();
-
-    this.setState({ isRefreshing: false });
-  }
-
-
-  onListItemPress = (selectedItem, isReservation) => {
-    // Nvigate to `DetailScreen` with params
-    this.props.navigation.navigate('detail', {
-      riderId: this.props.riderInfo.id,
-      selectedOfferId: selectedItem.offer.id,
-      isReservation
+    // Add navigation listener of changing the StatusBar configuration
+    // https://reactnavigation.org/docs/en/status-bar.html#tabnavigator
+    this.navigationListener = this.props.navigation.addListener('didFocus', () => {
+      StatusBar.setBarStyle('dark-content');
+      //isAndroid && StatusBar.setBackgroundColor('white');
     });
   }
 
 
-  renderOwnReservations() {
-    // for debug
-    //console.log(`this.props.ownReservations.length = ${this.props.ownReservations.length}`);
+  componentWillUnmount() {
+    // Remove navigation listener of changing the StatusBar configuration
+    // https://reactnavigation.org/docs/en/status-bar.html#tabnavigator
+    this.navigationListener.remove();
+  }
 
+
+  onScrollViewRefresh = async () => {
+    this.setState({ isRefreshing: true });
+
+    // Reset the badge number to zero (iOS only)
+    Notifications.setBadgeNumberAsync(0);
+
+    // Rerender the screen
+    this.props.getRiderInfo();
+    this.props.fetchOwnReservations();
+    this.props.fetchAllOffers();
+
+    // Navigate to ReservingScreen or not
+    let stringifiedReservationInfo = await AsyncStorage.getItem('reservationInfo');
+    console.log(`[OfferListScreen] stringifiedReservationInfo = ${stringifiedReservationInfo}`);
+
+    if (stringifiedReservationInfo === null) {
+      this.setState({ isRefreshing: false });
+    } else {
+      const reservationInfo = JSON.parse(stringifiedReservationInfo);
+
+      // If the scheduling time (1 hour before the departure time) is NOT passed yet,
+      if (new Date() < new Date(reservationInfo.scheduling_time)) {
+        this.setState({ isRefreshing: false });
+      } else {
+        this.setState({ isRefreshing: false });
+        console.log('[OfferListScreen] navigate(reserving) in onScrollViewRefresh()');
+        this.props.navigation.navigate('reserving');
+      }
+    }
+  }
+
+
+  onListItemPress = (selectedOfferId, isReservation) => {
+    this.props.fetchSelectedOffer(selectedOfferId, isReservation);
+    this.props.navigation.navigate('detail');
+  }
+
+
+  renderOwnReservations() {
     // TODO: Search whole departure time in the array whether it's passed the disappearing time or not
     if (this.props.ownReservations.length === 0) {
       return (
@@ -267,25 +112,24 @@ class OfferListScreen extends React.Component {
     return (
       <View>
         {this.props.ownReservations.map((item, index) => {
-          // Set the disappearing time to 12 hour later from the departure time
+          // Set the disappearing time to 30 minutes later from the departure time
           const disappearingTime = new Date(item.offer.departure_time.replace(/-/g, '/'));
-          disappearingTime.setHours(disappearingTime.getHours() + 12);
+          disappearingTime.setMinutes(disappearingTime.getMinutes() + 30);
 
           // If the disappearing time is passed,
+          // `departureTime` < `disappearingTime` < `new Date()`
           if (disappearingTime < new Date()) {
             // render nothing
-            return <View />;
+            return <View key={index} />;
           }
 
           const isReservation = true;
+          const departureTime = new Date(item.offer.departure_time.replace(/-/g, '/'));
 
-          // Set the estimated arrival time to 30 minutes later from the departure time
-          const estimatedArrivalTime = new Date(item.offer.departure_time.replace(/-/g, '/'));
-          estimatedArrivalTime.setMinutes(estimatedArrivalTime.getMinutes() + 30);
-
-          // If the carpool is expected to be arrived,
-          if (estimatedArrivalTime < new Date()) {
-            // render a ListItem with Kyash button
+          // If the departure time is passed,
+          // `departureTime` < `new Date()` < `disappearingTime`
+          if (departureTime < new Date()) {
+            // Render a ListItem with Kyash button
             return (
               <ListItem
                 key={index}
@@ -293,40 +137,35 @@ class OfferListScreen extends React.Component {
                   <View style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}>
                     <View style={{ flex: 3, alignItems: 'center' }}>
                       <Image
-                        style={{
-                          width: FACE_IMAGE_SIZE,
-                          height: FACE_IMAGE_SIZE,
-                          borderRadius: FACE_IMAGE_SIZE / 2
-                        }}
+                        style={{ width: FACE_IMAGE_SIZE, height: FACE_IMAGE_SIZE, borderRadius: FACE_IMAGE_SIZE / 2 }}
                         source={
                           item.driver.image_url === '' ?
-                          require('../assets/face_image_placeholder.png') :
+                          require(FACE_IMAGE_PLACEHOLDER) :
                           { uri: item.driver.image_url }
                         }
                       />
                     </View>
 
-                    <View style={{ flex: 7, justifyContent: 'space-between' }}>
+                    <View style={{ flex: 7 }}>
                       <Button
-                        //icon={<Image source={{ uri: '../assets/kyash_icon.png' }} />}
-                        title="Kyashで募金する"
-                        color="skyblue"
-                        buttonStyle={{ backgroundColor: 'white', borderRadius: 30 }}
-                        onPress={() => this.onListItemPress(item, isReservation)}
+                        title="Kyashでチップ"
+                        color="white"
+                        buttonStyle={{ backgroundColor: 'skyblue', borderRadius: 20 }}
+                        onPress={() => this.onListItemPress(item.offer.id, isReservation)}
                       />
                     </View>
                   </View>
                 }
-                onPress={() => this.onListItemPress(item, isReservation)}
+                onPress={() => this.onListItemPress(item.offer.id, isReservation)}
               />
             );
           }
 
-          // Trim year(frist 5 characters) and second(last 3 characters),
-          // and replace hyphens by slashes
+          // Trim year(frist 5 characters) and second(last 3 characters), and replace hyphens by slashes
           // "2018-10-04 17:00:00" ---> "10/04 17:00"
           const trimedDepartureTime = item.offer.departure_time.substring(5, item.offer.departure_time.length - 3).replace(/-/g, '/');
 
+          // `new Date()` < `departureTime` < `disappearingTime`
           return (
             <ListItem
               key={index}
@@ -334,14 +173,10 @@ class OfferListScreen extends React.Component {
                 <View style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}>
                   <View style={{ flex: 3, alignItems: 'center' }}>
                     <Image
-                      style={{
-                        width: FACE_IMAGE_SIZE,
-                        height: FACE_IMAGE_SIZE,
-                        borderRadius: FACE_IMAGE_SIZE / 2
-                      }}
+                      style={{ width: FACE_IMAGE_SIZE, height: FACE_IMAGE_SIZE, borderRadius: FACE_IMAGE_SIZE / 2 }}
                       source={
                         item.driver.image_url === '' ?
-                        require('../assets/face_image_placeholder.png') :
+                        require(FACE_IMAGE_PLACEHOLDER) :
                         { uri: item.driver.image_url }
                       }
                     />
@@ -372,7 +207,7 @@ class OfferListScreen extends React.Component {
                   </View>
                 </View>
               }
-              onPress={() => this.onListItemPress(item, isReservation)}
+              onPress={() => this.onListItemPress(item.offer.id, isReservation)}
             />
           );
         })}
@@ -382,9 +217,6 @@ class OfferListScreen extends React.Component {
 
 
   renderAllOffers() {
-    // for debug
-    //console.log(`this.props.allOffers.length = ${this.props.allOffers.length}`);
-
     // TODO: Search whole departure time in the array whether it's passed the deadline time or not
     if (this.props.allOffers.length === 0) {
       return (
@@ -405,14 +237,14 @@ class OfferListScreen extends React.Component {
             }
           });
 
-          // Set the reservation deadline time to 1 hour earlier from the departure time
+          // Set the reservation deadline time to 1 hour before the departure time
           const reservationDeadline = new Date(item.offer.departure_time.replace(/-/g, '/'));
           reservationDeadline.setHours(reservationDeadline.getHours() - 1);
 
           // If this offer is not reservation and before the deadline,
+          // `new Date()` < `reservationDeadline`
           if (!isReservation && new Date() < reservationDeadline) {
-            // Trim year(frist 5 characters) and second(last 3 characters),
-            // and replace hyphens by slashes
+            // Trim year(frist 5 characters) and second(last 3 characters), and replace hyphens by slashes
             // "2018-10-04 17:00:00" ---> "10/04 17:00"
             const trimedDepartureTime = item.offer.departure_time.substring(5, item.offer.departure_time.length - 3).replace(/-/g, '/');
 
@@ -423,14 +255,10 @@ class OfferListScreen extends React.Component {
                   <View style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}>
                     <View style={{ flex: 3, alignItems: 'center' }}>
                       <Image
-                        style={{
-                          width: FACE_IMAGE_SIZE,
-                          height: FACE_IMAGE_SIZE,
-                          borderRadius: FACE_IMAGE_SIZE / 2
-                        }}
+                        style={{ width: FACE_IMAGE_SIZE, height: FACE_IMAGE_SIZE, borderRadius: FACE_IMAGE_SIZE / 2 }}
                         source={
                           item.driver.image_url === '' ?
-                          require('../assets/face_image_placeholder.png') :
+                          require(FACE_IMAGE_PLACEHOLDER) :
                           { uri: item.driver.image_url }
                         }
                       />
@@ -461,12 +289,13 @@ class OfferListScreen extends React.Component {
                     </View>
                   </View>
                 }
-                onPress={() => this.onListItemPress(item, isReservation)}
+                onPress={() => this.onListItemPress(item.offer.id, isReservation)}
               />
             );
           }
 
-          // If it is reservation, render nothing
+          // If it is reservation or after the deadline, render nothing
+          // `reservationDeadline` < `new Date()`
           return <View key={index} />;
         })}
       </View>
@@ -477,18 +306,21 @@ class OfferListScreen extends React.Component {
   render() {
     // for debug
     //console.log(`(typeof this.props.riderInfo.id) = ${(typeof this.props.riderInfo.id)}`);
-    //console.log(`_.isNull(this.props.ownReservations) = ${_.isNull(this.props.ownReservations)}`);
-    //console.log(`_.isNull(this.props.allOffers) = ${_.isNull(this.props.allOffers)}`);
+    //console.log(`this.props.ownReservations = ${this.props.ownReservations}`);
+    //console.log(`this.props.allOffers = ${this.props.allOffers}`);
 
     // Wait to fetch own rider info, own reservations, and all offers
-    if ((typeof this.props.riderInfo.id) === 'undefined' ||
-        _.isNull(this.props.ownReservations) ||
-        _.isNull(this.props.allOffers)) {
+    if (
+      (typeof this.props.riderInfo.id) === 'undefined' ||
+      this.props.ownReservations === null ||
+      this.props.allOffers === null
+    ) {
       return <AppLoading />;
     }
 
     return (
       <View style={{ flex: 1 }}>
+        <StatusBar barStyle="dark-content" />
         <ScrollView
           style={{ flex: 1 }}
           refreshControl={
@@ -534,7 +366,8 @@ const mapStateToProps = (state) => {
   return {
     riderInfo: state.riderReducer.riderInfo,
     ownReservations: state.riderReducer.ownReservations,
-    allOffers: state.riderReducer.allOffers
+    allOffers: state.riderReducer.allOffers,
+    selectedOffer: state.riderReducer.selectedOffer,
   };
 };
 

@@ -431,7 +431,7 @@ class OfferScreen extends React.Component {
 
 
   renderDepartureTimeValid() {
-    // Set the reservation deadline time to 1 hour earlier from the departure time
+    // Set the reservation deadline time to 1 hour before the departure time
     const reservationDeadline = new Date(this.state.chosenDepartureTime);
     reservationDeadline.setHours(reservationDeadline.getHours() - 1);
 
@@ -614,7 +614,7 @@ class OfferScreen extends React.Component {
                 }
               };
 
-              // Set the scheduled time for local push notification to 1 hour earlier from the departure time
+              // Set the scheduled time for local push notification to 1 hour before the departure time
               // (same as reservation deadline)
               const schedulingTime = new Date(this.state.chosenDepartureTime);
               schedulingTime.setHours(schedulingTime.getHours() - 1);

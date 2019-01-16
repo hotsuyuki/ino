@@ -1,14 +1,41 @@
 import { Alert, AsyncStorage } from 'react-native';
 
 import {
+  GET_RIDER_INFO,
   FETCH_OWN_RESERVATIONS,
   FETCH_ALL_OFFERS,
-  GET_RIDER_INFO,
+  FETCH_SELECTED_OFFER,
+  RESET_SELECTED_OFFER,
 } from './types';
 
 
 // Below are action creators...
 // (a function that will return an action)
+export const getRiderInfo = () => {
+  // For an async flow like Ajax,
+  // action creator function returns another function (not an action),
+  // and the returned fucntion dispatch an action
+  // when the async procedure is done.
+  // This is whta Redux Thunk does.
+  return async (dispatch) => {
+    let riderInfo = {};
+
+    // Get stored rider info
+    try {
+      let stringifiedRiderInfo = await AsyncStorage.getItem('riderInfo');
+      riderInfo = JSON.parse(stringifiedRiderInfo);
+
+    // If cannot get stored rider info,
+    } catch (error) {
+      console.warn(error);
+      console.log('Cannot get stored rider info...');
+    }
+
+    dispatch({ type: GET_RIDER_INFO, payload: riderInfo });
+  };
+};
+
+
 export const fetchOwnReservations = () => {
   // For an async flow like Ajax,
   // action creator function returns another function (not an action),
@@ -49,11 +76,8 @@ export const fetchOwnReservations = () => {
                 eachItem: {
                   offer: {
                     id:,
-                    driver_id:,
-                    start:,
-                    goal:,
-                    departure_time:,
-                    rider_capacity:
+                    driver_id:, start:, goal:,
+                    departure_time:, rider_capacity:
                   },
                   reserved_riders: [`id1`, `id2`, ...]
                 }
@@ -71,22 +95,15 @@ export const fetchOwnReservations = () => {
                     eachItem: {
                       driver:{
                         id:,
-                        first_name:,
-                        last_name:,
-                        grade:,
-                        major:,
-                        mail:,
-                        phone:
-                        car_color:,
-                        car_number:
+                        first_name:, last_name:,
+                        grade:, major:,
+                        mail:, phone:,
+                        car_color:, car_number:
                       },
                       offer: {
                         id:,
-                        driver_id:,
-                        start:,
-                        goal:,
-                        departure_time:,
-                        rider_capacity:
+                        driver_id:, start:, goal:,
+                        departure_time:, rider_capacity:
                       },
                       reserved_riders: [`id1`, `id2`, ...]
                     }
@@ -95,16 +112,16 @@ export const fetchOwnReservations = () => {
                     ownReservations.push(eachItem);
 
                   // If failed to GET the correesponding driver info,
-                  } else if (parseInt(driverResponse.status / 100, 10) === 4 ||
-                             parseInt(driverResponse.status / 100, 10) === 5) {
+                  } else if (
+                    parseInt(driverResponse.status / 100, 10) === 4 ||
+                    parseInt(driverResponse.status / 100, 10) === 5
+                  ) {
                     console.log('GETting driver info failed...');
 
                     Alert.alert(
                       'エラーが発生しました。',
                       '電波の良いところで後ほどお試しください。',
-                      [
-                        { text: 'OK' },
-                      ]
+                      [{ text: 'OK' }]
                     );
                   }
 
@@ -116,21 +133,19 @@ export const fetchOwnReservations = () => {
                   Alert.alert(
                     'エラーが発生しました。',
                     '電波の良いところで後ほどお試しください。',
-                    [
-                      { text: 'OK' },
-                    ]
+                    [{ text: 'OK' }]
                   );
                 }
 
               // If failed to GET the corresponding offer,
-              } else if (parseInt(offerResponse.status / 100, 10) === 4 ||
-                         parseInt(offerResponse.status / 100, 10) === 5) {
+              } else if (
+                parseInt(offerResponse.status / 100, 10) === 4 ||
+                parseInt(offerResponse.status / 100, 10) === 5
+              ) {
                 Alert.alert(
                   'エラーが発生しました。',
                   '電波の良いところで後ほどお試しください。',
-                  [
-                    { text: 'OK' },
-                  ]
+                  [{ text: 'OK' }]
                 );
               }
 
@@ -142,9 +157,7 @@ export const fetchOwnReservations = () => {
               Alert.alert(
                 'エラーが発生しました。',
                 '電波の良いところで後ほどお試しください。',
-                [
-                  { text: 'OK' },
-                ]
+                [{ text: 'OK' }]
               );
             }
           });
@@ -163,14 +176,14 @@ export const fetchOwnReservations = () => {
           });
 
         // If failed to GET own reservations,
-        } else if (parseInt(reservationResponse.status / 100, 10) === 4 ||
-                   parseInt(reservationResponse.status / 100, 10) === 5) {
+        } else if (
+          parseInt(reservationResponse.status / 100, 10) === 4 ||
+          parseInt(reservationResponse.status / 100, 10) === 5
+        ) {
           Alert.alert(
             'エラーが発生しました。',
             '電波の良いところで後ほどお試しください。',
-            [
-              { text: 'OK' },
-            ]
+            [{ text: 'OK' }]
           );
         }
 
@@ -213,11 +226,8 @@ export const fetchAllOffers = () => {
           eachItem: {
             offer: {
               id:,
-              driver_id:,
-              start:,
-              goal:,
-              departure_time:,
-              rider_capacity:
+              driver_id:, start:, goal:,
+              departure_time:, rider_capacity:
             },
             reserved_riders: [`id1`, `id2`, ...]
           }
@@ -235,22 +245,15 @@ export const fetchAllOffers = () => {
               eachItem: {
                 driver:{
                   id:,
-                  first_name:,
-                  last_name:,
-                  grade:,
-                  major:,
-                  mail:,
-                  phone:
-                  car_color:,
-                  car_number:
+                  first_name:, last_name:,
+                  grade:, major:,
+                  mail:, phone:,
+                  car_color:, car_number:
                 },
                 offer: {
                   id:,
-                  driver_id:,
-                  start:,
-                  goal:,
-                  departure_time:,
-                  rider_capacity:
+                  driver_id:, start:, goal:,
+                  departure_time:, rider_capacity:
                 },
                 reserved_riders: [`id1`, `id2`, ...]
               }
@@ -259,14 +262,14 @@ export const fetchAllOffers = () => {
               allOffers.push(eachItem);
 
             // If failed to GET the correesponding driver info,
-            } else if (parseInt(driverResponse.status / 100, 10) === 4 ||
-                       parseInt(driverResponse.status / 100, 10) === 5) {
+            } else if (
+              parseInt(driverResponse.status / 100, 10) === 4 ||
+              parseInt(driverResponse.status / 100, 10) === 5
+            ) {
               Alert.alert(
                 'エラーが発生しました。',
                 '電波の良いところで後ほどお試しください。',
-                [
-                  { text: 'OK' },
-                ]
+                [{ text: 'OK' }]
               );
             }
 
@@ -278,9 +281,7 @@ export const fetchAllOffers = () => {
             Alert.alert(
               'エラーが発生しました。',
               '電波の良いところで後ほどお試しください。',
-              [
-                { text: 'OK' },
-              ]
+              [{ text: 'OK' }]
             );
           }
         });
@@ -299,14 +300,14 @@ export const fetchAllOffers = () => {
         });
 
       // If failed to GET all offers,
-      } else if (parseInt(offerResponse.status / 100, 10) === 4 ||
-                 parseInt(offerResponse.status / 100, 10) === 5) {
+      } else if (
+        parseInt(offerResponse.status / 100, 10) === 4 ||
+        parseInt(offerResponse.status / 100, 10) === 5
+      ) {
         Alert.alert(
           'エラーが発生しました。',
           '電波の良いところで後ほどお試しください。',
-          [
-            { text: 'OK' },
-          ]
+          [{ text: 'OK' }]
         );
       }
 
@@ -318,9 +319,7 @@ export const fetchAllOffers = () => {
       Alert.alert(
         'エラーが発生しました。',
         '電波の良いところで後ほどお試しください。',
-        [
-          { text: 'OK' },
-        ]
+        [{ text: 'OK' }]
       );
     }
 
@@ -329,26 +328,182 @@ export const fetchAllOffers = () => {
 };
 
 
-export const getRiderInfo = () => {
+export const fetchSelectedOffer = (selectedOfferId, isReservation) => {
   // For an async flow like Ajax,
   // action creator function returns another function (not an action),
   // and the returned fucntion dispatch an action
   // when the async procedure is done.
   // This is whta Redux Thunk does.
   return async (dispatch) => {
-    let riderInfo = {};
+    let selectedOffer = {};
 
-    // Get stored rider info
+    // GET the selected item
     try {
-      let stringifiedRiderInfo = await AsyncStorage.getItem('riderInfo');
-      riderInfo = JSON.parse(stringifiedRiderInfo);
+      let offerResponse = await fetch(`https://inori.work/offers/${selectedOfferId}`);
 
-    // If cannot get stored rider info,
+      // If succeeded to GET the selected offer,
+      if (parseInt(offerResponse.status / 100, 10) === 2) {
+        let offerResponseJson = await offerResponse.json();
+        selectedOffer = offerResponseJson;
+        /**********************************
+        selectedOffer: {
+          offer: {
+            id:,
+            driver_id:, start:, goal:,
+            departure_time:, rider_capacity:
+          },
+          reserved_riders: [`id1`, `id2`, ...]
+        }
+        **********************************/
+
+        // GET corresponding driver info
+        try {
+          let driverResponse = await fetch(`https://inori.work/drivers/${selectedOffer.offer.driver_id}`);
+
+          if (parseInt(driverResponse.status / 100, 10) === 2) {
+            let driverResponseJson = await driverResponse.json();
+
+            selectedOffer.driver = driverResponseJson.driver;
+            /**********************************
+            selectedOffer: {
+              driver:{
+                id:,
+                first_name:, last_name:,
+                grade:, major:,
+                mail:, phone:,
+                car_color:, car_number:
+              },
+              offer: {
+                id:,
+                driver_id:, start:, goal:,
+                departure_time:, rider_capacity:
+              },
+              reserved_riders: [`id1`, `id2`, ...]
+            }
+            **********************************/
+
+            // GET corresponding reserved riders info
+            const reservedRidersInfo = [];
+
+            const promiseArray = selectedOffer.reserved_riders.map(async (reservedRiderId) => {
+              try {
+                let riderResponse = await fetch(`https://inori.work/riders/${reservedRiderId}`);
+
+                if (parseInt(riderResponse.status / 100, 10) === 2) {
+                  let riderResponseJson = await riderResponse.json();
+
+                  reservedRidersInfo.push(riderResponseJson.rider);
+
+                // If failed to GET reserved rider info
+                } else if (
+                  parseInt(riderResponse.status / 100, 10) === 4 ||
+                  parseInt(riderResponse.status / 100, 10) === 5
+                ) {
+                  Alert.alert(
+                    'エラーが発生しました。',
+                    '電波の良いところで後ほどお試しください。',
+                    [{ text: 'OK' }]
+                  );
+                }
+
+              // If cannot access riders api,
+              } catch (error) {
+                console.error(error);
+                console.log('Cannot access riders api...');
+
+                Alert.alert(
+                  'エラーが発生しました。',
+                  '電波の良いところで後ほどお試しください。',
+                  [{ text: 'OK' }]
+                );
+              }
+            });
+
+            await Promise.all(promiseArray);
+
+            selectedOffer.reserved_riders = reservedRidersInfo;
+            selectedOffer.isCanceld = false;
+            selectedOffer.isReservation = isReservation;
+            /**********************************
+            selectedOffer: {
+              driver:{
+                id:,
+                first_name:, last_name:,
+                grade:, major:,
+                mail:, phone:,
+                car_color:, car_number:
+              },
+              offer: {
+                id:,
+                driver_id:, start:, goal:,
+                departure_time:, rider_capacity:
+              },
+              reserved_riders: [
+                {
+                  id: `id1`,
+                  first_name:, last_name:,
+                  grade:, major:,
+                  mail:, phone:
+                },
+                {
+                  id: `id2`,
+                  first_name:, last_name:,
+                  grade:, major:,
+                  mail:, phone:
+                },
+                ...
+              ],
+              isCanceld: false,
+              isReservation: true or false,
+            }
+            **********************************/
+
+          // If failed to GET the corresponding driver info
+          } else if (
+            parseInt(driverResponse.status / 100, 10) === 4 ||
+            parseInt(driverResponse.status / 100, 10) === 5
+          ) {
+            Alert.alert(
+              'エラーが発生しました。',
+              '電波の良いところで後ほどお試しください。',
+              [{ text: 'OK' }]
+            );
+          }
+
+        // If cannot access drivers api,
+        } catch (error) {
+          console.error(error);
+          console.log('Cannot access drivers api...');
+        }
+
+      // If failed to GET the selected offer,
+      // (e.g. the driver has already canceled the selected offer)
+      } else if (
+        parseInt(offerResponse.status / 100, 10) === 4 ||
+        parseInt(offerResponse.status / 100, 10) === 5
+      ) {
+        console.log('[rider_action] Failed to GET the selected offer...');
+
+        selectedOffer.isCanceld = true;
+        /**********************************
+        selectedOffer: {
+          isCanceld: true,
+        }
+        **********************************/
+      }
+
+    // If cannot access offers api,
     } catch (error) {
-      console.warn(error);
-      console.log('Cannot get stored rider info...');
+      console.error(error);
+      console.log('Cannot access offers api...');
     }
 
-    dispatch({ type: GET_RIDER_INFO, payload: riderInfo });
+    dispatch({ type: FETCH_SELECTED_OFFER, payload: selectedOffer });
   };
+};
+
+
+export const resetSelectedOffer = () => {
+  const selectedOffer = null;
+  return { type: RESET_SELECTED_OFFER, payload: selectedOffer };
 };

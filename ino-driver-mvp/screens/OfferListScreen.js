@@ -123,7 +123,7 @@ class OfferListScreen extends React.Component {
     // If the app was closed and then opened by tapping the notification
     // (rather than just tapping the app icon to open it),
     // this function will fire on the next tick after the app starts with the notification data.
-    this.notificationSubscription = Notifications.addListener(this.handleNotification);
+    this.notificationListener = Notifications.addListener(this.handleNotification);
   }
 
 

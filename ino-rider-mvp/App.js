@@ -9,10 +9,11 @@ import store from './store';
 import LoginScreen from './screens/LoginScreen';
 import SignupScreen from './screens/SignupScreen';
 import OfferListScreen from './screens/OfferListScreen';
-import ScheduleScreen from './screens/ScheduleScreen';
 import DetailScreen from './screens/DetailScreen';
 import ProfileScreen from './screens/ProfileScreen';
+import ScheduleScreen from './screens/ScheduleScreen';
 import EditProfileScreen from './screens/EditProfileScreen';
+import ReservingScreen from './screens/ReservingScreen';
 
 
 export default class App extends React.Component {
@@ -76,13 +77,6 @@ export default class App extends React.Component {
           headerBackTitle: ' '
         })
       },
-      schedule: {
-        screen: ScheduleScreen,
-        navigationOptions: {
-          ...headerNavigationOptions,
-          headerTitle: 'スケジュール',
-        }
-      },
       detail: {
         screen: DetailScreen,
         navigationOptions: {
@@ -104,6 +98,13 @@ export default class App extends React.Component {
             />
           ),
         })
+      },
+      schedule: {
+        screen: ScheduleScreen,
+        navigationOptions: {
+          ...headerNavigationOptions,
+          headerTitle: 'スケジュール',
+        }
       }
     }, {
       initialRouteName: 'offerList',
@@ -129,6 +130,9 @@ export default class App extends React.Component {
       },
       root: {
         screen: RootStack
+      },
+      reserving: {
+        screen: ReservingScreen
       }
     }, {
       navigationOptions: { tabBarVisible: false },
