@@ -48,7 +48,10 @@ class LoginScreen extends React.Component {
       // stay at LoginScreen
       if (stringifiedRiderInfo === null) {
         console.log('Cannot get rider info...');
-        this.setState({ isLogedin: false });
+        this.setState({
+          isLogedin: false,
+          isReserving: false,
+        });
 
       // If there is the stored rider info already,
       // navigate to OfferListScreen or ReservingScreen
@@ -64,14 +67,14 @@ class LoginScreen extends React.Component {
             body: JSON.stringify({ mail }),
           });
 
-          //console.log(`[debug] mail = ${JSON.stringify({ mail })}`);
+          //console.log(`[LoginScreen] mail = ${JSON.stringify({ mail })}`);
 
           // If succeeded login with the stored email address,
           if (parseInt(loginResponse.status / 100, 10) === 2) {
             let loginResponseJson = await loginResponse.json();
             const riderInfo = loginResponseJson.rider;
 
-            console.log(`[debug] JSON.stringify(riderInfo) = ${JSON.stringify(riderInfo)}`);
+            console.log(`[LoginScreen] JSON.stringify(riderInfo) = ${JSON.stringify(riderInfo)}`);
 
             await AsyncStorage.setItem('riderInfo', JSON.stringify(riderInfo));
 
@@ -90,8 +93,8 @@ class LoginScreen extends React.Component {
               finalStatus = status;
             }
 
-            //console.log(`[debug] existingStatus = ${existingStatus}`);
-            //console.log(`[debug] finalStatus = ${finalStatus}`);
+            console.log(`[LoginScreen] existingStatus = ${existingStatus}`);
+            console.log(`[LoginScreen] finalStatus = ${finalStatus}`);
 
             // Stop here if the user did not grant permissions
             if (finalStatus !== 'granted') {
@@ -100,7 +103,7 @@ class LoginScreen extends React.Component {
 
             // Get the token that uniquely identifies this device
             let pushNotificationsToken = await Notifications.getExpoPushTokenAsync();
-            console.log(`[debug] ${JSON.stringify(pushNotificationsToken)}`);
+            console.log(`[LoginScreen] ${JSON.stringify(pushNotificationsToken)}`);
 
             // POST the push notification token
             try {
@@ -185,7 +188,10 @@ class LoginScreen extends React.Component {
               'アカウントを新規登録をするかもしくは電波の良いところで後ほどお試しください。',
               [{ text: 'OK' }]
             );
-            this.setState({ isLogedin: false });
+            this.setState({
+              isLogedin: false,
+              isReserving: false,
+            });
           }
 
         // If cannot access the login api,
@@ -197,7 +203,10 @@ class LoginScreen extends React.Component {
             '電波の良いところで後ほどお試しください。',
             [{ text: 'OK' }]
           );
-          this.setState({ isLogedin: false });
+          this.setState({
+            isLogedin: false,
+            isReserving: false,
+          });
         }
       }
 
@@ -205,7 +214,10 @@ class LoginScreen extends React.Component {
     } catch (error) {
       console.warn(error);
       console.log('Cannot get stored rider info...');
-      this.setState({ isLogedin: false });
+      this.setState({
+        isLogedin: false,
+        isReserving: false,
+      });
     }
   }
 
@@ -333,7 +345,7 @@ class LoginScreen extends React.Component {
         let loginResponseJson = await loginResponse.json();
         const riderInfo = loginResponseJson.rider;
 
-        console.log(`[debug] JSON.stringify(riderInfo) = ${JSON.stringify(riderInfo)}`);
+        console.log(`[LoginScreen] JSON.stringify(riderInfo) = ${JSON.stringify(riderInfo)}`);
 
         await AsyncStorage.setItem('riderInfo', JSON.stringify(riderInfo));
 
@@ -352,8 +364,8 @@ class LoginScreen extends React.Component {
           finalStatus = status;
         }
 
-        //console.log(`[debug] existingStatus = ${existingStatus}`);
-        //console.log(`[debug] finalStatus = ${finalStatus}`);
+        //console.log(`[LoginScreen] existingStatus = ${existingStatus}`);
+        //console.log(`[LoginScreen] finalStatus = ${finalStatus}`);
 
         // Stop here if the user did not grant permissions
         if (finalStatus !== 'granted') {
@@ -362,7 +374,7 @@ class LoginScreen extends React.Component {
 
         // Get the token that uniquely identifies this device
         let pushNotificationsToken = await Notifications.getExpoPushTokenAsync();
-        console.log(`[debug] ${JSON.stringify(pushNotificationsToken)}`);
+        console.log(`[LoginScreen] ${JSON.stringify(pushNotificationsToken)}`);
 
         // POST the push notification token
         try {
@@ -478,6 +490,9 @@ class LoginScreen extends React.Component {
 
 
   render() {
+    console.log(`[LoginScreen] this.state.isLogedin = ${this.state.isLogedin}`);
+    console.log(`[LoginScreen] this.state.isReserving = ${this.state.isReserving}`);
+
     if (
       this.state.isLogedin === INITIAL_STATE.isLogedin ||
       this.state.isReserving === INITIAL_STATE.isReserving
